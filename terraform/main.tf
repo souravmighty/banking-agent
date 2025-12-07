@@ -64,7 +64,7 @@ resource "google_bigquery_table" "customers" {
     },
     {
       name = "created_at"
-      type = "TIMESTAMP"
+      type = "DATE"
       mode = "REQUIRED"
     },
     {
@@ -129,7 +129,7 @@ resource "google_bigquery_table" "accounts" {
     },
     {
       name = "created_at"
-      type = "TIMESTAMP"
+      type = "DATE"
       mode = "REQUIRED"
     }
   ])
@@ -189,7 +189,7 @@ resource "google_bigquery_table" "transactions" {
     },
     {
       name = "timestamp"
-      type = "TIMESTAMP"
+      type = "DATE"
       mode = "REQUIRED"
     }
   ])
@@ -261,7 +261,7 @@ resource "google_bigquery_table" "customer_products" {
     },
     {
       name = "application_date"
-      type = "TIMESTAMP"
+      type = "DATE"
       mode = "REQUIRED"
     },
     {
@@ -271,7 +271,7 @@ resource "google_bigquery_table" "customer_products" {
     },
     {
       name = "approval_date"
-      type = "TIMESTAMP"
+      type = "DATE"
       mode = "NULLABLE"
     }
   ])
@@ -296,7 +296,7 @@ resource "google_bigquery_table" "credit_scores" {
     },
     {
       name = "last_updated"
-      type = "TIMESTAMP"
+      type = "DATE"
       mode = "REQUIRED"
     },
     {
