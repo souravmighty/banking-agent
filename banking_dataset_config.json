@@ -1,0 +1,9 @@
+{
+  "datasets": [
+    {
+      "type": "bigquery",
+      "name": "banking_data",
+      "description": "This data warehouse is used to store customer banking information including transactions, account details, and customer demographics."
+    }
+  ]
+}

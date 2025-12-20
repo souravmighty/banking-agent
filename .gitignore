@@ -145,3 +145,4 @@ cython_debug/
 
 # VS Code settings
 .vscode/
+/ref/
