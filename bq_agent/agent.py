@@ -10,12 +10,12 @@ from google.adk.agents.callback_context import CallbackContext
 
 # from google.adk.tools import load_artifacts
 from google.genai import types
-from opentelemetry import trace
-from opentelemetry.exporter.otlp.proto.http.trace_exporter import (
-    OTLPSpanExporter,
-)
-from opentelemetry.sdk import trace as trace_sdk
-from opentelemetry.sdk.trace.export import SimpleSpanProcessor
+# from opentelemetry import trace
+# from opentelemetry.exporter.otlp.proto.http.trace_exporter import (
+#     OTLPSpanExporter,
+# )
+# from opentelemetry.sdk import trace as trace_sdk
+# from opentelemetry.sdk.trace.export import SimpleSpanProcessor
 
 from .prompts import return_instructions_root
 
