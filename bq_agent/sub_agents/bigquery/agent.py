@@ -14,6 +14,9 @@ from google.genai import types
 from . import tools
 # from .chase_sql import chase_db_tools
 from .prompts import return_instructions_bigquery
+from dotenv import load_dotenv
+
+load_dotenv()
 
 logger = logging.getLogger(__name__)
 
@@ -31,8 +34,11 @@ def setup_before_agent_call(callback_context: CallbackContext) -> None:
 
     if "database_settings" not in callback_context.state:
         callback_context.state["database_settings"] = (
-            tools.get_database_settings()
+            tools.get_database_settings(email_id=os.environ.get("CUSTOMER_EMAIL_ID"))
         )
+        
+    if "customer_profile" not in callback_context.state:
+        callback_context.state["customer_profile"] = tools.get_customer_profile(email_id=os.environ.get("CUSTOMER_EMAIL_ID"))
 
 
 def store_results_in_context(

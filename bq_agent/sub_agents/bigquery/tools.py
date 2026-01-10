@@ -12,6 +12,7 @@ from google.adk.tools.bigquery.client import get_bigquery_client
 from google.cloud import bigquery
 from google.genai import Client
 from google.genai.types import HttpOptions
+from google.api_core.exceptions import NotFound
 
 # from .chase_sql import chase_constants
 # from ...utils.utils import USER_AGENT
@@ -43,67 +44,84 @@ llm_client = Client(
 MAX_NUM_ROWS = 10000
 
 
-# def _serialize_value_for_sql(value):
-#     """Serializes a Python value from a pandas DataFrame into a BigQuery SQL literal."""
-#     if isinstance(value, (list, np.ndarray)):
-#         # Format arrays.
-#         return f"[{', '.join(_serialize_value_for_sql(v) for v in value)}]"
-#     if pd.isna(value):
-#         return "NULL"
-#     if isinstance(value, str):
-#         # Escape single quotes and backslashes for SQL strings.
-#         # NOTE: This will throw an exception in Python <= 3.11 because
-#         # Python 3.12 introduces better f-string handling.
-#         new_value = value.replace("\\", "\\\\").replace("'", "''")
-#         return f"'{new_value}'"
-#     if isinstance(value, bytes):
-#         decoded = value.decode("utf-8", "replace")
-#         new_value = decoded.replace("\\", "\\\\").replace("'", "''")
-#         return f"b'{new_value}'"
-#     if isinstance(value, (datetime.datetime, datetime.date, pd.Timestamp)):
-#         # Timestamps and datetimes need to be quoted.
-#         return f"'{value}'"
-#     if isinstance(value, dict):
-#         # For STRUCT, BQ expects ('val1', 'val2', ...).
-#         # The values() order from the dataframe should match the column order.
-#         string_values = [_serialize_value_for_sql(v) for v in value.values()]
-#         return f"({", ".join(string_values)})"
-#     return str(value)
+def _serialize_value_for_sql(value):
+    """Serializes a Python value from a pandas DataFrame into a BigQuery SQL literal."""
+    if isinstance(value, (list, np.ndarray)):
+        # Format arrays.
+        return f"[{', '.join(_serialize_value_for_sql(v) for v in value)}]"
+    if pd.isna(value):
+        return "NULL"
+    if isinstance(value, str):
+        # Escape single quotes and backslashes for SQL strings.
+        # NOTE: This will throw an exception in Python <= 3.11 because
+        # Python 3.12 introduces better f-string handling.
+        new_value = value.replace("\\", "\\\\").replace("'", "''")
+        return f"'{new_value}'"
+    if isinstance(value, bytes):
+        decoded = value.decode("utf-8", "replace")
+        new_value = decoded.replace("\\", "\\\\").replace("'", "''")
+        return f"b'{new_value}'"
+    if isinstance(value, (datetime.datetime, datetime.date, pd.Timestamp)):
+        # Timestamps and datetimes need to be quoted.
+        return f"'{value}'"
+    if isinstance(value, dict):
+        # For STRUCT, BQ expects ('val1', 'val2', ...).
+        # The values() order from the dataframe should match the column order.
+        string_values = [_serialize_value_for_sql(v) for v in value.values()]
+        return f'({", ".join(string_values)})'
+    return str(value)
 
 
 database_settings = None
 
 
-def get_database_settings():
+def get_database_settings(email_id):
     """Get database settings."""
     global database_settings
     if database_settings is None:
-        database_settings = update_database_settings()
+        database_settings = update_database_settings(email_id=email_id)
     return database_settings
 
 
-def update_database_settings():
+def update_database_settings(email_id):
     """Update database settings."""
     global database_settings
-    schema = get_bigquery_schema_and_samples()
+    
+    sanitized_email = email_id.replace('@', '_').replace('.', '_')
+    target_dataset_id = f"customer_{sanitized_email}"
+    create_customer_views(
+        email_id=email_id,
+        target_dataset_id=target_dataset_id,
+    )
+    schema = get_bigquery_schema_and_samples(bq_data_project=data_project, bq_dataset_id=target_dataset_id)
     database_settings = {
         # "data_project_id": get_env_var("BQ_DATA_PROJECT_ID"),
         # "dataset_id": get_env_var("BQ_DATASET_ID"),
         "data_project_id": data_project,
-        "dataset_id": dataset_id,
+        "dataset_id": target_dataset_id,
         "schema": schema,
     }
     return database_settings
 
+def get_customer_profile(email_id):
+    """Get customer profile."""
+    global customer_profile
+    sanitized_email = email_id.replace('@', '_').replace('.', '_')
+    customer_profile = get_customer_details(
+        project_id=data_project,
+        target_dataset_id=f"customer_{sanitized_email}",
+    )
+    return customer_profile
 
-def get_bigquery_schema_and_samples():
+
+def get_bigquery_schema_and_samples(bq_data_project, bq_dataset_id):
     """Retrieves schema and sample values for the BigQuery dataset tables."""
     client = get_bigquery_client(
         project=compute_project,
         credentials=None,
         user_agent=USER_AGENT,
     )
-    dataset_ref = bigquery.DatasetReference(data_project, dataset_id)
+    dataset_ref = bigquery.DatasetReference(bq_data_project, bq_dataset_id)
     tables_context = {}
     for table in client.list_tables(dataset_ref):
         table_info = client.get_table(
@@ -114,22 +132,167 @@ def get_bigquery_schema_and_samples():
             for schema_field in table_info.schema
         ]
         table_ref = dataset_ref.table(table.table_id)
-        sample_values = []
-        # if False:
-        #     sample_query = f"SELECT * FROM `{table_ref}` LIMIT 5"
-        #     sample_values = (
-        #         client.query(sample_query).to_dataframe().to_dict(orient="list")
-        #     )
-        #     for key in sample_values:
-        #         sample_values[key] = [
-        #             _serialize_value_for_sql(v) for v in sample_values[key]
-        #         ]
+        # sample_values = []
+        
+        # sample_query = f"SELECT * FROM `{table_ref}` LIMIT 5"
+        # sample_values = (
+        #     client.query(sample_query).to_dataframe().to_dict(orient="list")
+        # )
+        # for key in sample_values:
+        #     sample_values[key] = [
+        #         _serialize_value_for_sql(v) for v in sample_values[key]
+        #     ]
         tables_context[str(table_ref)] = {
             "table_schema": table_schema,
-            "example_values": sample_values,
+            # "example_values": sample_values,
         }
 
     return tables_context
+
+
+
+def create_customer_views(email_id, target_dataset_id):
+    """
+    Creates BigQuery views for a specific customer email, limiting data visibility 
+    across all related tables.
+    
+    Args:
+        email_id (str): The customer's email address to filter by.
+        target_dataset_id (str): The ID of the dataset where views should be created 
+                                 (e.g., 'specific_customer_views').
+        project_id (str): The GCP project ID containing the source data.
+    """
+    
+    # client = bigquery.Client(project=data_project)
+    client = get_bigquery_client(
+        project=compute_project,
+        credentials=None,
+        user_agent=USER_AGENT,
+    )
+    
+    full_source_path = f"{data_project}.{dataset_id}"
+    
+    # Mapping of Table Name -> SQL Logic for filtering
+    # We use JOINs to trace everything back to the 'customers' table where the email exists.
+    view_definitions = {
+        
+        # 1. Base Table: Customers (Direct Filter)
+        "customers": f"""
+            SELECT * FROM `{full_source_path}.customers`
+            WHERE email = '{email_id}'
+        """,
+        
+        # 2. Accounts (Join via customer_id)
+        "accounts": f"""
+            SELECT t.* FROM `{full_source_path}.accounts` t
+            JOIN `{full_source_path}.customers` c 
+              ON t.customer_id = c.customer_id
+            WHERE c.email = '{email_id}'
+        """,
+        
+        # 3. Credit Scores (Join via customer_id)
+        "credit_scores": f"""
+            SELECT t.* FROM `{full_source_path}.credit_scores` t
+            JOIN `{full_source_path}.customers` c 
+              ON t.customer_id = c.customer_id
+            WHERE c.email = '{email_id}'
+        """,
+        
+        # 4. Customer Products (Join via customer_id)
+        "customer_products": f"""
+            SELECT t.* FROM `{full_source_path}.customer_products` t
+            JOIN `{full_source_path}.customers` c 
+              ON t.customer_id = c.customer_id
+            WHERE c.email = '{email_id}'
+        """,
+        
+        # 5. Products (Filter to only products the customer actually owns)
+        "products": f"""
+            SELECT DISTINCT p.* FROM `{full_source_path}.products` p
+            JOIN `{full_source_path}.customer_products` cp 
+              ON p.product_id = cp.product_id
+            JOIN `{full_source_path}.customers` c 
+              ON cp.customer_id = c.customer_id
+            WHERE c.email = '{email_id}'
+        """,
+        
+        # 6. Transactions (Complex Join: Check if customer owns EITHER sender OR receiver account)
+        "transactions": f"""
+            SELECT DISTINCT t.* FROM `{full_source_path}.transactions` t
+            JOIN `{full_source_path}.accounts` a 
+              ON (t.from_account_id = a.account_id OR t.to_account_id = a.account_id)
+            JOIN `{full_source_path}.customers` c 
+              ON a.customer_id = c.customer_id
+            WHERE c.email = '{email_id}'
+        """
+    }
+
+    # Create target dataset if it doesn't exist
+    try:
+        client.get_dataset(target_dataset_id)
+        print(f"Dataset {target_dataset_id} already exists.")
+    except NotFound:
+        dataset = bigquery.Dataset(f"{client.project}.{target_dataset_id}")
+        dataset.location = "US"  # Adjust location as needed
+        client.create_dataset(dataset)
+        print(f"Created dataset {target_dataset_id}.")
+
+    # Loop through definitions and create views
+    print(f"Creating views for user: {email_id}...")
+    
+    for table_name, sql_query in view_definitions.items():
+        view_id = f"{client.project}.{target_dataset_id}.{table_name}"
+        view = bigquery.Table(view_id)
+        view.view_query = sql_query
+        
+        # Make the creation idempotent (overwrite if exists)
+        client.create_table(view, exists_ok=True)
+        print(f" - Created view: {table_name}")
+
+    print("All views created successfully.")
+
+
+def get_customer_details(project_id, target_dataset_id):
+    """
+    Queries the 'customers' and 'accounts' views from the specified dataset
+    and returns the results in a dictionary.
+
+    Args:
+        target_dataset_id (str): The ID of the dataset where the views reside.
+        project_id (str): The GCP project ID.
+
+    Returns:
+        dict: A dictionary containing 'customer_profile' (list of dicts) 
+              and 'accounts' (list of dicts).
+    """
+    client = get_bigquery_client(
+        project=compute_project,
+        credentials=None,
+        user_agent=USER_AGENT,
+    )
+    
+    # Initialize the result dictionary
+    result_data = {
+        "customer_profile": [],
+        "accounts": []
+    }
+
+    # 1. Query the Customers View
+    # Since the view is already filtered by email, we can select everything.
+    customer_query = f"SELECT * FROM `{project_id}.{target_dataset_id}.customers`"
+    query_job = client.query(customer_query)
+    
+    # Convert rows to dictionary objects
+    # row.items() returns (key, value) pairs which we turn into a dict
+    result_data["customer_profile"] = [dict(row.items()) for row in query_job]
+
+    # 2. Query the Accounts View
+    accounts_query = f"SELECT * FROM `{project_id}.{target_dataset_id}.accounts`"
+    query_job = client.query(accounts_query)
+    
+    result_data["accounts"] = [dict(row.items()) for row in query_job]
+
+    return result_data
 
 
 def bigquery_nl2sql(

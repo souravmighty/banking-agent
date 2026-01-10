@@ -5,6 +5,7 @@ import os
 from datetime import date
 from dotenv import load_dotenv
 
+
 from google.adk.agents import LlmAgent
 from google.adk.agents.callback_context import CallbackContext
 
@@ -19,9 +20,7 @@ from google.genai import types
 
 from .prompts import return_instructions_root
 
-from .sub_agents.bigquery.tools import (
-    get_database_settings as get_bq_database_settings,
-)
+from .sub_agents.bigquery.tools import get_customer_profile, get_database_settings
 from .tools import call_bigquery_agent, call_transaction_agent
 
 from .sub_agents import bigquery_agent
@@ -68,13 +67,13 @@ def load_dataset_config():
     return dataset_config
 
 
-def get_database_settings(db_type: str) -> dict:
-    """Wrapper function to get database settings by type"""
-    assert db_type in _supported_dataset_types
-    if db_type == "bigquery":
-        return get_bq_database_settings()
-    else:
-        return get_alloydb_database_settings()
+# def get_database_settings(db_type: str) -> dict:
+#     """Wrapper function to get database settings by type"""
+#     assert db_type in _supported_dataset_types
+#     if db_type == "bigquery":
+#         return get_bq_database_settings()
+#     else:
+#         return get_alloydb_database_settings()
     
 
 
@@ -82,8 +81,18 @@ def init_database_settings(dataset_config: dict) -> dict:
     """Initializes the database settings for the configured datasets"""
     db_settings = {}
     for dataset in dataset_config["datasets"]:
-        db_settings[dataset["type"]] = get_database_settings(dataset["type"])
+        db_settings[dataset["type"]] = get_database_settings(email_id=os.environ.get("CUSTOMER_EMAIL_ID"))
     return db_settings
+
+def get_customer_details_for_instructions() -> str:
+    """Returns the customer profile instructions block"""
+    
+    customer_details = f"""<CUSTOMER_PROFILE>
+    {_customer_profile}
+</CUSTOMER_PROFILE>
+"""
+    return customer_details
+
 
 
 def get_dataset_definitions_for_instructions() -> str:
@@ -110,14 +119,6 @@ def get_dataset_definitions_for_instructions() -> str:
 </DATASETS>
 """
 
-    if "cross_dataset_relations" in _dataset_config:
-        dataset_definitions += f"""
-<CROSS_DATASET_RELATIONS>
---------- The cross dataset relations between the configured datasets. ---------
-{_dataset_config["cross_dataset_relations"]}
-</CROSS_DATASET_RELATIONS>
-"""
-
     return dataset_definitions
 
 
@@ -126,6 +127,10 @@ def load_database_settings_in_context(callback_context: CallbackContext):
     if "database_settings" not in callback_context.state:
         callback_context.state["database_settings"] = _database_settings
         
+    if "customer_profile" not in callback_context.state:
+        callback_context.state["customer_profile"] = _customer_profile
+        
+    
 def get_root_agent() -> LlmAgent:
     tools = []
     sub_agents = []
@@ -140,10 +145,11 @@ def get_root_agent() -> LlmAgent:
         model=os.getenv("ROOT_AGENT_MODEL", "gemini-2.5-flash"),
         name="data_science_root_agent",
         instruction=return_instructions_root()
-        + get_dataset_definitions_for_instructions(),
+        + get_dataset_definitions_for_instructions()
+        + get_customer_details_for_instructions(),
         global_instruction=(
             f"""
-            You are a Data Science and Data Analytics Multi Agent System.
+            You are Banking Customer facing helpful Multi Agent System.
             Todays date: {date.today()}
             """
         ),
@@ -160,24 +166,9 @@ def get_root_agent() -> LlmAgent:
 _dataset_config = load_dataset_config()
 _database_settings = init_database_settings(_dataset_config)
 
+_customer_profile = get_customer_profile(os.environ.get("CUSTOMER_EMAIL_ID"))
+
 
 # Fetch the root agent
 root_agent = get_root_agent()
 
-# # Fetch the root agent
-# root_agent = LlmAgent(
-#         model="gemini-2.5-flash",
-#         name="root_agent",
-#         instruction=return_instructions_root(),
-#         global_instruction=(
-#             f"""
-#             You are a Data Science and Data Analytics Multi Agent System.
-#             Todays date: {date.today()}
-#             """
-#         ),
-#         # sub_agents=sub_agents,  # type: ignore
-#         # sub_agents=[bigquery_agent],  # type: ignore
-#         tools=[call_bigquery_agent],
-#         before_agent_callback=load_database_settings_in_context,
-#         generate_content_config=types.GenerateContentConfig(temperature=0.01),
-#     )
