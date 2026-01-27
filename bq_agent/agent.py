@@ -143,7 +143,7 @@ def get_root_agent() -> LlmAgent:
     tools.append(call_transaction_agent)
     agent = LlmAgent(
         model=os.getenv("ROOT_AGENT_MODEL", "gemini-2.5-flash"),
-        name="data_science_root_agent",
+        name="banking_root_agent",
         instruction=return_instructions_root()
         + get_dataset_definitions_for_instructions()
         + get_customer_details_for_instructions(),
