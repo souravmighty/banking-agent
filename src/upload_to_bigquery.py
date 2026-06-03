@@ -1,14 +1,24 @@
 from google.cloud import bigquery
+from google.oauth2 import service_account
 from google.cloud.exceptions import NotFound
 import os
+from dotenv import load_dotenv
 import sys
+
+# Load the .env file
+load_dotenv()
 
 # Data directory path
 DATA_DIR = '../data'
 
 def upload_csv_to_bigquery(project_id, dataset_id, table_id, csv_file):
     """Upload CSV file to BigQuery table"""
-    client = bigquery.Client(project=project_id)
+    
+    KEY_PATH = "../keys/service-account-key.json"
+
+    # Create credentials from the file
+    credentials = service_account.Credentials.from_service_account_file(KEY_PATH)
+    client = bigquery.Client(project=project_id, credentials=credentials)
     
     table_ref = f"{project_id}.{dataset_id}.{table_id}"
     
@@ -38,12 +48,12 @@ def upload_csv_to_bigquery(project_id, dataset_id, table_id, csv_file):
 
 def main():
     # Configuration
-    project_id = os.environ.get('GCP_PROJECT_ID')
-    dataset_id = os.environ.get('DATASET_ID', 'banking_data')
-    
+    project_id = os.getenv("GOOGLE_CLOUD_PROJECT")
+    dataset_id = os.getenv("DATASET_ID", "banking_data")
+
     if not project_id:
-        print("Error: GCP_PROJECT_ID environment variable not set")
-        print("Usage: export GCP_PROJECT_ID=your-project-id")
+        print("Error: GOOGLE_CLOUD_PROJECT environment variable not set")
+        print("Usage: export GOOGLE_CLOUD_PROJECT=your-project-id")
         sys.exit(1)
     
     # Tables to upload (with paths relative to data directory)

@@ -5,6 +5,11 @@
 **.terraform.lock.*
 **google_credentials.json
 **my-creds.json
+**adk-agent-sa.json
+**service-account-key.json
+/keys/
+keys/*
+/keys/**.json
 
 
 # Byte-compiled / optimized / DLL files

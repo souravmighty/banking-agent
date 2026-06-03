@@ -37,34 +37,35 @@ _supported_dataset_types = ["bigquery", "alloydb"]
 _required_dataset_config_params = ["name", "description"]
 
 
-def load_dataset_config():
-    """Load the dataset configurations for the agent from the config file"""
+# def load_dataset_config():
+#     """Load the dataset configurations for the agent from the config file"""
 
-    dataset_config_file = os.getenv("DATASET_CONFIG_FILE", "")
-    if not dataset_config_file:
-        _logger.fatal("DATASET_CONFIG_FILE env var not set")
+#     dataset_config_file = "banking_dataset_config.json"  # os.environ.get("DATASET_CONFIG_FILE")
+#     if not dataset_config_file:
+#         _logger.fatal("Dataset config file path not provided.")
 
-    with open(dataset_config_file, "r", encoding="utf-8") as f:
-        dataset_config = json.load(f)
+#     with open(dataset_config_file, "r", encoding="utf-8") as f:
+#         dataset_config = json.load(f)
+        
 
-    if "datasets" not in dataset_config:
-        _logger.fatal("No 'datasets' entry in dataset config")
+#     if "datasets" not in dataset_config:
+#         _logger.fatal("No 'datasets' entry in dataset config")
 
-    for dataset in dataset_config["datasets"]:
-        if "type" not in dataset:
-            _logger.fatal("Missing dataset type")
-        if dataset["type"] not in _supported_dataset_types:
-            _logger.fatal("Dataset type '%s' not supported", dataset["type"])
+#     for dataset in dataset_config["datasets"]:
+#         if "type" not in dataset:
+#             _logger.fatal("Missing dataset type")
+#         if dataset["type"] not in _supported_dataset_types:
+#             _logger.fatal("Dataset type '%s' not supported", dataset["type"])
 
-        for p in _required_dataset_config_params:
-            if p not in dataset:
-                _logger.fatal(
-                    "Missing required param '%s' from %s dataset config",
-                    p,
-                    dataset["type"],
-                )
+#         for p in _required_dataset_config_params:
+#             if p not in dataset:
+#                 _logger.fatal(
+#                     "Missing required param '%s' from %s dataset config",
+#                     p,
+#                     dataset["type"],
+#                 )
 
-    return dataset_config
+#     return dataset_config
 
 
 # def get_database_settings(db_type: str) -> dict:
@@ -82,6 +83,7 @@ def init_database_settings(dataset_config: dict) -> dict:
     db_settings = {}
     for dataset in dataset_config["datasets"]:
         db_settings[dataset["type"]] = get_database_settings(email_id=os.environ.get("CUSTOMER_EMAIL_ID"))
+        #  db_settings[dataset["type"]] = get_database_settings(email_id="souravmaiti1997@gmail.com")
     return db_settings
 
 def get_customer_details_for_instructions() -> str:
@@ -140,7 +142,7 @@ def get_root_agent() -> LlmAgent:
         elif dataset["type"] == "alloydb":
             tools.append(call_alloydb_agent)
 
-    tools.append(call_transaction_agent)
+    # tools.append(call_transaction_agent)
     agent = LlmAgent(
         model=os.getenv("ROOT_AGENT_MODEL", "gemini-2.5-flash"),
         name="banking_root_agent",
@@ -150,7 +152,7 @@ def get_root_agent() -> LlmAgent:
         global_instruction=(
             f"""
             You are Banking Customer facing helpful Multi Agent System.
-            Todays date: {date.today()}
+            Todays date: {date.today().isoformat()}
             """
         ),
         # sub_agents=[bigquery_agent],  # type: ignore
@@ -163,10 +165,20 @@ def get_root_agent() -> LlmAgent:
 
 
 # Initialize dataset configurations and database info before the agent starts
-_dataset_config = load_dataset_config()
+# _dataset_config = load_dataset_config()
+_dataset_config = {
+  "datasets": [
+    {
+      "type": "bigquery",
+      "name": "banking_data",
+      "description": "This data warehouse is used to store customer banking information including transactions, account details, and customer demographics."
+    }
+  ]
+}
 _database_settings = init_database_settings(_dataset_config)
 
 _customer_profile = get_customer_profile(os.environ.get("CUSTOMER_EMAIL_ID"))
+
 
 
 # Fetch the root agent

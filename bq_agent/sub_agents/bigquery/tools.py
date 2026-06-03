@@ -3,6 +3,7 @@
 import datetime
 import logging
 import os
+from dotenv import load_dotenv
 
 import numpy as np
 import pandas as pd
@@ -11,8 +12,15 @@ from google.adk.tools import ToolContext
 from google.adk.tools.bigquery.client import get_bigquery_client
 from google.cloud import bigquery
 from google.genai import Client
+from google.oauth2 import service_account
 from google.genai.types import HttpOptions
 from google.api_core.exceptions import NotFound
+from pathlib import Path
+
+# 1. Get the folder where this script lives
+script_dir = Path(__file__).resolve().parent
+
+load_dotenv()  # Load environment variables from .env file
 
 # from .chase_sql import chase_constants
 # from ...utils.utils import USER_AGENT
@@ -28,11 +36,11 @@ logger = logging.getLogger(__name__)
 # vertex_project = get_env_var("GOOGLE_CLOUD_PROJECT")
 # location = get_env_var("GOOGLE_CLOUD_LOCATION")
 
-dataset_id = "banking_data"
-data_project = "banking-agent-adk-mcp"
-compute_project = "banking-agent-adk-mcp"
-vertex_project = "banking-agent-adk-mcp"
-location = "us-central1"
+dataset_id = os.getenv("BQ_DATASET_ID")
+data_project = os.getenv("BQ_PROJECT_ID")
+compute_project = os.getenv("GOOGLE_CLOUD_PROJECT")
+vertex_project = os.getenv("GOOGLE_CLOUD_PROJECT")
+location = os.getenv("GOOGLE_CLOUD_LOCATION", "us-central1")
 http_options = HttpOptions(headers={"user-agent": USER_AGENT})
 llm_client = Client(
     vertexai=True,
@@ -120,6 +128,7 @@ def get_bigquery_schema_and_samples(bq_data_project, bq_dataset_id):
         project=compute_project,
         credentials=None,
         user_agent=USER_AGENT,
+        location=location,
     )
     dataset_ref = bigquery.DatasetReference(bq_data_project, bq_dataset_id)
     tables_context = {}
@@ -162,13 +171,16 @@ def create_customer_views(email_id, target_dataset_id):
                                  (e.g., 'specific_customer_views').
         project_id (str): The GCP project ID containing the source data.
     """
-    
-    # client = bigquery.Client(project=data_project)
-    client = get_bigquery_client(
-        project=compute_project,
-        credentials=None,
-        user_agent=USER_AGENT,
-    )
+    # KEY_PATH = script_dir.parent.parent.parent / "keys" / "service-account-key.json"
+
+    # Create credentials from the file
+    # credentials = service_account.Credentials.from_service_account_file(KEY_PATH)
+    client = bigquery.Client(project=data_project, location=location)
+    # client = get_bigquery_client(
+    #     project=compute_project,
+    #     credentials=None,
+    #     user_agent=USER_AGENT,
+    # )
     
     full_source_path = f"{data_project}.{dataset_id}"
     
@@ -233,23 +245,21 @@ def create_customer_views(email_id, target_dataset_id):
         print(f"Dataset {target_dataset_id} already exists.")
     except NotFound:
         dataset = bigquery.Dataset(f"{client.project}.{target_dataset_id}")
-        dataset.location = "US"  # Adjust location as needed
+        dataset.location = location  # Adjust location as needed
         client.create_dataset(dataset)
         print(f"Created dataset {target_dataset_id}.")
+        # Loop through definitions and create views
+        print(f"Creating views for user: {email_id}...")
+        for table_name, sql_query in view_definitions.items():
+            view_id = f"{client.project}.{target_dataset_id}.{table_name}"
+            view = bigquery.Table(view_id)
+            view.view_query = sql_query
+            
+            # Make the creation idempotent (overwrite if exists)
+            client.create_table(view, exists_ok=True)
+            print(f" - Created view: {table_name}")
 
-    # Loop through definitions and create views
-    print(f"Creating views for user: {email_id}...")
-    
-    for table_name, sql_query in view_definitions.items():
-        view_id = f"{client.project}.{target_dataset_id}.{table_name}"
-        view = bigquery.Table(view_id)
-        view.view_query = sql_query
-        
-        # Make the creation idempotent (overwrite if exists)
-        client.create_table(view, exists_ok=True)
-        print(f" - Created view: {table_name}")
-
-    print("All views created successfully.")
+        print("All views created successfully.")
 
 
 def get_customer_details(project_id, target_dataset_id):
@@ -269,6 +279,7 @@ def get_customer_details(project_id, target_dataset_id):
         project=compute_project,
         credentials=None,
         user_agent=USER_AGENT,
+        location=location,
     )
     
     # Initialize the result dictionary
@@ -282,16 +293,29 @@ def get_customer_details(project_id, target_dataset_id):
     customer_query = f"SELECT * FROM `{project_id}.{target_dataset_id}.customers`"
     query_job = client.query(customer_query)
     
+    
     # Convert rows to dictionary objects
     # row.items() returns (key, value) pairs which we turn into a dict
-    result_data["customer_profile"] = [dict(row.items()) for row in query_job]
-
+    # result_data["customer_profile"] = [dict(row.items()) for row in query_job]
+    
+    result_data["customer_profile"] = query_job.to_dataframe().to_dict(orient="list")
+    for key in result_data["customer_profile"]:
+        result_data["customer_profile"][key] = [
+            _serialize_value_for_sql(v) for v in result_data["customer_profile"][key]
+        ]
     # 2. Query the Accounts View
     accounts_query = f"SELECT * FROM `{project_id}.{target_dataset_id}.accounts`"
     query_job = client.query(accounts_query)
     
-    result_data["accounts"] = [dict(row.items()) for row in query_job]
+    # result_data["accounts"] = [dict(row.items()) for row in query_job]
+    result_data["accounts"] = query_job.to_dataframe().to_dict(orient="list")
+    for key in result_data["accounts"]:
+        result_data["accounts"][key] = [
+            _serialize_value_for_sql(v) for v in result_data["accounts"][key]
+        ]
 
+    
+    
     return result_data
 
 

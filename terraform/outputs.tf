@@ -3,10 +3,10 @@ output "dataset_id" {
   value       = google_bigquery_dataset.banking_dataset.dataset_id
 }
 
-output "staging_bucket" {
-  description = "GCS bucket for data staging"
-  value       = google_storage_bucket.data_staging.name
-}
+# output "staging_bucket" {
+#   description = "GCS bucket for data staging"
+#   value       = google_storage_bucket.data_staging.name
+# }
 
 output "tables" {
   description = "Created BigQuery tables"

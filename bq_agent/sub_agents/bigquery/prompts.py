@@ -11,9 +11,9 @@ import os
 
 def return_instructions_bigquery() -> str:
 
-    nl2sql_tool_name = "initial_bq_nl2sql"
+    nl2sql_tool_name = "bigquery_nl2sql"
     execute_sql_tool_name = "execute_sql"
-    project_id = "banking-agent-adk-mcp"
+    project_id = os.getenv("BQ_PROJECT_ID")
 
     instruction_prompt_bigquery = f"""
       You are an AI assistant serving as a SQL expert for BigQuery.

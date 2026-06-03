@@ -8,13 +8,23 @@ from typing import Any, Dict, Optional
 from google.adk.agents import LlmAgent
 from google.adk.agents.callback_context import CallbackContext
 from google.adk.tools import BaseTool, ToolContext
-from google.adk.tools.bigquery import BigQueryToolset
+from google.adk.tools.bigquery import BigQueryToolset, BigQueryCredentialsConfig
 from google.adk.tools.bigquery.config import BigQueryToolConfig, WriteMode
 from google.genai import types
 from . import tools
 # from .chase_sql import chase_db_tools
 from .prompts import return_instructions_bigquery
 from dotenv import load_dotenv
+from pathlib import Path
+from google.oauth2 import service_account
+
+# Load Service Account credentials
+script_dir = Path(__file__).resolve().parent
+# KEY_PATH = script_dir.parent.parent.parent / "keys" / "adk-agent-sa.json"
+# credentials = service_account.Credentials.from_service_account_file(KEY_PATH)
+
+# Configure the toolset
+# credentials_config = BigQueryCredentialsConfig(credentials=credentials)
 
 load_dotenv()
 
@@ -23,6 +33,8 @@ logger = logging.getLogger(__name__)
 NL2SQL_METHOD = os.getenv("NL2SQL_METHOD", "BASELINE")
 
 USER_AGENT = "bq-agent"
+
+
 
 # BigQuery built-in tools in ADK
 # https://google.github.io/adk-docs/tools/built-in-tools/#bigquery
@@ -34,12 +46,11 @@ def setup_before_agent_call(callback_context: CallbackContext) -> None:
 
     if "database_settings" not in callback_context.state:
         callback_context.state["database_settings"] = (
-            tools.get_database_settings(email_id=os.environ.get("CUSTOMER_EMAIL_ID"))
+            tools.get_database_settings(email_id=os.getenv("CUSTOMER_EMAIL_ID"))
         )
         
     if "customer_profile" not in callback_context.state:
-        callback_context.state["customer_profile"] = tools.get_customer_profile(email_id=os.environ.get("CUSTOMER_EMAIL_ID"))
-
+        callback_context.state["customer_profile"] = tools.get_customer_profile(email_id=os.getenv("CUSTOMER_EMAIL_ID"))
 
 def store_results_in_context(
     tool: BaseTool,

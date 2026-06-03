@@ -1,6 +1,6 @@
 variable "credentials" {
   description = "My Credentials"
-  default     = "../keys/my-creds.json"
+  default     = "../keys/service-account-key.json"
   #ex: if you have a directory where this file is called keys with your service account json file
   #saved there as my-creds.json you could use default = "./keys/my-creds.json"
 }
@@ -8,7 +8,7 @@ variable "credentials" {
 variable "project_id" {
   description = "The GCP project ID"
   type        = string
-  default = "banking-agent-adk-mcp"
+  default = "banking-agent-rag-mcp"
 }
 
 variable "region" {
@@ -20,7 +20,7 @@ variable "region" {
 variable "location" {
   description = "The GCP location for resources"
   type        = string
-  default     = "US"
+  default     = "us-central1"
 }
 
 variable "dataset_id" {
