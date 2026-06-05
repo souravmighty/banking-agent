@@ -68,13 +68,11 @@ def create() -> None:
         extra_packages=["./bq_agent"],
         service_account = os.getenv("GOOGLE_CLOUD_SERVICE_ACCOUNT"),  # Make sure this service account has the necessary permissions
         env_vars={
-            "GOOGLE_GENAI_USE_VERTEXAI": "TRUE",
             "ROOT_AGENT_MODEL": "gemini-2.5-pro",
             "TRANSACTION_AGENT_MODEL": "gemini-2.5-flash",
             "BQ_PROJECT_ID": "banking-agent-rag-mcp", 
             "BQ_DATASET_ID": "banking_data",
-            "BIGQUERY_AGENT_MODEL": "gemini-2.5-pro",
-            "CUSTOMER_EMAIL_ID": "souravmaiti1997@gmail.com",
+            "BIGQUERY_AGENT_MODEL": "gemini-2.5-pro"
         }
     )
     print(f"Created remote app: {remote_app.resource_name}")
@@ -104,9 +102,9 @@ def create_session(resource_id: str, user_id: str) -> None:
     remote_session = remote_app.create_session(user_id=user_id)
     print("Created session:")
     print(f"  Session ID: {remote_session['id']}")
-    print(f"  User ID: {remote_session['user_id']}")
-    print(f"  App name: {remote_session['app_name']}")
-    print(f"  Last update time: {remote_session['last_update_time']}")
+    # print(f"  User ID: {remote_session['user_id']}")
+    # print(f"  App name: {remote_session['app_name']}")
+    # print(f"  Last update time: {remote_session['last_update_time']}")
     print("\nUse this session ID with --session_id when sending messages.")
 
 

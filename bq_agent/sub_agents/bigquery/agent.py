@@ -46,11 +46,11 @@ def setup_before_agent_call(callback_context: CallbackContext) -> None:
 
     if "database_settings" not in callback_context.state:
         callback_context.state["database_settings"] = (
-            tools.get_database_settings(email_id=os.getenv("CUSTOMER_EMAIL_ID"))
+            tools.get_database_settings(email_id=callback_context.session.user_id)
         )
         
     if "customer_profile" not in callback_context.state:
-        callback_context.state["customer_profile"] = tools.get_customer_profile(email_id=os.getenv("CUSTOMER_EMAIL_ID"))
+        callback_context.state["customer_profile"] = tools.get_customer_profile(email_id=callback_context.session.user_id)
 
 def store_results_in_context(
     tool: BaseTool,

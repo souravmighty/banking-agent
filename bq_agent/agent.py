@@ -8,6 +8,7 @@ from dotenv import load_dotenv
 
 from google.adk.agents import LlmAgent
 from google.adk.agents.callback_context import CallbackContext
+from google.adk.tools import BaseTool, ToolContext
 
 # from google.adk.tools import load_artifacts
 from google.genai import types
@@ -31,7 +32,16 @@ logging.basicConfig(level=logging.INFO)
 _logger = logging.getLogger(__name__)
 
 # Initialize module-level config variables
-_dataset_config = {}
+_dataset_config = {
+  "datasets": [
+    {
+      "type": "bigquery",
+      "name": "banking_data",
+      "description": "This data warehouse is used to store customer banking information including transactions, account details, and customer demographics."
+    }
+  ]
+}
+
 _database_settings = {}
 _supported_dataset_types = ["bigquery", "alloydb"]
 _required_dataset_config_params = ["name", "description"]
@@ -78,59 +88,61 @@ _required_dataset_config_params = ["name", "description"]
     
 
 
-def init_database_settings(dataset_config: dict) -> dict:
+def init_database_settings(dataset_config: dict, email_id: str) -> dict:
     """Initializes the database settings for the configured datasets"""
     db_settings = {}
     for dataset in dataset_config["datasets"]:
-        db_settings[dataset["type"]] = get_database_settings(email_id=os.environ.get("CUSTOMER_EMAIL_ID"))
-        #  db_settings[dataset["type"]] = get_database_settings(email_id="souravmaiti1997@gmail.com")
+        db_settings[dataset["type"]] = get_database_settings(email_id=email_id)
     return db_settings
 
-def get_customer_details_for_instructions() -> str:
+def get_customer_details_for_instructions(callback_context: CallbackContext) -> str:
     """Returns the customer profile instructions block"""
     
     customer_details = f"""<CUSTOMER_PROFILE>
-    {_customer_profile}
+    {get_customer_profile(email_id=callback_context.session.user_id)}
 </CUSTOMER_PROFILE>
 """
     return customer_details
 
 
 
-def get_dataset_definitions_for_instructions() -> str:
-    """Returns the dataset definitions instructions block"""
+# def get_dataset_definitions_for_instructions(callback_context: CallbackContext) -> str:
+#     """Returns the dataset definitions instructions block"""
 
-    dataset_definitions = """
-<DATASETS>
-"""
-    for dataset in _dataset_config["datasets"]:
-        dataset_type = dataset["type"]
-        dataset_definitions += f"""
-<{dataset_type.upper()}>
-<DESCRIPTION>
-{dataset["description"]}
-</DESCRIPTION>
-<SCHEMA>
---------- The schema of the relevant database with a few sample rows. --------
-{_database_settings[dataset_type]["schema"]}
-</SCHEMA>
-</{dataset_type.upper()}>
+#     dataset_definitions = """
+# <DATASETS>
+# """
+#     for dataset in _dataset_config["datasets"]:
+#         dataset_type = dataset["type"]
+#         dataset_definitions += f"""
+# <{dataset_type.upper()}>
+# <DESCRIPTION>
+# {dataset["description"]}
+# </DESCRIPTION>
+# <SCHEMA>
+# --------- The schema of the relevant database with a few sample rows. --------
+# {init_database_settings(_dataset_config, email_id=callback_context.session.user_id)[dataset_type]["schema"]}
+# </SCHEMA>
+# </{dataset_type.upper()}>
 
-"""
-    dataset_definitions += """
-</DATASETS>
-"""
+# """
+#     dataset_definitions += """
+# </DATASETS>
+# """
 
-    return dataset_definitions
+#     return dataset_definitions
 
 
 def load_database_settings_in_context(callback_context: CallbackContext):
     """Load database settings into the callback context on first use."""
+    
+    user_id = callback_context.session.user_id
+    
     if "database_settings" not in callback_context.state:
-        callback_context.state["database_settings"] = _database_settings
+        callback_context.state["database_settings"] = init_database_settings(_dataset_config, email_id=user_id)
         
     if "customer_profile" not in callback_context.state:
-        callback_context.state["customer_profile"] = _customer_profile
+        callback_context.state["customer_profile"] = get_customer_profile(email_id=user_id)
         
     
 def get_root_agent() -> LlmAgent:
@@ -146,9 +158,9 @@ def get_root_agent() -> LlmAgent:
     agent = LlmAgent(
         model=os.getenv("ROOT_AGENT_MODEL", "gemini-2.5-flash"),
         name="banking_root_agent",
-        instruction=return_instructions_root()
-        + get_dataset_definitions_for_instructions()
-        + get_customer_details_for_instructions(),
+        instruction=return_instructions_root,
+        # + get_dataset_definitions_for_instructions(),
+        # + get_customer_details_for_instructions(),
         global_instruction=(
             f"""
             You are Banking Customer facing helpful Multi Agent System.
@@ -166,18 +178,10 @@ def get_root_agent() -> LlmAgent:
 
 # Initialize dataset configurations and database info before the agent starts
 # _dataset_config = load_dataset_config()
-_dataset_config = {
-  "datasets": [
-    {
-      "type": "bigquery",
-      "name": "banking_data",
-      "description": "This data warehouse is used to store customer banking information including transactions, account details, and customer demographics."
-    }
-  ]
-}
-_database_settings = init_database_settings(_dataset_config)
 
-_customer_profile = get_customer_profile(os.environ.get("CUSTOMER_EMAIL_ID"))
+# _database_settings = init_database_settings(_dataset_config, email_id=tool_context.user_id)
+
+# _customer_profile = get_customer_profile(email_id=tool_context.user_id)
 
 
 
