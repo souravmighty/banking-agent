@@ -48,7 +48,7 @@ function BackendLoadingScreen() {
       <div className="w-full max-w-2xl z-10 bg-neutral-900/50 backdrop-blur-md p-8 rounded-2xl border border-neutral-700 shadow-2xl shadow-black/60">
         <div className="text-center space-y-6">
           <h1 className="text-4xl font-bold text-white flex items-center justify-center gap-3">
-            ✨ AI Goal Planning Assistant 🚀
+            ✨ ABC Bank Assistant 🚀
           </h1>
 
           <div className="flex flex-col items-center space-y-4">

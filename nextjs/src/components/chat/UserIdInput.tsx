@@ -138,8 +138,8 @@ export function UserIdInput({
             onKeyDown={handleKeyPress}
             onBlur={handleInputBlur}
             placeholder="Enter user ID"
-            className={`w-32 text-xs bg-slate-800 text-slate-100 border-slate-600 focus:border-emerald-500 focus:ring-emerald-500/20 ${
-              !isValid ? "border-red-500" : ""
+            className={`w-32 text-xs bg-[#1a1f71] text-white border-[#4a509a] placeholder:text-[#c8cadf] focus:border-[#f0a500] focus:ring-[#f0a500]/20 ${
+              !isValid ? "border-red-400" : ""
             }`}
             disabled={isLoading}
           />
@@ -151,7 +151,7 @@ export function UserIdInput({
               isLoading ||
               (shouldShowValidation && !isValid)
             }
-            className="h-7 px-2 bg-emerald-600 hover:bg-emerald-700 text-white"
+            className="h-7 px-2 bg-[#f0a500] hover:bg-[#e19d00] text-[#1a1f71]"
           >
             {isLoading ? (
               <div className="w-3 h-3 border-2 border-current border-t-transparent rounded-full animate-spin" />
@@ -164,7 +164,7 @@ export function UserIdInput({
             variant="outline"
             onClick={handleCancel}
             disabled={isLoading}
-            className="h-7 px-2 border-slate-600 text-slate-300 hover:bg-slate-600 hover:text-slate-100"
+            className="h-7 px-2 border-[#4a509a] text-[#c8cadf] hover:bg-white/6 hover:text-white"
           >
             <X className="w-3 h-3" />
           </Button>
@@ -177,10 +177,10 @@ export function UserIdInput({
         </div>
       ) : (
         <div className="flex items-center gap-2">
-          <span className="text-xs text-slate-400">User:</span>
+          <span className="text-[11px] uppercase tracking-[0.08em] text-[#c8cadf]">User</span>
           <Badge
             variant="secondary"
-            className="font-mono bg-slate-700/50 text-slate-200 border-slate-600/50 hover:bg-slate-600/50"
+            className="font-mono bg-[#f0a500] text-[#1a1f71] border-transparent hover:bg-[#e19d00]"
           >
             {currentUserId}
           </Badge>
@@ -189,7 +189,7 @@ export function UserIdInput({
             variant="ghost"
             onClick={handleEdit}
             disabled={isLoading}
-            className="text-xs h-6 px-2 text-slate-400 hover:text-slate-200 hover:bg-slate-700/50"
+            className="text-[11px] h-6 px-2 text-[#c8cadf] hover:text-white hover:bg-white/6"
           >
             Edit
           </Button>

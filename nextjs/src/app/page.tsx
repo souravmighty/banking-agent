@@ -5,7 +5,7 @@ import { ChatContainer } from "@/components/chat/ChatContainer";
 export default function HomePage(): React.JSX.Element {
   return (
     <div className="flex flex-col h-screen">
-      <Suspense fallback={<div>Loading chat...</div>}>
+      <Suspense fallback={<div>Loading ABC Bank Assistant...</div>}>
         <ChatProvider>
           <ChatContainer />
         </ChatProvider>

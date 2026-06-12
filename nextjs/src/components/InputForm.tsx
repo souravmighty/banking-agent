@@ -51,13 +51,13 @@ export function InputForm({
       <form onSubmit={handleSubmit} className="relative">
         <div
           className={`
-          relative flex items-end gap-3 p-3 rounded-2xl border transition-all duration-200
+          relative flex items-end gap-3 p-3 rounded-3xl border transition-all duration-200
           ${
             isFocused
-              ? "border-emerald-400/50 bg-slate-800/80 shadow-lg shadow-emerald-500/10"
-              : "border-slate-700/50 bg-slate-800/50 hover:border-slate-600/50"
+              ? "border-[#1a1f71] bg-white shadow-md shadow-[#1a1f71]/8"
+              : "border-[#d0d3ea] bg-white/95 hover:border-[#c2c7e8]"
           }
-          backdrop-blur-sm
+          backdrop-blur-md
         `}
         >
           {/* Input Area */}
@@ -72,7 +72,7 @@ export function InputForm({
               placeholder={placeholderText}
               rows={1}
               className="
-                resize-none border-0 bg-transparent text-slate-200 placeholder-slate-400
+                resize-none border-0 bg-transparent text-[#1a1f71] placeholder-[#6b6f99]
                 focus:ring-0 focus:outline-none focus:border-0 focus:shadow-none
                 min-h-[80px] max-h-48
                 scrollbar-thin scrollbar-track-transparent scrollbar-thumb-slate-600
@@ -101,17 +101,17 @@ export function InputForm({
             size="sm"
             disabled={!inputValue.trim() || isLoading}
             className="
-              h-9 px-4 bg-gradient-to-r from-emerald-500 to-emerald-600 hover:from-emerald-600 hover:to-emerald-700
-              text-white border-0 shadow-lg transition-all duration-200
+              h-10 px-4 rounded-2xl bg-gradient-to-r from-[#1a1f71] via-[#252b82] to-[#3b4bcf] hover:from-[#151a67] hover:via-[#20266f] hover:to-[#3447c7]
+              text-white border-0 shadow-md shadow-[#1a1f71]/20 transition-all duration-200
               disabled:opacity-50 disabled:cursor-not-allowed
-              disabled:bg-slate-600 disabled:from-slate-600 disabled:to-slate-600
+              disabled:bg-[#c8cadf] disabled:from-[#c8cadf] disabled:to-[#c8cadf]
               flex items-center gap-2
             "
           >
             {isLoading ? (
               <>
                 <Loader2 className="h-4 w-4 animate-spin" />
-                <span className="hidden sm:inline">Planning...</span>
+                <span className="hidden sm:inline">Securely...</span>
               </>
             ) : (
               <>

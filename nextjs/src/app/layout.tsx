@@ -10,8 +10,8 @@ const inter = Inter({
 });
 
 export const metadata: Metadata = {
-  title: "AI Agent Chat",
-  description: "Chat with AI agents powered by Google Gemini",
+  title: "ABC Bank Assistant",
+  description: "A polished, secure banking assistant experience for ABC Bank customers",
   icons: {
     icon: "/favicon.ico",
   },
@@ -24,6 +24,10 @@ export default function RootLayout({
 }): React.JSX.Element {
   return (
     <html lang="en" suppressHydrationWarning>
+      <link
+        rel="stylesheet"
+        href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@latest/dist/tabler-icons.min.css"
+      />
       <body className={`${inter.variable} font-sans antialiased`}>
         <ThemeProvider
           attribute="class"
