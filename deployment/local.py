@@ -5,7 +5,7 @@ import vertexai
 from dotenv import load_dotenv
 from vertexai.preview import reasoning_engines
 
-from bq_agent.agent import root_agent
+from app.agent import root_agent
 
 
 def main():

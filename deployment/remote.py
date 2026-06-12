@@ -7,7 +7,7 @@ from dotenv import load_dotenv
 from vertexai import agent_engines
 from vertexai.preview import reasoning_engines
 
-import bq_agent.agent
+import app.agent
 
 FLAGS = flags.FLAGS
 flags.DEFINE_string("project_id", None, "GCP project ID.")
@@ -45,7 +45,7 @@ def create() -> None:
     """Creates a new deployment."""
     # First wrap the agent in AdkApp
     app = reasoning_engines.AdkApp(
-        agent=bq_agent.agent.root_agent,
+        agent=app.agent.root_agent,
         enable_tracing=True,
     )
 
