@@ -31,12 +31,9 @@ export function EmptyState(): React.JSX.Element {
           <div className="mt-6 h-[2px] w-full bg-[#f0a500]" />
         </section>
 
-        {/* Description */}
-        <div className="space-y-4">
-          <p className="text-lg text-slate-300 max-w-2xl mx-auto">
-            Ask anything about your account, transactions, payments, or banking guidance. The experience stays simple, secure, and easy to follow.
-          </p>
-        </div>
+        <section className="space-y-3 text-left">
+          <h2 className="text-[13px] font-semibold uppercase tracking-[0.08em] text-[#1a1f71]">What I can help you with</h2>
+        </section>
 
         {/* Capability cards */}
         <section className="grid grid-cols-1 gap-3 md:grid-cols-3">
@@ -66,22 +63,25 @@ export function EmptyState(): React.JSX.Element {
 
         <div className="h-px w-full bg-[#d0d3ea]" />
 
-        <section className="grid grid-cols-1 gap-3 md:grid-cols-2">
-          {[
-            {label: 'Credit card questions', icon: CreditCard},
-            {label: 'Transfer status updates', icon: ArrowRightLeft},
-            {label: 'Rates & fees', icon: BadgeHelp},
-            {label: 'Secure payments', icon: LockKeyhole},
-          ].map((item) => (
-            <article key={item.label} className="rounded-[12px] border border-[#d0d3ea] bg-white p-4 text-left text-[12px] text-[#3a3f6e] shadow-sm">
-              <div className="flex items-center gap-3">
-                <div className="flex h-9 w-9 items-center justify-center rounded-[8px] bg-[#edeffe] text-[#1a1f71]">
-                  <item.icon className="h-[14px] w-[14px]" />
+        <section className="space-y-3">
+          <h2 className="text-left text-[13px] font-semibold uppercase tracking-[0.08em] text-[#1a1f71]">Common questions I handle</h2>
+          <div className="grid grid-cols-1 gap-3 md:grid-cols-2">
+            {[
+              {label: 'What is the minimum due on my credit card this month?', icon: CreditCard},
+              {label: 'Where have I spent most this month?', icon: ArrowRightLeft},
+              {label: 'What is the current interest rate on a fixed deposit?', icon: BadgeHelp},
+              {label: 'Pay my credit card bill', icon: LockKeyhole},
+            ].map((item) => (
+              <article key={item.label} className="rounded-[12px] border border-[#d0d3ea] bg-white p-4 text-left text-[12px] text-[#3a3f6e] shadow-sm">
+                <div className="flex items-center gap-3">
+                  <div className="flex h-9 w-9 items-center justify-center rounded-[8px] bg-[#edeffe] text-[#1a1f71]">
+                    <item.icon className="h-[14px] w-[14px]" />
+                  </div>
+                  <span>{item.label}</span>
                 </div>
-                <span>{item.label}</span>
-              </div>
-            </article>
-          ))}
+              </article>
+            ))}
+          </div>
         </section>
 
         <section className="rounded-[12px] bg-[#252b82] px-4 py-3 text-left text-[12px] text-[#c8cadf] shadow-sm">

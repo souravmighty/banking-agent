@@ -7,7 +7,7 @@ import {
   ActivityTimeline,
   ProcessedEvent,
 } from "@/components/ActivityTimeline";
-import { Copy, CopyCheck, Loader2, Bot, User } from "lucide-react";
+import { Copy, CopyCheck, Loader2, Landmark, User } from "lucide-react";
 import { Message } from "@/types";
 
 interface MessageItemProps {
@@ -113,8 +113,8 @@ export function MessageItem({
   if (isLoading && hasTimelineEvents) {
     return (
       <div className="flex items-start gap-3 max-w-[90%]">
-        <div className="flex-shrink-0 w-8 h-8 bg-[#1a1f71] rounded-full flex items-center justify-center shadow-sm border border-[#d0d3ea]">
-          <Bot className="h-4 w-4 text-white" />
+        <div className="flex-shrink-0 w-8 h-8 rounded-full bg-[#f0a500] text-[#1a1f71] flex items-center justify-center shadow-sm border border-[#f0a500]">
+          <Landmark className="h-4 w-4" />
         </div>
 
         <div className="flex-1 rounded-2xl rounded-tl-sm border border-[#d0d3ea] bg-white p-4 shadow-sm">
@@ -128,15 +128,15 @@ export function MessageItem({
 
           {/* Show content if it exists while loading */}
           {message.content && (
-            <div className="prose prose-invert max-w-none mb-3">
+            <div className="prose max-w-none mb-3 text-[#1a1f71]">
               <MarkdownRenderer content={message.content} />
             </div>
           )}
 
           {/* Loading indicator */}
           <div className="flex items-center gap-2 rounded-lg border border-[#d0d3ea] bg-[#f5f7ff] px-3 py-2">
-            <Loader2 className="h-4 w-4 animate-spin text-[#1a1f71]" />
-            <span className="text-sm text-[#5a6197]">
+            <Loader2 className="h-4 w-4 animate-spin text-[#f0a500]" />
+            <span className="text-sm text-[#3a3f6e]">
               {message.content
                 ? "🚀 Still processing..."
                 : "🤔 Thinking and planning..."}
@@ -153,8 +153,8 @@ export function MessageItem({
     if (hasTimelineEvents) {
       return (
         <div className="flex items-start gap-3 max-w-[90%]">
-          <div className="flex-shrink-0 w-8 h-8 bg-[#1a1f71] rounded-full flex items-center justify-center shadow-sm border border-[#d0d3ea]">
-            <Bot className="h-4 w-4 text-white" />
+          <div className="flex-shrink-0 w-8 h-8 rounded-full bg-[#f0a500] text-[#1a1f71] flex items-center justify-center shadow-sm border border-[#f0a500]">
+            <Landmark className="h-4 w-4" />
           </div>
 
           <div className="flex-1 rounded-3xl border border-[#d0d3ea] bg-white p-4 shadow-sm">
@@ -165,7 +165,7 @@ export function MessageItem({
 
             {/* Show thinking indicator */}
             <div className="mt-3 flex items-center gap-2 rounded-2xl border border-[#d0d3ea] bg-[#f5f7ff] px-3 py-2">
-              <span className="text-sm text-[#1a1f71]">🤔 Thinking...</span>
+              <span className="text-sm text-[#3a3f6e]">🤔 Thinking...</span>
             </div>
           </div>
         </div>
@@ -175,8 +175,8 @@ export function MessageItem({
     // Otherwise show no content indicator
     return (
       <div className="flex items-start gap-3 max-w-[90%]">
-        <div className="flex-shrink-0 w-8 h-8 bg-[#1a1f71] rounded-full flex items-center justify-center shadow-sm border border-[#d0d3ea]">
-          <Bot className="h-4 w-4 text-white" />
+        <div className="flex-shrink-0 w-8 h-8 rounded-full bg-[#f0a500] text-[#1a1f71] flex items-center justify-center shadow-sm border border-[#f0a500]">
+          <Landmark className="h-4 w-4" />
         </div>
         <div className="flex items-center gap-2 rounded-2xl border border-[#d0d3ea] bg-white px-3 py-2 shadow-sm">
           <span className="text-sm text-[#5a6197]">No content</span>
@@ -188,8 +188,8 @@ export function MessageItem({
   // Regular AI message display with content
   return (
     <div className="flex items-start gap-3 max-w-[90%]">
-      <div className="flex-shrink-0 w-8 h-8 bg-[#1a1f71] rounded-full flex items-center justify-center shadow-sm border border-[#d0d3ea]">
-        <Bot className="h-4 w-4 text-white" />
+      <div className="flex-shrink-0 w-8 h-8 rounded-full bg-[#f0a500] text-[#1a1f71] flex items-center justify-center shadow-sm border border-[#f0a500]">
+        <Landmark className="h-4 w-4" />
       </div>
 
       <div className="flex-1 rounded-3xl border border-[#d0d3ea] bg-white p-4 shadow-sm relative group">
@@ -202,7 +202,7 @@ export function MessageItem({
         )}
 
         {/* Message content */}
-        <div className="prose prose-invert max-w-none">
+        <div className="prose max-w-none text-[#1a1f71]">
           <MarkdownRenderer content={message.content} />
         </div>
 

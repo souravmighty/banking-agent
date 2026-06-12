@@ -3,11 +3,11 @@
 import ReactMarkdown, { Components } from "react-markdown";
 import remarkGfm from "remark-gfm";
 
-// Enhanced markdown components for better styling with consistent dark theme
+// Enhanced markdown components for better styling with a banking-friendly light theme
 export const mdComponents: Partial<Components> = {
   h1: ({ children, ...props }) => (
     <h1
-      className="text-xl font-bold mb-3 text-slate-100 leading-tight"
+      className="text-xl font-bold mb-3 text-[#1a1f71] leading-tight"
       {...props}
     >
       {children}
@@ -15,7 +15,7 @@ export const mdComponents: Partial<Components> = {
   ),
   h2: ({ children, ...props }) => (
     <h2
-      className="text-lg font-semibold mb-2 text-slate-100 leading-tight"
+      className="text-lg font-semibold mb-2 text-[#1a1f71] leading-tight"
       {...props}
     >
       {children}
@@ -23,7 +23,7 @@ export const mdComponents: Partial<Components> = {
   ),
   h3: ({ children, ...props }) => (
     <h3
-      className="text-base font-medium mb-2 text-slate-100 leading-tight"
+      className="text-base font-medium mb-2 text-[#1a1f71] leading-tight"
       {...props}
     >
       {children}
@@ -54,13 +54,13 @@ export const mdComponents: Partial<Components> = {
     </h6>
   ),
   p: ({ children, ...props }) => (
-    <p className="mb-2 leading-relaxed text-slate-200 last:mb-0" {...props}>
+    <p className="mb-2 leading-relaxed text-[#3a3f6e] last:mb-0" {...props}>
       {children}
     </p>
   ),
   ul: ({ children, ...props }) => (
     <ul
-      className="list-disc list-inside mb-2 space-y-1 text-slate-200"
+      className="list-disc list-inside mb-2 space-y-1 text-[#3a3f6e]"
       {...props}
     >
       {children}
@@ -68,20 +68,20 @@ export const mdComponents: Partial<Components> = {
   ),
   ol: ({ children, ...props }) => (
     <ol
-      className="list-decimal list-inside mb-2 space-y-1 text-slate-200"
+      className="list-decimal list-inside mb-2 space-y-1 text-[#3a3f6e]"
       {...props}
     >
       {children}
     </ol>
   ),
   li: ({ children, ...props }) => (
-    <li className="leading-relaxed text-slate-200" {...props}>
+    <li className="leading-relaxed text-[#3a3f6e]" {...props}>
       {children}
     </li>
   ),
   blockquote: ({ children, ...props }) => (
     <blockquote
-      className="border-l-4 border-blue-400 pl-4 py-2 mb-2 bg-slate-800/30 rounded-r italic text-slate-300"
+      className="border-l-4 border-[#f0a500] pl-4 py-2 mb-2 bg-[#f5f7ff] rounded-r italic text-[#3a3f6e]"
       {...props}
     >
       {children}
@@ -89,7 +89,7 @@ export const mdComponents: Partial<Components> = {
   ),
   code: ({ children, ...props }) => (
     <code
-      className="bg-slate-700 text-slate-200 px-1.5 py-0.5 rounded text-sm font-mono"
+      className="bg-[#edf1ff] text-[#1a1f71] px-1.5 py-0.5 rounded text-sm font-mono"
       {...props}
     >
       {children}
@@ -97,7 +97,7 @@ export const mdComponents: Partial<Components> = {
   ),
   pre: ({ children, ...props }) => (
     <pre
-      className="bg-slate-800 text-slate-200 p-3 rounded-lg mb-2 overflow-x-auto border border-slate-700"
+      className="bg-[#f5f7ff] text-[#1a1f71] p-3 rounded-lg mb-2 overflow-x-auto border border-[#d0d3ea]"
       {...props}
     >
       {children}
@@ -106,7 +106,7 @@ export const mdComponents: Partial<Components> = {
   table: ({ children, ...props }) => (
     <div className="mb-2 overflow-x-auto">
       <table
-        className="min-w-full border-collapse border border-slate-600 text-slate-200"
+        className="min-w-full border-collapse border border-[#d0d3ea] text-[#3a3f6e]"
         {...props}
       >
         {children}
@@ -115,20 +115,20 @@ export const mdComponents: Partial<Components> = {
   ),
   th: ({ children, ...props }) => (
     <th
-      className="border border-slate-600 bg-slate-700 px-3 py-2 text-left font-medium"
+      className="border border-[#d0d3ea] bg-[#edf1ff] px-3 py-2 text-left font-medium text-[#1a1f71]"
       {...props}
     >
       {children}
     </th>
   ),
   td: ({ children, ...props }) => (
-    <td className="border border-slate-600 px-3 py-2" {...props}>
+    <td className="border border-[#d0d3ea] px-3 py-2 text-[#3a3f6e]" {...props}>
       {children}
     </td>
   ),
   a: ({ children, href, ...props }) => (
     <a
-      className="text-blue-400 hover:text-blue-300 underline transition-colors"
+      className="text-[#1a1f71] hover:text-[#252b82] underline transition-colors"
       href={href}
       target="_blank"
       rel="noopener noreferrer"
@@ -138,12 +138,12 @@ export const mdComponents: Partial<Components> = {
     </a>
   ),
   strong: ({ children, ...props }) => (
-    <strong className="font-semibold text-slate-100" {...props}>
+    <strong className="font-semibold text-[#1a1f71]" {...props}>
       {children}
     </strong>
   ),
   em: ({ children, ...props }) => (
-    <em className="italic text-slate-200" {...props}>
+    <em className="italic text-[#3a3f6e]" {...props}>
       {children}
     </em>
   ),

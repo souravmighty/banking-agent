@@ -28,20 +28,19 @@ export function UserIdInput({
   const [shouldShowValidation, setShouldShowValidation] =
     useState<boolean>(false);
 
-  // Validate user ID format
+  // Validate email format for the user field
   const validateUserId = (
     userId: string
   ): { valid: boolean; message: string } => {
     if (!userId.trim()) {
-      return { valid: false, message: "User ID is required" };
+      return { valid: false, message: "Email ID is required" };
     }
 
-    // Allow alphanumeric characters, hyphens, and underscores
-    if (!/^[a-zA-Z0-9_-]+$/.test(userId)) {
+    // Strict email validation
+    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(userId.trim())) {
       return {
         valid: false,
-        message:
-          "User ID can only contain letters, numbers, hyphens, and underscores",
+        message: "Please enter a valid email address",
       };
     }
 
@@ -137,7 +136,10 @@ export function UserIdInput({
             }
             onKeyDown={handleKeyPress}
             onBlur={handleInputBlur}
-            placeholder="Enter user ID"
+            type="email"
+            inputMode="email"
+            autoComplete="email"
+            placeholder="Enter email ID"
             className={`w-32 text-xs bg-[#1a1f71] text-white border-[#4a509a] placeholder:text-[#c8cadf] focus:border-[#f0a500] focus:ring-[#f0a500]/20 ${
               !isValid ? "border-red-400" : ""
             }`}
@@ -177,7 +179,7 @@ export function UserIdInput({
         </div>
       ) : (
         <div className="flex items-center gap-2">
-          <span className="text-[11px] uppercase tracking-[0.08em] text-[#c8cadf]">User</span>
+          <span className="text-[11px] uppercase tracking-[0.08em] text-[#c8cadf]">Email</span>
           <Badge
             variant="secondary"
             className="font-mono bg-[#f0a500] text-[#1a1f71] border-transparent hover:bg-[#e19d00]"

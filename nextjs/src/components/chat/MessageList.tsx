@@ -2,7 +2,7 @@
 
 import { MessageItem } from "./MessageItem";
 import { ScrollArea } from "@/components/ui/scroll-area";
-import { Bot, Loader2 } from "lucide-react";
+import { Landmark, Loader2 } from "lucide-react";
 import { Message } from "@/types";
 import { ProcessedEvent } from "@/components/ActivityTimeline";
 
@@ -61,13 +61,13 @@ export function MessageList({
           messages.length > 0 &&
           messages[messages.length - 1].type === "human" && (
             <div className="flex items-start gap-3 max-w-[90%]">
-              <div className="flex-shrink-0 w-8 h-8 bg-gradient-to-br from-emerald-500 to-emerald-600 rounded-full flex items-center justify-center shadow-md border border-emerald-400/30">
-                <Bot className="h-4 w-4 text-white" />
+              <div className="flex-shrink-0 w-8 h-8 rounded-full bg-[#f0a500] text-[#1a1f71] flex items-center justify-center shadow-sm border border-[#f0a500]">
+                <Landmark className="h-4 w-4" />
               </div>
-              <div className="flex-1 rounded-3xl border border-white/10 bg-white/6 p-4 shadow-xl shadow-black/25 backdrop-blur-md">
+              <div className="flex-1 rounded-3xl border border-[#d0d3ea] bg-white p-4 shadow-sm">
                 <div className="flex items-center gap-2">
-                  <Loader2 className="h-4 w-4 animate-spin text-emerald-300" />
-                  <span className="text-sm text-slate-200">
+                  <Loader2 className="h-4 w-4 animate-spin text-[#f0a500]" />
+                  <span className="text-sm text-[#3a3f6e]">
                     Preparing your banking response...
                   </span>
                 </div>
