@@ -32,7 +32,7 @@ export function ChatContainer(): React.JSX.Element {
   }
 
   // If not loading and no user, we'll be redirected by useSession hook anyway
-  if (!userId) return null;
+  if (!userId) return <></>;
 
   return (
     <div className="h-screen flex flex-col bg-[#f7f8fc] text-[#3a3f6e] relative overflow-hidden">
