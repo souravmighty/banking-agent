@@ -31,13 +31,13 @@ export interface ChatContextValue {
   // Loading state
   isLoading: boolean;
   isLoadingHistory: boolean; // New loading state for session history
+  isLoadingAuth: boolean;
   currentAgent: string;
 
   // Session actions
-  handleUserIdChange: (newUserId: string) => void;
-  handleUserIdConfirm: (confirmedUserId: string) => void;
   handleCreateNewSession: (sessionUserId: string) => Promise<void>;
   handleSessionSwitch: (newSessionId: string) => void;
+  handleSignOut: () => Promise<void>;
 
   // Message actions
   handleSubmit: (
@@ -74,10 +74,10 @@ export function ChatProvider({
   const {
     userId,
     sessionId,
-    handleUserIdChange,
-    handleUserIdConfirm,
+    isLoadingAuth,
     handleCreateNewSession,
     handleSessionSwitch,
+    handleSignOut,
   } = useSession();
 
   const {
@@ -322,13 +322,32 @@ export function ChatProvider({
       }
 
       try {
-        // Use provided session ID or current state
-        const currentSessionId = requestSessionId || sessionId;
+        let currentSessionId = requestSessionId || sessionId;
 
+        // Auto-create session if missing
         if (!currentSessionId) {
-          throw new Error(
-            "No session available. Please create a session first."
-          );
+          console.log("🚀 [CHAT_PROVIDER] No session ID found, creating new session automatically...");
+          
+          // Show a toast so the user knows what's happening
+          const toastId = toast.loading("Creating secure banking session...");
+          
+          try {
+            const { createSessionAction } = await import("@/lib/actions/session-actions");
+            const result = await createSessionAction(currentUserId);
+            
+            if (result.success && result.sessionId) {
+              currentSessionId = result.sessionId;
+              handleSessionSwitch(currentSessionId);
+              toast.success("Session created", { id: toastId });
+              console.log("✅ [CHAT_PROVIDER] Auto-session created:", currentSessionId);
+            } else {
+              toast.error("Failed to create session", { id: toastId });
+              throw new Error(result.error || "Failed to create auto-session");
+            }
+          } catch (error) {
+            toast.error("Session error", { id: toastId });
+            throw error;
+          }
         }
 
         // Add user message to chat immediately
@@ -340,15 +359,14 @@ export function ChatProvider({
         };
         addMessage(userMessage);
 
-        // Submit message for streaming - the backend will provide AI response
-        await streamingManager.submitMessage(query);
+        // Submit message for streaming - pass the explicit sessionId
+        await streamingManager.submitMessage(query, currentSessionId);
       } catch (error) {
         console.error("Error submitting message:", error);
-        // Don't create fake error messages - let the UI handle the error state
         throw error;
       }
     },
-    [userId, sessionId, addMessage, streamingManager]
+    [userId, sessionId, addMessage, streamingManager, handleSessionSwitch]
   );
 
   // Context value
@@ -365,13 +383,13 @@ export function ChatProvider({
     // Loading state
     isLoading: streamingManager.isLoading,
     isLoadingHistory,
+    isLoadingAuth,
     currentAgent: streamingManager.currentAgent,
 
     // Session actions
-    handleUserIdChange,
-    handleUserIdConfirm,
     handleCreateNewSession,
     handleSessionSwitch,
+    handleSignOut,
 
     // Message actions
     handleSubmit,

@@ -3,12 +3,15 @@
 import {
   ArrowRightLeft,
   BadgeHelp,
-  CreditCard,
   Landmark,
-  LockKeyhole,
   ShieldCheck,
   WalletCards,
+  Receipt,
+  PiggyBank,
+  Ban,
+  Clock,
 } from "lucide-react";
+import { useChatContext } from "@/components/chat/ChatProvider";
 
 /**
  * EmptyState - AI Goal Planner welcome screen
@@ -16,81 +19,109 @@ import {
  * Displays when no messages exist in the current session
  */
 export function EmptyState(): React.JSX.Element {
+  const { handleSubmit } = useChatContext();
+
   return (
-    <div className="flex-1 flex flex-col items-center justify-center p-4 text-center min-h-[60vh]">
-      <div className="max-w-6xl w-full space-y-6">
+    <div className="flex-1 flex flex-col items-center p-4 md:p-8 overflow-y-auto">
+      <div className="max-w-4xl w-full space-y-10 py-6 md:py-10">
         {/* Hero banner */}
-        <section className="rounded-[18px] bg-[#1a1f71] p-8 text-white shadow-sm ring-1 ring-[#d0d3ea]">
-          <div className="mx-auto flex max-w-3xl flex-col items-center gap-4 text-center">
-            <div className="flex h-16 w-16 items-center justify-center rounded-full bg-[#252b82] text-[#f0a500] shadow-inner ring-1 ring-white/10">
-              <Landmark className="h-[28px] w-[28px]" />
+        <section className="rounded-3xl bg-[#1a1f71] p-10 md:p-14 text-white shadow-xl relative overflow-hidden">
+          {/* Decorative background elements */}
+          <div className="absolute top-0 right-0 w-64 h-64 bg-white/5 rounded-full -mr-32 -mt-32 blur-3xl" />
+          <div className="absolute bottom-0 left-0 w-48 h-48 bg-[#f0a500]/10 rounded-full -ml-24 -mb-24 blur-3xl" />
+          
+          <div className="relative z-10 flex flex-col items-center gap-6 text-center">
+            <div className="flex h-16 w-16 items-center justify-center rounded-2xl bg-white/10 backdrop-blur-md text-[#f0a500] shadow-xl ring-1 ring-white/20">
+              <Landmark className="h-8 w-8" />
             </div>
-            <h1 className="text-[24px] font-medium tracking-[0.02em] text-white">Your secure banking assistant</h1>
-            <p className="text-[13px] text-[#c8cadf]">Your 24/7 banking companion — accounts, payments, and answers, all in one place.</p>
+            <div className="space-y-3">
+              <h1 className="text-3xl md:text-4xl font-bold tracking-tight text-white">ABC Bank Assistant</h1>
+              <p className="text-sm md:text-base text-[#c8cadf] max-w-2xl mx-auto leading-relaxed">
+                Your 24/7 banking companion — accounts, payments, and answers, all in one place
+              </p>
+            </div>
           </div>
-          <div className="mt-6 h-[2px] w-full bg-[#f0a500]" />
         </section>
 
-        <section className="space-y-3 text-left">
-          <h2 className="text-[13px] font-semibold uppercase tracking-[0.08em] text-[#1a1f71]">What I can help you with</h2>
-        </section>
-
-        {/* Capability cards */}
-        <section className="grid grid-cols-1 gap-3 md:grid-cols-3">
-          {[
-            {title: 'Account & transactions', icon: WalletCards, items: ['Balance overview', 'Recent transactions', 'Disputes & statements']},
-            {title: 'Payments & transfers', icon: ArrowRightLeft, items: ['Transfers', 'Credit card bill', 'Schedule & status']},
-            {title: 'Products & FAQs', icon: BadgeHelp, items: ['Savings comparison', 'Card benefits', 'Loan info & rates']},
-          ].map(({title, icon: Icon, items}) => (
-            <article key={title} className="rounded-[12px] border border-[#d0d3ea] bg-white p-4 text-left shadow-sm">
-              <div className="mb-3 flex items-center gap-3">
-                <div className="flex h-10 w-10 items-center justify-center rounded-[8px] bg-[#edeffe] text-[#1a1f71]">
-                  <Icon className="h-[16px] w-[16px]" />
-                </div>
-                <h3 className="text-[12px] font-medium uppercase tracking-[0.08em] text-[#1a1f71]">{title}</h3>
-              </div>
-              <ul className="space-y-2 text-[11px] text-[#6b6f99]">
-                {items.map((item) => (
-                  <li key={item} className="flex items-start gap-2 border-t border-[#d0d3ea] pt-2 first:border-t-0 first:pt-0">
-                    <span className="mt-1.5 h-1 w-1 rounded-full bg-[#f0a500]" />
-                    <span>{item}</span>
-                  </li>
-                ))}
-              </ul>
-            </article>
-          ))}
-        </section>
-
-        <div className="h-px w-full bg-[#d0d3ea]" />
-
-        <section className="space-y-3">
-          <h2 className="text-left text-[13px] font-semibold uppercase tracking-[0.08em] text-[#1a1f71]">Common questions I handle</h2>
-          <div className="grid grid-cols-1 gap-3 md:grid-cols-2">
-            {[
-              {label: 'What is the minimum due on my credit card this month?', icon: CreditCard},
-              {label: 'Where have I spent most this month?', icon: ArrowRightLeft},
-              {label: 'What is the current interest rate on a fixed deposit?', icon: BadgeHelp},
-              {label: 'Pay my credit card bill', icon: LockKeyhole},
-            ].map((item) => (
-              <article key={item.label} className="rounded-[12px] border border-[#d0d3ea] bg-white p-4 text-left text-[12px] text-[#3a3f6e] shadow-sm">
-                <div className="flex items-center gap-3">
-                  <div className="flex h-9 w-9 items-center justify-center rounded-[8px] bg-[#edeffe] text-[#1a1f71]">
-                    <item.icon className="h-[14px] w-[14px]" />
+        <div className="space-y-8">
+          <section className="space-y-4">
+            <h2 className="text-xs font-bold uppercase tracking-[0.15em] text-[#6b6f99] px-1">What I can help you with</h2>
+            
+            {/* Capability cards */}
+            <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 md:grid-cols-3">
+              {[
+                {
+                  title: 'Account & transactions', 
+                  icon: WalletCards, 
+                  items: ['Check account balance', 'View recent transactions', 'Dispute a charge', 'Download statements']
+                },
+                {
+                  title: 'Payments & transfers', 
+                  icon: ArrowRightLeft, 
+                  items: ['Transfer between accounts', 'Pay credit card bill', 'Schedule a payment', 'Track payment status']
+                },
+                {
+                  title: 'Products & FAQs', 
+                  icon: BadgeHelp, 
+                  items: ['Compare savings accounts', 'Credit card benefits', 'Loan eligibility info', 'Interest rates & fees']
+                },
+              ].map(({title, icon: Icon, items}) => (
+                <article key={title} className="rounded-2xl border border-[#d0d3ea] bg-white p-6 shadow-sm hover:shadow-md transition-shadow">
+                  <div className="mb-5 flex h-10 w-10 items-center justify-center rounded-xl bg-[#f7f8fc] text-[#1a1f71] ring-1 ring-[#d0d3ea]/50">
+                    <Icon className="h-5 w-5" />
                   </div>
-                  <span>{item.label}</span>
-                </div>
-              </article>
-            ))}
-          </div>
-        </section>
+                  <h3 className="text-sm font-bold text-[#1a1f71] mb-4">{title}</h3>
+                  <ul className="space-y-3">
+                    {items.map((item) => (
+                      <li key={item} className="flex items-center gap-2.5 text-[12px] text-[#3a3f6e]">
+                        <span className="h-1.5 w-1.5 rounded-full bg-[#f0a500] flex-shrink-0" />
+                        <span>{item}</span>
+                      </li>
+                    ))}
+                  </ul>
+                </article>
+              ))}
+            </div>
+          </section>
 
-        <section className="rounded-[12px] bg-[#252b82] px-4 py-3 text-left text-[12px] text-[#c8cadf] shadow-sm">
-          <div className="flex items-center gap-3"> 
-            <ShieldCheck className="h-[14px] w-[14px] text-[#f0a500]" />
-            <span>Your data is protected with secure banking-grade privacy controls.</span>
-          </div>
-        </section>
+          <section className="space-y-4">
+            <h2 className="text-xs font-bold uppercase tracking-[0.15em] text-[#6b6f99] px-1">Common questions I handle</h2>
+            <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
+              {[
+                {label: 'What is the minimum due on my credit card this month?', icon: Receipt},
+                {label: 'How long does an IMPS transfer typically take?', icon: Clock},
+                {label: 'What is the current interest rate on a fixed deposit?', icon: PiggyBank},
+                {label: 'How do I block my debit card if it\'s lost or stolen?', icon: Ban},
+              ].map((item) => (
+                <button 
+                  key={item.label} 
+                  onClick={() => handleSubmit(item.label)}
+                  className="rounded-xl border border-[#d0d3ea] bg-white p-4 hover:border-[#1a1f71] hover:bg-[#f7f8fc] transition-all cursor-pointer group text-left w-full"
+                >
+                  <div className="flex items-center gap-4">
+                    <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-[#f7f8fc] text-[#1a1f71] group-hover:bg-white transition-colors">
+                      <item.icon className="h-5 w-5" />
+                    </div>
+                    <span className="text-[13px] font-medium text-[#3a3f6e] group-hover:text-[#1a1f71] transition-colors">{item.label}</span>
+                  </div>
+                </button>
+              ))}
+            </div>
+          </section>
+
+          <section className="rounded-xl bg-[#252b82] p-5 text-white shadow-lg border border-white/5">
+            <div className="flex items-center gap-4"> 
+              <div className="h-10 w-10 rounded-full bg-white/10 flex items-center justify-center flex-shrink-0">
+                <ShieldCheck className="h-5 w-5 text-[#f0a500]" />
+              </div>
+              <p className="text-[12px] md:text-sm text-blue-50/90 leading-relaxed">
+                All interactions are encrypted and session-bound. This assistant does not store personal data beyond the active session.
+              </p>
+            </div>
+          </section>
+        </div>
       </div>
     </div>
   );
 }
+

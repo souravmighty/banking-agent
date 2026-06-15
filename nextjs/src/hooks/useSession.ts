@@ -1,25 +1,44 @@
 import { useState, useCallback, useEffect } from "react";
+import { onAuthStateChanged, signOut } from "firebase/auth";
+import { auth } from "@/firebase/config";
+import { useRouter } from "next/navigation";
 
 export interface UseSessionReturn {
   // State
   sessionId: string;
   userId: string;
-
-  // User ID management
-  handleUserIdChange: (newUserId: string) => void;
-  handleUserIdConfirm: (confirmedUserId: string) => void;
+  isLoadingAuth: boolean;
 
   // Session management
   handleSessionSwitch: (newSessionId: string) => void;
   handleCreateNewSession: (sessionUserId: string) => Promise<void>;
+  handleSignOut: () => Promise<void>;
 }
 
 /**
- * Custom hook for managing chat sessions and user ID (no localStorage persistence)
+ * Custom hook for managing chat sessions and user ID synced with Firebase Auth
  */
 export function useSession(): UseSessionReturn {
+  const router = useRouter();
   const [sessionId, setSessionId] = useState<string>("");
   const [userId, setUserId] = useState<string>("");
+  const [isLoadingAuth, setIsLoadingAuth] = useState(true);
+
+  // Sync userId with Firebase Auth
+  useEffect(() => {
+    const unsubscribe = onAuthStateChanged(auth, (user) => {
+      if (user) {
+        setUserId(user.email || user.uid);
+      } else {
+        setUserId("");
+        // Redirect to login if not authenticated
+        router.push("/login");
+      }
+      setIsLoadingAuth(false);
+    });
+
+    return () => unsubscribe();
+  }, [router]);
 
   // Handle session switching
   const handleSessionSwitch = useCallback(
@@ -70,7 +89,6 @@ export function useSession(): UseSessionReturn {
           console.log(
             `✅ Session created via Server Action: ${actualSessionId}`
           );
-          console.log(`📝 Session result:`, sessionResult);
         } else {
           console.error(
             "❌ Session creation Server Action failed:",
@@ -89,37 +107,26 @@ export function useSession(): UseSessionReturn {
     [handleSessionSwitch]
   );
 
-  // Handle user ID changes
-  const handleUserIdChange = useCallback((newUserId: string): void => {
-    setUserId(newUserId);
-  }, []);
-
-  // Handle user ID confirmation
-  const handleUserIdConfirm = useCallback((confirmedUserId: string): void => {
-    setUserId(confirmedUserId);
-    // Keep user ID in localStorage for convenience
-    localStorage.setItem("agent-engine-user-id", confirmedUserId);
-  }, []);
-
-  // Load user ID from localStorage on mount (but no session persistence)
-  useEffect(() => {
-    const savedUserId = localStorage.getItem("agent-engine-user-id");
-    if (savedUserId) {
-      setUserId(savedUserId);
+  // Handle sign out
+  const handleSignOut = useCallback(async (): Promise<void> => {
+    try {
+      await signOut(auth);
+      setSessionId("");
+      router.push("/login");
+    } catch (error) {
+      console.error("Error signing out:", error);
     }
-  }, []);
+  }, [router]);
 
   return {
     // State
     sessionId,
     userId,
-
-    // User ID management
-    handleUserIdChange,
-    handleUserIdConfirm,
+    isLoadingAuth,
 
     // Session management
     handleSessionSwitch,
     handleCreateNewSession,
+    handleSignOut,
   };
 }

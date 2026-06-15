@@ -301,11 +301,11 @@ export function SessionSelector({
                   >
                     <div className="flex items-center gap-2">
                       {isCreatingSession ? (
-                        <Loader2 className="w-4 h-4 animate-spin text-emerald-400 flex-shrink-0" />
+                        <Loader2 className="w-4 h-4 animate-spin text-[#f0a500] flex-shrink-0" />
                       ) : (
-                        <Plus className="w-4 h-4 text-emerald-400 flex-shrink-0" />
+                        <Plus className="w-4 h-4 text-[#f0a500] flex-shrink-0" />
                       )}
-                      <span className="text-emerald-400 font-medium">
+                      <span className="text-[#f0a500] font-medium">
                         {isCreatingSession
                           ? "Creating..."
                           : "Create New Session"}

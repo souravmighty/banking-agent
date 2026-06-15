@@ -8,7 +8,7 @@ import { Loader2, Send } from "lucide-react";
 interface InputFormProps {
   onSubmit: (query: string) => void;
   isLoading: boolean;
-  context?: "homepage" | "chat"; // Add context prop for different placeholder text
+  context?: "homepage" | "chat";
 }
 
 export function InputForm({
@@ -43,25 +43,24 @@ export function InputForm({
 
   const placeholderText =
     context === "chat"
-      ? "Add more details, ask questions, or request changes..."
-      : "What goal would you like to achieve? e.g., Build a mobile app, Plan a marketing campaign, Learn a new skill...";
+      ? "Ask me anything about your account, payments, or banking..."
+      : "How can I help you with your banking today?";
 
   return (
-    <div className="w-full">
-      <form onSubmit={handleSubmit} className="relative">
+    <div className="w-full flex items-end gap-3">
+      <form onSubmit={handleSubmit} className="flex-1">
         <div
           className={`
-          relative flex items-end gap-3 p-3 rounded-3xl border transition-all duration-200
+          relative flex items-end gap-3 p-2 rounded-2xl border transition-all duration-200
           ${
             isFocused
-              ? "border-[#1a1f71] bg-white shadow-md shadow-[#1a1f71]/8"
-              : "border-[#d0d3ea] bg-white/95 hover:border-[#c2c7e8]"
+              ? "border-[#1a1f71] bg-white shadow-lg ring-2 ring-[#1a1f71]/5"
+              : "border-[#d0d3ea] bg-white hover:border-[#1a1f71]/50 shadow-sm"
           }
-          backdrop-blur-md
         `}
         >
           {/* Input Area */}
-          <div className="flex-1 relative">
+          <div className="flex-1 px-2">
             <Textarea
               ref={textareaRef}
               value={inputValue}
@@ -74,51 +73,36 @@ export function InputForm({
               className="
                 resize-none border-0 bg-transparent text-[#1a1f71] placeholder-[#6b6f99]
                 focus:ring-0 focus:outline-none focus:border-0 focus:shadow-none
-                min-h-[80px] max-h-48
-                scrollbar-thin scrollbar-track-transparent scrollbar-thumb-slate-600
-                px-0 py-3
+                min-h-[44px] max-h-48
+                scrollbar-thin scrollbar-track-transparent scrollbar-thumb-slate-300
+                py-2.5 text-[15px]
               "
               style={{
-                fontSize: "16px",
-                lineHeight: "1.6",
+                lineHeight: "1.5",
                 border: "none",
                 outline: "none",
                 boxShadow: "none",
               }}
             />
-
-            {/* Character count for long messages */}
-            {inputValue.length > 500 && (
-              <div className="absolute bottom-1 right-1 text-xs text-slate-500 bg-slate-800/80 rounded px-1">
-                {inputValue.length}/2000
-              </div>
-            )}
           </div>
 
           {/* Send Button */}
           <Button
             type="submit"
-            size="sm"
             disabled={!inputValue.trim() || isLoading}
             className="
-              h-10 px-4 rounded-2xl bg-gradient-to-r from-[#1a1f71] via-[#252b82] to-[#3b4bcf] hover:from-[#151a67] hover:via-[#20266f] hover:to-[#3447c7]
-              text-white border-0 shadow-md shadow-[#1a1f71]/20 transition-all duration-200
-              disabled:opacity-50 disabled:cursor-not-allowed
-              disabled:bg-[#c8cadf] disabled:from-[#c8cadf] disabled:to-[#c8cadf]
-              flex items-center gap-2
+              h-11 px-6 rounded-xl bg-[#1a1f71] hover:bg-[#252b82]
+              text-white border-0 shadow-sm transition-all duration-200
+              disabled:opacity-40 disabled:bg-[#6b6f99]
+              flex items-center gap-2 font-semibold
             "
           >
             {isLoading ? (
-              <>
-                <Loader2 className="h-4 w-4 animate-spin" />
-                <span className="hidden sm:inline">Securely...</span>
-              </>
+              <Loader2 className="h-4 w-4 animate-spin" />
             ) : (
               <>
                 <Send className="h-4 w-4" />
-                <span className="hidden sm:inline">
-                  {context === "chat" ? "Send" : "Plan Goal"}
-                </span>
+                <span className="hidden md:inline">Send</span>
               </>
             )}
           </Button>
@@ -127,3 +111,4 @@ export function InputForm({
     </div>
   );
 }
+
