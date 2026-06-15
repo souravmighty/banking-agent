@@ -18,7 +18,7 @@ export function ChatInput(): React.JSX.Element {
           onSubmit={handleSubmit}
           isLoading={isLoading}
           context="chat"
-          userId={userId}
+          // userId={userId}
         />
       </div>
     </div>
