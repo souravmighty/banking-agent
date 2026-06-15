@@ -227,6 +227,18 @@ def generate_credit_scores(customers_df):
     
     return pd.DataFrame(credit_scores)
 
+def generate_customer_identity_mapping(customers_df):
+    mapping = []
+    
+    for _, customer in customers_df.iterrows():
+        mapping.append({
+            'customer_id': customer['customer_id'],
+            'email_id': customer['email'],
+            'firebase_uid': None
+        })
+    
+    return pd.DataFrame(mapping)
+
 # Generate all data
 print("Generating customers...")
 customers_df = generate_customers(NUM_CUSTOMERS)
@@ -246,6 +258,9 @@ customer_products_df = generate_customer_products(customers_df, products_df)
 print("Generating credit scores...")
 credit_scores_df = generate_credit_scores(customers_df)
 
+print("Generating customer identity mapping...")
+customer_identity_mapping_df = generate_customer_identity_mapping(customers_df)
+
 # Save to CSV files in data directory
 print(f"\nSaving to CSV files in {DATA_DIR}...")
 customers_df.to_csv(f'{DATA_DIR}/customers.csv', index=False)
@@ -254,6 +269,7 @@ transactions_df.to_csv(f'{DATA_DIR}/transactions.csv', index=False)
 products_df.to_csv(f'{DATA_DIR}/products.csv', index=False)
 customer_products_df.to_csv(f'{DATA_DIR}/customer_products.csv', index=False)
 credit_scores_df.to_csv(f'{DATA_DIR}/credit_scores.csv', index=False)
+customer_identity_mapping_df.to_csv(f'{DATA_DIR}/customer_identity_mapping.csv', index=False)
 
 print("\nData generation complete!")
 print(f"Customers: {len(customers_df)}")
@@ -262,4 +278,5 @@ print(f"Transactions: {len(transactions_df)}")
 print(f"Products: {len(products_df)}")
 print(f"Customer Products: {len(customer_products_df)}")
 print(f"Credit Scores: {len(credit_scores_df)}")
+print(f"Customer Identity Mapping: {len(customer_identity_mapping_df)}")
 print(f"\nAll files saved to: {DATA_DIR}/")

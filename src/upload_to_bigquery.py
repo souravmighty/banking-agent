@@ -14,7 +14,7 @@ DATA_DIR = '../data'
 def upload_csv_to_bigquery(project_id, dataset_id, table_id, csv_file):
     """Upload CSV file to BigQuery table"""
     
-    KEY_PATH = "../keys/service-account-key.json"
+    KEY_PATH = "../keys/tf-sa-key.json"
 
     # Create credentials from the file
     credentials = service_account.Credentials.from_service_account_file(KEY_PATH)
@@ -63,7 +63,8 @@ def main():
         'transactions': f'{DATA_DIR}/transactions.csv',
         'products': f'{DATA_DIR}/products.csv',
         'customer_products': f'{DATA_DIR}/customer_products.csv',
-        'credit_scores': f'{DATA_DIR}/credit_scores.csv'
+        'credit_scores': f'{DATA_DIR}/credit_scores.csv',
+        'customer_identity_mapping': f'{DATA_DIR}/customer_identity_mapping.csv'
     }
     
     # Check if data directory exists
