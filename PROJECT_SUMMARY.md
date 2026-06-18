@@ -1,134 +1,60 @@
-
 # Project Summary
 
-This document provides a concise overview of the project, including its structure, dependencies, and architecture.
+This document provides a comprehensive overview of the Banking Data Platform, including its architecture, data model, and core components.
+
+## Architecture & Design Principles
+
+The platform is built as a high-fidelity simulation of a modern banking environment, designed to power advanced AI agents (Google ADK), analytics copilots, and transactional workflows.
+
+### Core Principles
+*   **Business Keys**: All user-facing identifiers are business-centric (e.g., `account_number` instead of surrogate integer IDs).
+*   **Historical Accuracy (SCD Type 2)**: Core entities maintain a full history of changes using effective start/end timestamps and versioning.
+*   **Ledger Consistency**: Transfers are recorded as dual-entry DEBIT/CREDIT pairs sharing a unique `reference_id`.
+*   **AI-Native Metadata**: Every BigQuery field is enriched with exhaustive descriptions to provide deep context for SQL generation agents.
 
 ## File Structure
 
 ```
 /
-├───.gitignore
-├───banking_dataset_config.json
-├───requirements.txt
-├───.git/...
-├───bq_agent/
-│   ├───__init__.py
-│   ├───agent.py
-│   ├───prompts.py
-│   ├───tools.py
-│   ├───__pycache__/
-│   ├───mcp_server/
-│   │   ├───__init__.py
-│   │   ├───README.md
-│   │   ├───server.py
-│   │   ├───tools.py
-│   │   └───__pycache__/
-│   └───sub_agents/
-│       ├───__init__.py
-│       ├───__pycache__/
-│       ├───bigquery/
-│       │   ├───__init__.py
-│       │   ├───agent.py
-│       │   ├───prompts.py
-│       │   └───tools.py
-│       └───transaction/
-│           ├───__init__.py
-│           ├───agent.py
-│           └───prompts.py
-├───data/
+├───terraform/                  # Infrastructure as Code (BigQuery)
+│   ├───main.tf                 # SCD Type 2 table definitions & schemas
+├───src/                        # Data Engineering & Ingestion
+│   ├───generate_data.py        # Segmented synthetic data generator (SCD, Paired TXs)
+│   ├───upload_to_bigquery.py   # Bulk ingestion scripts
+├───mcp_server/                 # Transactional Layer (FastMCP)
+│   ├───server.py               # OAuth2 protected tool entrypoints
+│   ├───tools.py                # Ledger-aware financial logic (Transfers, CC Payments)
+├───app/                        # Multi-Agent Orchestration (ADK)
+│   ├───agent.py                # Root agent orchestrator
+│   ├───sub_agents/             # Specialized agents (BigQuery, Transaction)
+├───data/                       # Local synthetic dataset (CSVs)
 │   ├───accounts.csv
+│   ├───beneficiaries.csv
+│   ├───credit_cards.csv
 │   ├───credit_scores.csv
-│   ├───customer_products.csv
 │   ├───customers.csv
-│   ├───products.csv
+│   ├───fixed_deposits.csv
+│   ├───loans.csv
 │   └───transactions.csv
-├───keys/
-│   └───my-creds.json
-├───ref/
-│   ├───adk-docs.txt
-│   ├───fastmcp-doc.txt
-│   └───authn-adk-all-in-one/
-│       └───...
-├───src/
-│   ├───generate_data.py
-│   ├───test.py
-│   └───upload_to_bigquery.py
-└───terraform/
-    ├───main.tf
-    ├───outputs.tf
-    └───variables.tf
+├───MIGRATION_NOTES.md          # Technical record of schema evolutions
+└───README.md                   # System documentation & usage guide
 ```
 
-## File Descriptions
+## Data Model Overview
 
-### Root Directory
+1.  **Identity & Access**: Maps Firebase UIDs to bank customers; implements Row-Level Security (RLS) via authorized BigQuery views.
+2.  **Core Banking (SCD Type 2)**:
+    *   `customers`: Profiles, segments (Retail, Wealth, etc.), and risk levels.
+    *   `accounts`: Savings, Current, and Salary accounts with balance tracking.
+    *   `credit_cards`: Detailed card management (limit, utilization, billing).
+3.  **Products & Interactions**:
+    *   `transactions`: Ledger-style history with categories and merchant mapping.
+    *   `loans`: Specialized loan account tracking (EMI, tenure, outstanding).
+    *   `fixed_deposits`: Investment tracking with maturity and interest.
+    *   `beneficiaries`: Customer-managed payee lists.
 
-- **`.gitignore`**: Specifies which files and directories to ignore in Git version control.
-- **`banking_dataset_config.json`**: Configuration file for the banking dataset, likely specifying dataset type and metadata.
-- **`requirements.txt`**: Lists the Python dependencies required for the project.
+## Multi-Agent Workflow
 
-### `bq_agent/`
-
-- **`agent.py`**: The main agent logic, responsible for orchestrating sub-agents and tools to handle user requests related to the banking dataset.
-- **`prompts.py`**: Contains prompts for the language model, guiding its behavior and responses.
-- **`tools.py`**: Defines tools that the agent can use, such as calling the BigQuery agent.
-
-#### `bq_agent/mcp_server/`
-
-- **`README.md`**: Documentation for the MCP server, explaining how to run and interact with it.
-- **`server.py`**: Implements the MCP server, exposing tools for making transactions and credit card payments.
-- **`tools.py`**: Contains the implementation of the tools exposed by the MCP server, which interact with the BigQuery database.
-
-#### `bq_agent/sub_agents/bigquery/`
-
-- **`agent.py`**: The BigQuery agent, which handles natural language to SQL conversion and executes queries against the BigQuery database.
-- **`prompts.py`**: Contains prompts for the BigQuery agent.
-- **`tools.py`**: Defines tools for the BigQuery agent, such as `bigquery_nl2sql`.
-
-#### `bq_agent/sub_agents/transaction/`
-
-- **`agent.py`**: The Transaction agent, which handles transaction-related tasks by using tools from the MCP server.
-- **`prompts.py`**: Contains prompts for the Transaction agent.
-
-### `data/`
-
-- **`*.csv`**: CSV files containing the banking dataset, including customer information, accounts, transactions, products, and credit scores.
-
-### `keys/`
-
-- **`my-creds.json`**: Service account credentials for accessing Google Cloud services, such as BigQuery.
-
-### `ref/`
-
-- **`adk-docs.txt`**: Documentation for the Agent Development Kit (ADK).
-- **`fastmcp-doc.txt`**: Documentation for the FastMCP library.
-- **`authn-adk-all-in-one/`**: A self-contained demo of ADK authentication, including an IDP, a hotel booking app, and an agent.
-
-### `src/`
-
-- **`generate_data.py`**: Script to generate the banking dataset.
-- **`test.py`**: A test script for the project.
-- **`upload_to_bigquery.py`**: Script to upload the generated data to BigQuery.
-
-### `terraform/`
-
-- **`main.tf`**: The main Terraform configuration file, which defines the Google Cloud resources to be created, such as the BigQuery dataset and tables.
-- **`outputs.tf`**: Defines the outputs of the Terraform configuration, such as the BigQuery dataset ID.
-- **`variables.tf`**: Defines the variables used in the Terraform configuration, such as the GCP project ID and region.
-
-## Key Dependencies
-
-- **`faker`**: Used to generate fake data for the banking dataset.
-- **`pandas`**: Used for data manipulation and analysis.
-- **`google-cloud-bigquery`**: The official Python client library for BigQuery, used to interact with the database.
-- **`google-adk`**: The Agent Development Kit, used to build and run the agents.
-- **`Flask`**: A web framework used in the authentication demo.
-- **`SQLAlchemy`**: A SQL toolkit and Object Relational Mapper used in the authentication demo.
-- **`python-dotenv`**: Used to manage environment variables.
-- **`passlib[bcrypt]`**: Used for password hashing in the authentication demo.
-- **`jinja2`**: A templating engine used by Flask.
-- **`requests`**: A library for making HTTP requests.
-
-## Overall Architecture Pattern
-
-The project follows a multi-agent architecture, with a root agent that orchestrates sub-agents and tools to handle user requests. The root agent is responsible for classifying the user's intent and delegating the request to the appropriate sub-agent. The BigQuery agent is a sub-agent that handles natural language to SQL conversion and executes queries against the BigQuery database. The Transaction agent is another sub-agent that handles transaction-related tasks by using tools from the MCP server. The MCP server exposes tools for making transactions and credit card payments. The project also includes a data generation script, a data upload script, and a Terraform configuration for creating the necessary Google Cloud resources. The `ref/` directory contains documentation and a self-contained authentication demo.
+*   **Root Agent**: Classifies user intent and routes to sub-agents.
+*   **BigQuery Agent**: Translates natural language to SQL; queries RLS-filtered views.
+*   **Transaction Agent**: Executes secure financial operations via the MCP server.

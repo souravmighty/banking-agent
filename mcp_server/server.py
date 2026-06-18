@@ -207,10 +207,10 @@ mcp.add_middleware(AuthMiddleware())
 def _check_bigquery_registration(email: str):
     """Queries BigQuery and returns a dictionary of IDs."""
     query = f"""
-        SELECT c.customer_id, a.account_id, a.account_type
+        SELECT c.customer_id, a.account_number, a.account_type
         FROM `{PROJECT_DATASET_CUSTOMERS}` c
         LEFT JOIN `{PROJECT_DATASET_ACCOUNTS}` a ON c.customer_id = a.customer_id
-        WHERE c.email = @email
+        WHERE c.email = @email AND c.is_current = true AND (a.is_current = true OR a.account_number IS NULL)
     """
     job_config = bigquery.QueryJobConfig(
         query_parameters=[bigquery.ScalarQueryParameter("email", "STRING", email)]
@@ -222,7 +222,7 @@ def _check_bigquery_registration(email: str):
 
     return {
         "customer_id": results[0].customer_id,
-        "accounts": [{"id": r.account_id, "type": r.account_type} for r in results if r.account_id]
+        "accounts": [{"number": r.account_number, "type": r.account_type} for r in results if r.account_number]
     }
     
 # @dataclass
@@ -236,32 +236,24 @@ async def get_customer_info(ctx: Context) -> Dict[str, Any]:
     customer_data = ctx.get_state("customer_data")
     return {
             "customer_id": customer_data["customer_id"],
+            "accounts": customer_data["accounts"]
     }
     
 @mcp.tool
-async def make_transaction(from_account_id: int, to_account_id: int, amount: float, confirm: bool = False) -> Dict[str, Any]:
+async def make_transaction(from_account_number: str, to_account_number: str, amount: float, confirm: bool = False) -> Dict[str, Any]:
     """Wrapper tool that delegates to the BigQuery-backed implementation.
 
     Signature follows the documented API so clients can call it remotely.
     """
-    return tools.make_transaction(from_account_id=from_account_id, to_account_id=to_account_id, amount=amount, confirm=confirm)
+    return tools.make_transaction(from_account_number=from_account_number, to_account_number=to_account_number, amount=amount, confirm=confirm)
     
 
-# @mcp.tool
-# async def make_transaction(ctx: Context, to_account_id: int, amount: float, confirm: bool = False) -> Dict[str, Any]:
-#     """Wrapper tool that delegates to the BigQuery-backed implementation.
-
-#     Signature follows the documented API so clients can call it remotely.
-#     """
-#     customer_data
-#     return tools.make_transaction(from_account_id=from_account_id, to_account_id=to_account_id, amount=amount, confirm=confirm)
-
 @mcp.tool                                                                     
-async def credit_card_payment(cc_account_id: int, from_account_id: int, option: str = "full", amount: float = None, confirm: bool = False) -> Dict[str, Any]:
+async def credit_card_payment(cc_account_number: str, from_account_number: str, option: str = "full", amount: float = None, confirm: bool = False) -> Dict[str, Any]:
     """Wrapper tool to pay credit card bills via `make_transaction`.
     """
     # Keep amount default as None to match tools.credit_card_payment signature
-    return tools.credit_card_payment(cc_account_id=cc_account_id, from_account_id=from_account_id, option=option, amount=amount, confirm=confirm)
+    return tools.credit_card_payment(cc_account_number=cc_account_number, from_account_number=from_account_number, option=option, amount=amount, confirm=confirm)
 
 @mcp.tool()
 async def get_user_info(ctx: Context) -> dict[str, Any]:

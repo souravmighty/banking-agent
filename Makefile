@@ -1,9 +1,10 @@
 install:
 	@command -v uv >/dev/null 2>&1 || { echo "uv is not installed. Installing uv..."; curl -LsSf https://astral.sh/uv/0.6.12/install.sh | sh; source $HOME/.local/bin/env; }
 	uv sync && npm --prefix nextjs install
+	uv pip install -r customer-identity-service/requirements.txt
 
 dev:
-	make dev-backend & make dev-frontend
+	make dev-backend & make dev-frontend & make identity-service
 
 dev-backend:
 	uv run adk api_server . --allow_origins="*"
@@ -11,8 +12,24 @@ dev-backend:
 dev-frontend:
 	npm --prefix nextjs run dev
 
+identity-service:
+	cd customer-identity-service && uv run uvicorn app.main:app --host 0.0.0.0 --port 8080 --reload
+
 adk-web:
 	uv run adk web --port 8501
+
+# Infrastructure & Data Management
+bq-setup:
+	cd infra/bq_schema && terraform init && terraform apply -auto-approve
+
+generate-data:
+	cd infra/data_scripts && python3 generate_data.py
+
+upload-data:
+	cd infra/data_scripts && python3 upload_to_bigquery.py
+
+# Full data platform setup
+data-setup: bq-setup generate-data upload-data
 
 lint:
 	uv run codespell

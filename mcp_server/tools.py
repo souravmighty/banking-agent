@@ -20,6 +20,7 @@ from google.cloud import bigquery
 
 PROJECT_DATASET_ACCOUNTS = "banking-agent-adk-mcp.banking_data.accounts"
 PROJECT_DATASET_TRANSACTIONS = "banking-agent-adk-mcp.banking_data.transactions"
+PROJECT_DATASET_CREDIT_CARDS = "banking-agent-adk-mcp.banking_data.credit_cards"
 
 
 def _get_bq_client():
@@ -30,10 +31,11 @@ def _get_bq_client():
     return bigquery.Client(project="banking-agent-adk-mcp")
 
 
-def _fetch_account(client: bigquery.Client, account_id: int) -> Optional[Dict[str, Any]]:
-    query = f"SELECT * FROM `{PROJECT_DATASET_ACCOUNTS}` WHERE account_id = @aid LIMIT 1"
+def _fetch_account(client: bigquery.Client, account_number: str) -> Optional[Dict[str, Any]]:
+    # Query for the CURRENT active version of the account
+    query = f"SELECT * FROM `{PROJECT_DATASET_ACCOUNTS}` WHERE account_number = @anum AND is_current = true LIMIT 1"
     job = client.query(query, job_config=bigquery.QueryJobConfig(
-        query_parameters=[bigquery.ScalarQueryParameter("aid", "INT64", account_id)]
+        query_parameters=[bigquery.ScalarQueryParameter("anum", "STRING", account_number)]
     ))
     rows = list(job.result())
     if not rows:
@@ -42,22 +44,27 @@ def _fetch_account(client: bigquery.Client, account_id: int) -> Optional[Dict[st
     return dict(row.items())
 
 
-def _update_account_balance(client: bigquery.Client, account_id: int, new_balance: float):
-    # BigQuery is not an OLTP DB; perform a simple UPDATE statement.
-    query = f"UPDATE `{PROJECT_DATASET_ACCOUNTS}` SET balance = @bal WHERE account_id = @aid"
+def _update_account_balance(client: bigquery.Client, account_number: str, new_balance: float):
+    # BigQuery UPDATE on the current version
+    query = f"UPDATE `{PROJECT_DATASET_ACCOUNTS}` SET balance = @bal WHERE account_number = @anum AND is_current = true"
     job = client.query(query, job_config=bigquery.QueryJobConfig(
         query_parameters=[
             bigquery.ScalarQueryParameter("bal", "FLOAT64", new_balance),
-            bigquery.ScalarQueryParameter("aid", "INT64", account_id),
+            bigquery.ScalarQueryParameter("anum", "STRING", account_number),
         ]
     ))
     job.result()
 
 
-def _next_transaction_id(client: bigquery.Client) -> int:
-    query = f"SELECT IFNULL(MAX(transaction_id), 0) as mx FROM `{PROJECT_DATASET_TRANSACTIONS}`"
-    rows = list(client.query(query).result())
-    return int(rows[0]["mx"]) + 1
+def _fetch_credit_card(client: bigquery.Client, card_account_number: str) -> Optional[Dict[str, Any]]:
+    query = f"SELECT * FROM `{PROJECT_DATASET_CREDIT_CARDS}` WHERE card_account_number = @canum AND is_current = true LIMIT 1"
+    job = client.query(query, job_config=bigquery.QueryJobConfig(
+        query_parameters=[bigquery.ScalarQueryParameter("canum", "STRING", card_account_number)]
+    ))
+    rows = list(job.result())
+    if not rows:
+        return None
+    return dict(rows[0].items())
 
 
 def _insert_transaction(client: bigquery.Client, tx: Dict[str, Any]):
@@ -65,151 +72,139 @@ def _insert_transaction(client: bigquery.Client, tx: Dict[str, Any]):
     client.insert_rows_json(table_ref, [tx])
 
 
-def make_transaction(from_account_id: int, to_account_id: int, amount: float, confirm: bool = False) -> Dict[str, Any]:
-    """Move money between accounts.
+def make_transaction(from_account_number: str, to_account_number: str, amount: float, confirm: bool = False) -> Dict[str, Any]:
+    """Move money between accounts using account numbers and ledger-style double entry.
 
     Steps:
     - Validate both accounts exist and are active.
-    - Check `from_account` has sufficient balance (for CHECKING/SAVINGS).
+    - Check `from_account` has sufficient balance.
     - If `confirm` is False: return a confirmation message with details.
-    - If `confirm` is True: perform the transfer by inserting a transaction row
-      and updating the `accounts` table for the from-account balance.
-
-    Returns a dict with `success`, `message`, and additional fields.
+    - If `confirm` is True: perform the transfer by inserting TWO transaction rows
+      (DEBIT for sender, CREDIT for receiver) and updating balances.
     """
     client = _get_bq_client()
 
-    from_acc = _fetch_account(client, from_account_id)
-    to_acc = _fetch_account(client, to_account_id)
+    from_acc = _fetch_account(client, from_account_number)
+    to_acc = _fetch_account(client, to_account_number)
 
     if from_acc is None:
-        return {"success": False, "message": f"From account {from_account_id} not found"}
+        return {"success": False, "message": f"From account {from_account_number} not found"}
     if to_acc is None:
-        return {"success": False, "message": f"To account {to_account_id} not found"}
+        return {"success": False, "message": f"To account {to_account_number} not found"}
 
-    if from_acc["status"].upper() != "ACTIVE":
-        return {"success": False, "message": f"From account {from_account_id} is not active"}
-    if to_acc["status"].upper() != "ACTIVE":
-        return {"success": False, "message": f"To account {to_account_id} is not active"}
+    if from_acc["account_status"].upper() != "ACTIVE":
+        return {"success": False, "message": f"From account {from_account_number} is not active"}
+    if to_acc["account_status"].upper() != "ACTIVE":
+        return {"success": False, "message": f"To account {to_account_number} is not active"}
 
     amt = float(amount)
     if amt <= 0:
         return {"success": False, "message": "Amount must be > 0"}
 
-    # Only CHECKING/SAVINGS can be debited in this implementation
-    if from_acc["account_type"].upper() not in ("CHECKING", "SAVINGS"):
-        return {"success": False, "message": "Can only send money from CHECKING or SAVINGS accounts"}
+    if from_acc["account_type"].upper() not in ("SAVINGS", "CURRENT", "SALARY"):
+        return {"success": False, "message": "Can only send money from SAVINGS, CURRENT or SALARY accounts"}
 
     if from_acc["balance"] < amt:
         return {"success": False, "message": "Insufficient balance"}
 
-    # If confirmation not provided, ask for confirmation
     if not confirm:
         return {
             "success": True,
             "confirm_required": True,
             "message": (
-                f"Transfer {amt:.2f} {from_acc['currency']} from account {from_account_id} "
-                f"(balance: {from_acc['balance']:.2f}) to account {to_account_id} (type: {to_acc['account_type']})."
+                f"Transfer {amt:.2f} {from_acc['currency']} from account {from_account_number} "
+                f"to account {to_account_number}."
             ),
         }
 
-    # Perform transfer: subtract from from_acc and (optionally) add to to_acc
+    # Perform transfer
     new_from_balance = float(from_acc["balance"]) - amt
-    # Update balances
-    _update_account_balance(client, from_account_id, new_from_balance)
+    new_to_balance = float(to_acc["balance"]) + amt
+    
+    _update_account_balance(client, from_account_number, new_from_balance)
+    _update_account_balance(client, to_account_number, new_to_balance)
 
-    # If to account is CHECKING/SAVINGS, add amount; if CREDIT CARD, reduce outstanding (i.e., subtract payment)
-    if to_acc["account_type"].upper() in ("CHECKING", "SAVINGS"):
-        new_to_balance = float(to_acc["balance"]) + amt
-        _update_account_balance(client, to_account_id, new_to_balance)
-    else:
-        # For CREDIT CARD, we interpret positive balance as amount owed; paying reduces balance
-        new_to_balance = float(to_acc["balance"]) - amt
-        _update_account_balance(client, to_account_id, new_to_balance)
+    ref_id = f"REF_{date.today().strftime('%Y%m%d')}{random.randint(1000, 9999)}"
+    timestamp = datetime.now().isoformat()
 
-    tx_id = _next_transaction_id(client)
-    tx = {
-        "transaction_id": tx_id,
-        "from_account_id": from_account_id,
-        "to_account_id": to_account_id,
+    # Row 1: DEBIT
+    tx_debit = {
+        "transaction_id": f"TXN_{random.randint(10**11, 10**12-1)}",
+        "reference_id": ref_id,
+        "account_number": from_account_number,
+        "counterparty_account_number": to_account_number,
+        "transaction_type": "TRANSFER",
+        "currency": from_acc["currency"],
+        "direction": "DEBIT",
         "amount": amt,
-        "type": "TRANSFER",
-        "status": "COMPLETED",
         "merchant_name": None,
-        "mcc": None,
-        "merchant_location": None,
-        "timestamp": date.today().isoformat(),
+        "category": "BANKING",
+        "description": f"Transfer to {to_account_number}",
+        "transaction_timestamp": timestamp,
     }
-    _insert_transaction(client, tx)
+    _insert_transaction(client, tx_debit)
+
+    # Row 2: CREDIT
+    tx_credit = {
+        "transaction_id": f"TXN_{random.randint(10**11, 10**12-1)}",
+        "reference_id": ref_id,
+        "account_number": to_account_number,
+        "counterparty_account_number": from_account_number,
+        "transaction_type": "TRANSFER",
+        "currency": to_acc["currency"],
+        "direction": "CREDIT",
+        "amount": amt,
+        "merchant_name": None,
+        "category": "BANKING",
+        "description": f"Transfer from {from_account_number}",
+        "transaction_timestamp": timestamp,
+    }
+    _insert_transaction(client, tx_credit)
 
     return {
         "success": True,
         "message": "Transfer completed",
-        "transaction": tx,
+        "reference_id": ref_id,
         "from_new_balance": new_from_balance,
         "to_new_balance": new_to_balance,
     }
 
 
-def credit_card_payment(cc_account_id: int, from_account_id: int, option: str = "full", amount: Optional[float] = None, confirm: bool = False) -> Dict[str, Any]:
-    """Pay a credit card bill from a checking/savings account.
-
-    option: one of "full", "minimum", "custom".
-    - If `confirm` is False, returns details and asks for confirmation.
-    - If `confirm` True, delegates to `make_transaction` to perform payment.
-
-    Because the schema lacks statement-specific fields, the function estimates
-    statement and minimum amounts using conservative heuristics.
-    """
+def credit_card_payment(cc_account_number: str, from_account_number: str, option: str = "full", amount: Optional[float] = None, confirm: bool = False) -> Dict[str, Any]:
+    """Pay a credit card bill from a savings/current account."""
     client = _get_bq_client()
-    cc_acc = _fetch_account(client, cc_account_id)
-    from_acc = _fetch_account(client, from_account_id)
+    cc_acc = _fetch_credit_card(client, cc_account_number)
+    from_acc = _fetch_account(client, from_account_number)
 
     if cc_acc is None:
-        return {"success": False, "message": f"Credit card account {cc_account_id} not found"}
+        return {"success": False, "message": f"Credit card {cc_account_number} not found"}
     if from_acc is None:
-        return {"success": False, "message": f"From account {from_account_id} not found"}
+        return {"success": False, "message": f"From account {from_account_number} not found"}
 
-    if cc_acc["account_type"].upper() != "CREDIT CARD":
-        return {"success": False, "message": f"Account {cc_account_id} is not a credit card"}
-
-    # Interpret cc_acc['balance'] as outstanding balance
-    outstanding = float(cc_acc["balance"])
-    # Heuristics: latest_statement_balance equals outstanding (best-effort)
-    latest_statement_balance = outstanding
-    # Minimum due: max(2% of statement, 25)
-    min_due = max(round(latest_statement_balance * 0.02, 2), 25.0) if latest_statement_balance > 0 else 0.0
-    # Statement and due dates: estimate using today
-    statement_date = (date.today() - timedelta(days=30)).isoformat()
-    due_date = (date.today() + timedelta(days=10)).isoformat()
-
-    details = {
-        "outstanding": outstanding,
-        "latest_statement_balance": latest_statement_balance,
-        "minimum_due": min_due,
-        "statement_date": statement_date,
-        "due_date": due_date,
-    }
-
-    if option not in ("full", "minimum", "custom"):
-        return {"success": False, "message": "option must be one of 'full', 'minimum' or 'custom'"}
-
+    pay_amount = 0.0
     if option == "full":
-        pay_amount = latest_statement_balance
+        pay_amount = float(cc_acc["outstanding_balance"])
     elif option == "minimum":
-        pay_amount = min_due
+        pay_amount = float(cc_acc["minimum_due_amount"])
     else:
-        if amount is None:
-            return {"success": False, "message": "For custom option, provide amount"}
+        if amount is None: return {"success": False, "message": "Amount required for custom payment"}
         pay_amount = float(amount)
 
     if not confirm:
-        return {"success": True, "confirm_required": True, "payment_amount": pay_amount, "details": details}
+        return {"success": True, "confirm_required": True, "payment_amount": pay_amount}
 
-    # Delegate to make_transaction with confirmation
-    tx_resp = make_transaction(from_account_id=from_account_id, to_account_id=cc_account_id, amount=pay_amount, confirm=True)
-    if not tx_resp.get("success"):
-        return {"success": False, "message": "Payment failed: " + tx_resp.get("message", "unknown")}
+    # Execute payment
+    new_from_balance = float(from_acc["balance"]) - pay_amount
+    _update_account_balance(client, from_account_number, new_from_balance)
+    
+    # Update CC balance
+    new_cc_balance = float(cc_acc["outstanding_balance"]) - pay_amount
+    query = f"UPDATE `{PROJECT_DATASET_CREDIT_CARDS}` SET outstanding_balance = @bal, available_credit = credit_limit - @bal WHERE card_account_number = @anum AND is_current = true"
+    client.query(query, job_config=bigquery.QueryJobConfig(
+        query_parameters=[
+            bigquery.ScalarQueryParameter("bal", "FLOAT64", new_cc_balance),
+            bigquery.ScalarQueryParameter("anum", "STRING", cc_account_number),
+        ]
+    )).result()
 
-    return {"success": True, "message": "Payment completed", "transaction": tx_resp.get("transaction"), "details": details}
+    return {"success": True, "message": "CC Payment completed", "amount_paid": pay_amount}

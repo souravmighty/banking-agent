@@ -69,6 +69,52 @@ This project showcases a dual-agent architecture that combines natural language 
 - Transaction executes in BigQuery
 - Confirmation returned to user
 
+## 🏛️ Data Architecture
+
+The platform uses a sophisticated banking data model designed for historical accuracy and AI contextual depth.
+
+### Business Keys & Identifiers
+*   **`account_number`**: The primary business key used across all banking products. Surrogate IDs are removed from user-facing layers.
+*   **`customer_id`**: Internal identifier linking all entities to a specific user.
+*   **`reference_id`**: Shared identifier for dual-row ledger transactions.
+
+### SCD Type 2 (Slowly Changing Dimensions)
+Core entities (**Customers**, **Accounts**, **Credit Cards**) implement SCD Type 2 to maintain a full history of changes:
+*   `eff_start_ts`: When the record became active.
+*   `eff_end_ts`: When the record was superseded (NULL for active).
+*   `is_current`: Boolean flag for the latest version.
+*   `record_version`: Incremental version counter.
+
+### Product Suite
+1.  **Accounts**: Savings, Current, and Salary accounts with full lifecycle tracking.
+2.  **Credit Cards**: Dedicated credit management with limit, utilization, and statement tracking.
+3.  **Loans**: Support for Personal, Home, and Auto loans with EMI and tenure tracking.
+4.  **Fixed Deposits**: Investment tracking with maturity dates and accrued interest.
+5.  **Beneficiaries**: Managed payee list for each customer.
+6.  **Transactions**: Ledger-style double-entry system (DEBIT/CREDIT pairs).
+
+## 📑 Transaction Model
+
+The system uses a **ledger-style transaction model** where each financial event is recorded from the perspective of the account being viewed.
+
+### Dual-Record Transfers
+A transfer between two accounts generates **two** transaction records:
+1.  **DEBIT Record**: Shows money leaving the sender's account.
+2.  **CREDIT Record**: Shows money entering the receiver's account.
+
+Both records share the same `reference_id`, allowing the system to link them for auditing and reconciliation.
+
+### Key Schema Fields
+*   **`transaction_id`**: Unique ID for every single record.
+*   **`reference_id`**: Shared ID linking related transaction records.
+*   **`account_id`**: The account whose statement this record belongs to.
+*   **`counterparty_account_id`**: The other account involved in the transfer (if applicable).
+*   **`direction`**: Indicates if the amount is a `DEBIT` or `CREDIT`.
+*   **`transaction_type`**: The nature of the transaction (e.g., `TRANSFER`, `UPI`, `SALARY_CREDIT`).
+
+### Security
+Row-Level Security (RLS) views automatically filter the `transactions` table by `account_id` to ensure customers only see records relevant to their own accounts.
+
 ## 🚀 Quick Start
 
 ### Prerequisites
@@ -135,9 +181,10 @@ The project includes a comprehensive data generation script that creates realist
 - **`customers`**: 1,000 customer records with profiles and KYC status
 - **`accounts`**: 1,500-3,000 accounts (mix of checking, savings, credit, loan)
 - **`transactions`**: 50,000 transaction records across all accounts
-- **`products`**: Banking products (credit cards, loans, deposits)
-- **`customer_products`**: Customer-product relationships and application status
 - **`credit_scores`**: Credit scores from various bureaus (EXPERIAN, EQUIFAX, TRANSUNION, CIBIL)
+- **`loans`**: Personal, Home, and Auto loans
+- **`fixed_deposits`**: Investment deposits
+- **`credit_cards`**: Specialized credit accounts
 
 ### Generate Data
 

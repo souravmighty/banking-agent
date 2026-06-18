@@ -191,7 +191,7 @@ def create_customer_views(email_id, target_dataset_id):
         # 1. Base Table: Customers (Direct Filter)
         "customers": f"""
             SELECT * FROM `{full_source_path}.customers`
-            WHERE email = '{email_id}'
+            WHERE email = '{email_id}' AND is_current = true
         """,
         
         # 2. Accounts (Join via customer_id)
@@ -199,7 +199,7 @@ def create_customer_views(email_id, target_dataset_id):
             SELECT t.* FROM `{full_source_path}.accounts` t
             JOIN `{full_source_path}.customers` c 
               ON t.customer_id = c.customer_id
-            WHERE c.email = '{email_id}'
+            WHERE c.email = '{email_id}' AND t.is_current = true AND c.is_current = true
         """,
         
         # 3. Credit Scores (Join via customer_id)
@@ -207,35 +207,49 @@ def create_customer_views(email_id, target_dataset_id):
             SELECT t.* FROM `{full_source_path}.credit_scores` t
             JOIN `{full_source_path}.customers` c 
               ON t.customer_id = c.customer_id
-            WHERE c.email = '{email_id}'
+            WHERE c.email = '{email_id}' AND c.is_current = true
         """,
         
-        # 4. Customer Products (Join via customer_id)
-        "customer_products": f"""
-            SELECT t.* FROM `{full_source_path}.customer_products` t
-            JOIN `{full_source_path}.customers` c 
-              ON t.customer_id = c.customer_id
-            WHERE c.email = '{email_id}'
-        """,
-        
-        # 5. Products (Filter to only products the customer actually owns)
-        "products": f"""
-            SELECT DISTINCT p.* FROM `{full_source_path}.products` p
-            JOIN `{full_source_path}.customer_products` cp 
-              ON p.product_id = cp.product_id
-            JOIN `{full_source_path}.customers` c 
-              ON cp.customer_id = c.customer_id
-            WHERE c.email = '{email_id}'
-        """,
-        
-        # 6. Transactions (Complex Join: Check if customer owns EITHER sender OR receiver account)
+        # 4. Transactions (Filter by account_number)
         "transactions": f"""
-            SELECT DISTINCT t.* FROM `{full_source_path}.transactions` t
+            SELECT t.* FROM `{full_source_path}.transactions` t
             JOIN `{full_source_path}.accounts` a 
-              ON (t.from_account_id = a.account_id OR t.to_account_id = a.account_id)
+              ON t.account_number = a.account_number
             JOIN `{full_source_path}.customers` c 
               ON a.customer_id = c.customer_id
-            WHERE c.email = '{email_id}'
+            WHERE c.email = '{email_id}' AND a.is_current = true AND c.is_current = true
+        """,
+
+        # 5. Credit Cards (Join via customer_id)
+        "credit_cards": f"""
+            SELECT t.* FROM `{full_source_path}.credit_cards` t
+            JOIN `{full_source_path}.customers` c 
+              ON t.customer_id = c.customer_id
+            WHERE c.email = '{email_id}' AND t.is_current = true AND c.is_current = true
+        """,
+
+        # 6. Beneficiaries (Join via customer_id)
+        "beneficiaries": f"""
+            SELECT t.* FROM `{full_source_path}.beneficiaries` t
+            JOIN `{full_source_path}.customers` c 
+              ON t.customer_id = c.customer_id
+            WHERE c.email = '{email_id}' AND c.is_current = true
+        """,
+
+        # 7. Loans (Join via customer_id)
+        "loans": f"""
+            SELECT t.* FROM `{full_source_path}.loans` t
+            JOIN `{full_source_path}.customers` c 
+              ON t.customer_id = c.customer_id
+            WHERE c.email = '{email_id}' AND c.is_current = true
+        """,
+
+        # 8. Fixed Deposits (Join via customer_id)
+        "fixed_deposits": f"""
+            SELECT t.* FROM `{full_source_path}.fixed_deposits` t
+            JOIN `{full_source_path}.customers` c 
+              ON t.customer_id = c.customer_id
+            WHERE c.email = '{email_id}' AND c.is_current = true
         """
     }
 
