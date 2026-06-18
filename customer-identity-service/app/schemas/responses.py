@@ -15,6 +15,7 @@ class CustomerMeResponse(BaseModel):
     name: str
     email: str
     kyc_status: str
+    customer_segment: str
 
 class FieldMetadata(BaseModel):
     column_name: str

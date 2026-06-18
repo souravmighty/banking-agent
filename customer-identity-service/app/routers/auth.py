@@ -17,5 +17,6 @@ async def get_me(
         "customer_id": customer["customer_id"],
         "name": customer["name"],
         "email": customer["email"],
-        "kyc_status": customer["kyc_status"]
+        "kyc_status": customer["kyc_status"],
+        "customer_segment": customer["customer_segment"]
     }

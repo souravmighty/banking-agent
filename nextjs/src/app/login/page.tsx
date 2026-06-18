@@ -1,21 +1,29 @@
 "use client";
 
 import React, { useState } from "react";
-import { useRouter } from "next/navigation";
-import {
-  signInWithEmailAndPassword,
-  createUserWithEmailAndPassword,
-  signInWithPopup,
-  sendPasswordResetEmail,
-} from "firebase/auth";
-import { auth, googleProvider } from "@/firebase/config";
+import { useAuth } from "@/hooks/useAuth";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent } from "@/components/ui/card";
-import { Landmark, Mail, Lock, ArrowRight, Loader2, User, Briefcase, CheckCircle2, ShieldCheck } from "lucide-react";
+import { 
+  Landmark, 
+  Mail, 
+  Lock, 
+  ArrowRight, 
+  Loader2, 
+  User, 
+  Briefcase, 
+  CheckCircle2, 
+  ShieldCheck, 
+  AlertCircle 
+} from "lucide-react";
 import { toast } from "sonner";
+import { signInWithPopup } from "firebase/auth";
+import { auth, googleProvider } from "@/firebase/config";
+import { useRouter } from "next/navigation";
 
 export default function LoginPage() {
+  const { login, register } = useAuth();
   const router = useRouter();
   const [role, setRole] = useState<"customer" | "staff">("customer");
   const [isSignUp, setIsSignUp] = useState(false);
@@ -23,9 +31,39 @@ export default function LoginPage() {
   const [password, setPassword] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const [isGoogleLoading, setIsGoogleLoading] = useState(false);
+  const [statusMessage, setStatusMessage] = useState<string | null>(null);
+  const [errorMessage, setErrorMessage] = useState<string | null>(null);
+
+  const handleGoogleSignIn = async () => {
+    if (role === "staff") {
+      toast.info("Google Sign-In is only available for Customers.");
+      return;
+    }
+    
+    setIsGoogleLoading(true);
+    setErrorMessage(null);
+    setStatusMessage(null);
+    try {
+      await signInWithPopup(auth, googleProvider);
+      toast.success("Successfully signed in with Google!");
+      router.push("/");
+    } catch (error) {
+      console.error("Google Auth error:", error);
+      const firebaseError = error as { code: string; message?: string };
+      if (firebaseError.code !== "auth/popup-closed-by-user") {
+        setErrorMessage(firebaseError.message || "Failed to sign in with Google.");
+        toast.error("Failed to sign in with Google.");
+      }
+    } finally {
+      setIsGoogleLoading(false);
+    }
+  };
 
   const handleAuth = async (e: React.FormEvent) => {
     e.preventDefault();
+    setStatusMessage(null);
+    setErrorMessage(null);
+
     if (role === "staff") {
       toast.info("Bank Staff login is coming soon!");
       return;
@@ -39,72 +77,58 @@ export default function LoginPage() {
     setIsLoading(true);
     try {
       if (isSignUp) {
-        await createUserWithEmailAndPassword(auth, email, password);
-        toast.success("Account created successfully!");
+        // Sign Up Flow (Onboarding)
+        await register(email, password);
+        setStatusMessage("Verification email sent. Please verify your email before logging in.");
+        toast.success("Enrollment request submitted! Check your email.");
+        // Reset password field
+        setPassword("");
+        // Switch back to login view so they can sign in after verification
+        setIsSignUp(false);
       } else {
-        await signInWithEmailAndPassword(auth, email, password);
+        // Log In Flow
+        await login(email, password);
         toast.success("Successfully signed in!");
       }
-      router.push("/");
-    } catch (error) {
-      console.error("Auth error:", error);
-      const firebaseError = error as { code: string };
-      let message = isSignUp ? "Failed to create account." : "Failed to sign in.";
+    } catch (error: unknown) {
+      console.error("Authentication error:", error);
+      const err = error as { message?: string; code?: string };
+      const message = err.message || "";
       
-      if (firebaseError.code === "auth/user-not-found" || firebaseError.code === "auth/wrong-password" || firebaseError.code === "auth/invalid-credential") {
-        message = "Invalid email or password.";
-      } else if (firebaseError.code === "auth/email-already-in-use") {
-        message = "This email is already in use.";
-      } else if (firebaseError.code === "auth/weak-password") {
-        message = "Password should be at least 6 characters.";
-      } else if (firebaseError.code === "auth/too-many-requests") {
-        message = "Too many failed attempts. Please try again later.";
+      // Map user-friendly error messages based on the response details or Firebase error codes
+      if (message.includes("Not a valid bank customer") || message.includes("pre-authorized customer list")) {
+        setErrorMessage("Not a valid bank customer. Please contact your bank for assistance.");
+        toast.error("Not a valid bank customer.");
+      } else if (message.includes("verify your email") || message.includes("Verification email sent")) {
+        setStatusMessage("Verification email sent. Please verify your email before logging in.");
+        toast.info("Please verify your email address.");
+      } else if (err.code === "auth/user-not-found" || err.code === "auth/wrong-password" || err.code === "auth/invalid-credential" || message.includes("Invalid email or password")) {
+        setErrorMessage("Invalid email or password.");
+        toast.error("Invalid credentials.");
+      } else if (err.code === "auth/email-already-in-use" || message.includes("already registered")) {
+        setErrorMessage("This email is already in use. Try signing in instead.");
+        toast.error("Email already in use.");
+      } else if (err.code === "auth/weak-password" || message.includes("Password should be at least 6 characters")) {
+        setErrorMessage("Password should be at least 6 characters.");
+        toast.error("Weak password.");
+      } else if (err.code === "auth/too-many-requests") {
+        setErrorMessage("Too many failed attempts. Please try again later.");
+        toast.error("Too many failed attempts.");
+      } else if (message.includes("Identity Service Unavailable") || message.includes("Failed to fetch") || message.includes("fetch")) {
+        setErrorMessage("Identity service is currently unavailable. Please try again later.");
+        toast.error("Service unavailable.");
+      } else {
+        setErrorMessage(message || "An unexpected error occurred. Please try again.");
+        toast.error("Authentication failed.");
       }
-      toast.error(message);
     } finally {
       setIsLoading(false);
     }
   };
 
-  const handleGoogleSignIn = async () => {
-    if (role === "staff") {
-      toast.info("Google Sign-In is only available for Customers.");
-      return;
-    }
-    
-    setIsGoogleLoading(true);
-    try {
-      await signInWithPopup(auth, googleProvider);
-      toast.success("Successfully signed in with Google!");
-      router.push("/");
-    } catch (error) {
-      console.error("Google Auth error:", error);
-      const firebaseError = error as { code: string };
-      if (firebaseError.code !== "auth/popup-closed-by-user") {
-        toast.error("Failed to sign in with Google.");
-      }
-    } finally {
-      setIsGoogleLoading(false);
-    }
-  };
-
-  const handleForgotPassword = async () => {
-    if (!email) {
-      toast.error("Please enter your email address first.");
-      return;
-    }
-    try {
-      await sendPasswordResetEmail(auth, email);
-      toast.success("Password reset email sent!");
-    } catch (error) {
-      console.error("Forgot password error:", error);
-      toast.error("Failed to send reset email. Check if the email is correct.");
-    }
-  };
-
   return (
     <div className="flex min-h-screen bg-white font-sans text-slate-900">
-      {/* Left Side - Hero Section (Hidden on small screens) */}
+      {/* Left Side - Hero Section */}
       <div className="hidden lg:flex lg:w-1/2 bg-[#1a1f71] relative overflow-hidden flex-col justify-between p-12 text-white">
         <div className="relative z-10">
           <div className="flex items-center gap-3 mb-12">
@@ -141,7 +165,7 @@ export default function LoginPage() {
         <div className="absolute bottom-[-20%] left-[-10%] w-[80%] h-[80%] rounded-full bg-gradient-to-tr from-[#f0a500]/10 to-transparent blur-3xl opacity-30" />
       </div>
 
-      {/* Right Side - Sign In Form */}
+      {/* Right Side - Sign In / Sign Up Form */}
       <div className="w-full lg:w-1/2 flex flex-col items-center justify-center p-8 bg-[#f7f8fc] overflow-y-auto">
         <div className="max-w-xl w-full space-y-8 py-10">
           <div className="text-center">
@@ -150,14 +174,20 @@ export default function LoginPage() {
                 <Landmark className="h-7 w-7" />
               </div>
             </div>
-            <h2 className="text-4xl font-bold text-[#1a1f71] mb-2 tracking-tight">Welcome Back</h2>
-            <p className="text-[#64748b] font-medium">Please select your access level to proceed</p>
+            <h2 className="text-4xl font-bold text-[#1a1f71] mb-2 tracking-tight">
+              {isSignUp ? "Create Secure Account" : "Welcome Back"}
+            </h2>
+            <p className="text-[#64748b] font-medium">Please enter your details to proceed</p>
           </div>
 
           {/* Role Selection */}
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <button
-              onClick={() => setRole("customer")}
+              onClick={() => {
+                setRole("customer");
+                setErrorMessage(null);
+                setStatusMessage(null);
+              }}
               className={`relative flex flex-col p-6 rounded-2xl border-2 transition-all text-left bg-white ${
                 role === "customer" 
                   ? "border-[#1a1f71] shadow-lg shadow-blue-100 ring-1 ring-[#1a1f71]" 
@@ -177,7 +207,11 @@ export default function LoginPage() {
             </button>
 
             <button
-              onClick={() => setRole("staff")}
+              onClick={() => {
+                setRole("staff");
+                setErrorMessage(null);
+                setStatusMessage(null);
+              }}
               className={`relative flex flex-col p-6 rounded-2xl border-2 transition-all text-left bg-white ${
                 role === "staff" 
                   ? "border-[#1a1f71] shadow-lg shadow-blue-100 ring-1 ring-[#1a1f71]" 
@@ -201,22 +235,22 @@ export default function LoginPage() {
             <CardContent className="p-8 sm:p-10 space-y-8">
               <div className="flex flex-col items-center gap-6">
                 <div className="flex items-center gap-2 px-4 py-1.5 rounded-full bg-blue-50 text-[#1a1f71] text-xs font-bold uppercase tracking-wider">
-                  Authenticated Access: <span className="capitalize">{role}</span>
+                  Access Level: <span className="capitalize">{role}</span>
                 </div>
 
                 {role === "customer" && (
                   <Button 
                     variant="outline" 
                     type="button"
-                    className="w-full h-12 border-slate-200 hover:bg-slate-50 text-slate-700 font-bold transition-all rounded-xl gap-3"
+                    className="w-full h-12 border-slate-200 hover:bg-slate-50 text-slate-700 font-bold transition-all rounded-xl gap-3 flex items-center justify-center"
                     onClick={handleGoogleSignIn}
                     disabled={isLoading || isGoogleLoading}
                   >
                     {isGoogleLoading ? (
-                      <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                      <Loader2 className="h-4 w-4 animate-spin" />
                     ) : (
                       <>
-                        <svg className="h-5 w-5" viewBox="0 0 24 24">
+                        <svg className="h-5 w-5 animate-pulse-subtle" viewBox="0 0 24 24">
                           <path
                             fill="#4285F4"
                             d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"
@@ -246,8 +280,27 @@ export default function LoginPage() {
                   <div className="absolute inset-0 flex items-center">
                     <div className="w-full border-t border-slate-100"></div>
                   </div>
-                  <div className="relative flex justify-center text-[11px] uppercase tracking-[0.2em] font-bold text-slate-400">
+                  <div className="relative flex justify-center text-[10px] uppercase tracking-[0.15em] font-bold text-slate-400">
                     <span className="bg-white px-4">or use your banking credentials</span>
+                  </div>
+                </div>
+              )}
+
+              {/* Status and Error Alerts */}
+              {errorMessage && (
+                <div className="flex items-start gap-3 p-4 rounded-xl bg-red-50 text-red-800 border border-red-100 text-sm">
+                  <AlertCircle className="h-5 w-5 shrink-0 mt-0.5" />
+                  <div>
+                    <span className="font-bold">Registration Blocked:</span> {errorMessage}
+                  </div>
+                </div>
+              )}
+
+              {statusMessage && (
+                <div className="flex items-start gap-3 p-4 rounded-xl bg-green-50 text-green-800 border border-green-100 text-sm">
+                  <CheckCircle2 className="h-5 w-5 shrink-0 mt-0.5" />
+                  <div>
+                    <span className="font-bold">Next Steps:</span> {statusMessage}
                   </div>
                 </div>
               )}
@@ -274,15 +327,6 @@ export default function LoginPage() {
                       <Lock className="h-4 w-4 text-slate-400" />
                       Password
                     </label>
-                    {role === "customer" && !isSignUp && (
-                      <button 
-                        type="button"
-                        onClick={handleForgotPassword}
-                        className="text-xs font-bold text-[#1a1f71] hover:underline"
-                      >
-                        Forgot password?
-                      </button>
-                    )}
                   </div>
                   <Input
                     type="password"
@@ -293,13 +337,6 @@ export default function LoginPage() {
                     required
                   />
                 </div>
-
-                {role === "customer" && !isSignUp && (
-                  <div className="flex items-center gap-2 ml-1">
-                    <input type="checkbox" id="keep-signed-in" className="rounded border-slate-300 text-[#1a1f71] focus:ring-[#1a1f71]" />
-                    <label htmlFor="keep-signed-in" className="text-sm text-[#64748b] font-medium">Remember me on this device</label>
-                  </div>
-                )}
 
                 <Button 
                   type="submit" 
@@ -328,7 +365,11 @@ export default function LoginPage() {
                 <>
                   {isSignUp ? "Already registered?" : "New to ABC Bank?"}{" "}
                   <button 
-                    onClick={() => setIsSignUp(!isSignUp)}
+                    onClick={() => {
+                      setIsSignUp(!isSignUp);
+                      setErrorMessage(null);
+                      setStatusMessage(null);
+                    }}
                     className="font-bold text-[#1a1f71] hover:underline"
                   >
                     {isSignUp ? "Sign In" : "Enroll now"}

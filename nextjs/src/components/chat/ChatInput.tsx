@@ -9,7 +9,7 @@ import { useChatContext } from "@/components/chat/ChatProvider";
  * Extracted from ChatMessagesView input section
  */
 export function ChatInput(): React.JSX.Element {
-  const { handleSubmit, isLoading, userId } = useChatContext();
+  const { handleSubmit, isLoading } = useChatContext();
 
   return (
     <div className="relative z-10 flex-shrink-0 border-t border-[#d0d3ea] bg-white/95 backdrop-blur-md shadow-sm">
