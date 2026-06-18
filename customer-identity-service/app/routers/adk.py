@@ -20,15 +20,15 @@ async def get_adk_context(
     # Create or update views and get their IDs
     view_names = view_service.create_authorized_views(customer_id)
     
-    # Get schemas for these views (keep for backward compatibility if needed)
-    schemas = view_service.get_view_schemas(view_names)
-    
     # Get rich metadata for the authorized views
     views_metadata = view_service.get_authorized_views_metadata(view_names)
+    
+    # Get authorized account details (including all types)
+    authorized_accounts = customer_service.get_authorized_accounts(customer_id)
     
     return {
         "customer_id": customer_id,
         "customer": customer,
         "authorized_views": views_metadata,
-        "schemas": schemas
+        "authorized_accounts": authorized_accounts
     }

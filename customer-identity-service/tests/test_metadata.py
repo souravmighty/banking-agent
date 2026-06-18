@@ -47,9 +47,9 @@ def test_view_service_metadata_construction():
     assert view_meta["is_scd_type_2"] is True
     assert "eff_start_ts" in view_meta["scd_columns"]
     
-    assert len(view_meta["fields"]) == 2
-    assert view_meta["fields"][0]["name"] == "account_number"
-    assert view_meta["fields"][0]["description"] == "Acc num desc"
+    assert len(view_meta["schema"]) == 2
+    assert view_meta["schema"][0]["column_name"] == "account_number"
+    assert view_meta["schema"][0]["description"] == "Acc num desc"
 
 @patch("app.routers.adk.get_current_user")
 @patch("app.routers.adk.get_customer_service")
@@ -65,8 +65,8 @@ def test_adk_context_schema_validation(mock_get_view_service, mock_get_customer_
             "table_description": "Accounts description with AI guidance.",
             "is_scd_type_2": True,
             "scd_columns": ["eff_start_ts", "eff_end_ts", "is_current", "record_version"],
-            "fields": [
-                {"name": "account_number", "type": "STRING", "description": "Acc num desc", "mode": "REQUIRED"}
+            "schema": [
+                {"column_name": "account_number", "type": "STRING", "description": "Acc num desc", "mode": "REQUIRED"}
             ]
         }
     ]
@@ -76,7 +76,9 @@ def test_adk_context_schema_validation(mock_get_view_service, mock_get_customer_
         "customer_id": 1001,
         "customer": {"customer_id": 1001, "name": "Test User"},
         "authorized_views": mock_view_service.get_authorized_views_metadata("..."),
-        "schemas": {}
+        "authorized_accounts": [
+            {"account_number": "100234567890", "account_type": "SAVINGS", "account_status": "ACTIVE"}
+        ]
     }
     
     validated = ADKContextResponse(**response_data)
@@ -84,4 +86,9 @@ def test_adk_context_schema_validation(mock_get_view_service, mock_get_customer_
     assert len(validated.authorized_views) == 1
     assert validated.authorized_views[0].view_name == "customer_views.customer_1001_accounts_v"
     assert validated.authorized_views[0].is_scd_type_2 is True
-    assert validated.authorized_views[0].fields[0].name == "account_number"
+    assert validated.authorized_views[0].schema[0].column_name == "account_number"
+    assert validated.authorized_accounts is not None
+    assert len(validated.authorized_accounts) == 1
+    assert validated.authorized_accounts[0].account_number == "100234567890"
+    assert validated.authorized_accounts[0].account_type == "SAVINGS"
+    assert validated.authorized_accounts[0].account_status == "ACTIVE"

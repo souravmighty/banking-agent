@@ -17,7 +17,7 @@ class CustomerMeResponse(BaseModel):
     kyc_status: str
 
 class FieldMetadata(BaseModel):
-    name: str
+    column_name: str
     type: str
     description: str
     mode: str
@@ -28,18 +28,18 @@ class AuthorizedViewDetail(BaseModel):
     ai_usage_guidance: Optional[str] = None
     is_scd_type_2: bool
     scd_columns: List[str]
-    fields: List[FieldMetadata]
-
-class ADKContextResponse(BaseModel):
-    customer_id: int
-    customer: Optional[Dict[str, Any]] = None
-    authorized_views: List[AuthorizedViewDetail]
-    schemas: Optional[Dict[str, Any]] = None
+    schema: List[FieldMetadata]
 
 class AccountDetail(BaseModel):
     account_number: str
     account_type: str
     account_status: str
+
+class ADKContextResponse(BaseModel):
+    customer_id: int
+    customer: Optional[Dict[str, Any]] = None
+    authorized_views: List[AuthorizedViewDetail]
+    authorized_accounts: Optional[List[AccountDetail]] = None
 
 class BeneficiaryDetail(BaseModel):
     beneficiary_id: int

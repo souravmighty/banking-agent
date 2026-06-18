@@ -80,14 +80,6 @@ class ViewService:
         
         return [customer_view_id, accounts_view_id, transactions_view_id]
 
-    def get_view_schemas(self, view_names: List[str]) -> Dict[str, List[Dict[str, Any]]]:
-        schemas = {}
-        for full_name in view_names:
-            parts = full_name.split('.')
-            dataset_id = parts[1]
-            table_id = parts[2]
-            schemas[full_name] = self.bq.get_table_schema(dataset_id, table_id)
-        return schemas
 
     def get_authorized_views_metadata(self, view_names: List[str]) -> List[Dict[str, Any]]:
         """
@@ -149,7 +141,7 @@ class ViewService:
                 desc = field.get("description") or source_field_desc.get(field_name.lower()) or ""
                 mode = source_field_modes.get(field_name.lower()) or field.get("mode") or "NULLABLE"
                 fields_list.append({
-                    "name": field_name,
+                    "column_name": field_name,
                     "type": field["type"],
                     "description": desc,
                     "mode": mode
@@ -161,7 +153,7 @@ class ViewService:
                 "ai_usage_guidance": ai_usage_guidance,
                 "is_scd_type_2": scd_meta["is_scd_type_2"],
                 "scd_columns": scd_meta["scd_columns"],
-                "fields": fields_list
+                "schema": fields_list
             })
             
         return views_metadata
