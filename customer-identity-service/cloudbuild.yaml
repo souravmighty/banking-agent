@@ -9,18 +9,24 @@ steps:
   
   # Deploy container image to Cloud Run
   - name: 'gcr.io/google.com/cloudsdktool/cloud-sdk'
-    entrypoint: gcloud
+    entrypoint: 'bash'
     args:
-      - 'run'
-      - 'deploy'
-      - 'customer-identity-service'
-      - '--image'
-      - 'gcr.io/$PROJECT_ID/customer-identity-service'
-      - '--region'
-      - 'us-central1'
-      - '--platform'
-      - 'managed'
-      - '--allow-unauthenticated'
+      - '-c'
+      - |
+        SERVICE_ACCOUNT=$$(grep -E '^DEPLOY_SERVICE_ACCOUNT=' .env | cut -d'=' -f2)
+        if [ -z "$$SERVICE_ACCOUNT" ]; then
+          SERVICE_ACCOUNT="customer-identity-service-sa@$PROJECT_ID.iam.gserviceaccount.com"
+        fi
+        echo "Deploying to Cloud Run with Service Account: $$SERVICE_ACCOUNT"
+        gcloud run deploy customer-identity-service \
+          --image gcr.io/$PROJECT_ID/customer-identity-service \
+          --region us-central1 \
+          --platform managed \
+          --allow-unauthenticated \
+          --service-account "$$SERVICE_ACCOUNT" \
+          --set-env-vars GOOGLE_CLOUD_PROJECT=banking-agent-rag-mcp,BIGQUERY_DATASET=banking_data,BIGQUERY_VIEWS_DATASET=customer_views,FIREBASE_SERVICE_ACCOUNT_PATH=
+
 
 images:
   - 'gcr.io/$PROJECT_ID/customer-identity-service'
+
