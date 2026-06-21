@@ -25,10 +25,6 @@ export default function RootLayout({
 }): React.JSX.Element {
   return (
     <html lang="en" suppressHydrationWarning>
-      <link
-        rel="stylesheet"
-        href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@latest/dist/tabler-icons.min.css"
-      />
       <body className={`${inter.variable} font-sans antialiased`}>
         <ThemeProvider
           attribute="class"

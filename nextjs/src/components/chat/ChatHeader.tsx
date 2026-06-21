@@ -12,6 +12,7 @@ import { useChatContext } from "@/components/chat/ChatProvider";
 export function ChatHeader(): React.JSX.Element {
   const {
     userId,
+    userEmail,
     sessionId,
     handleSessionSwitch,
     handleCreateNewSession,
@@ -42,7 +43,7 @@ export function ChatHeader(): React.JSX.Element {
               <div className="flex items-center gap-2 bg-[#f0a500] px-2.5 py-1 rounded-md border border-[#f0a500]/20 text-[#1a1f71]">
                 <User className="w-3 h-3" />
                 <span className="text-[12px] font-bold max-w-[120px] truncate">
-                  {userId}
+                  {userEmail || userId}
                 </span>
               </div>
               

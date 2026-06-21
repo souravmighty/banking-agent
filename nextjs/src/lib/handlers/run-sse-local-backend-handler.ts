@@ -71,6 +71,7 @@ export async function handleLocalBackendStreamRequest(
       headers: {
         "Content-Type": "application/json",
         ...authHeaders,
+        ...(requestData.idToken ? { Authorization: `Bearer ${requestData.idToken}` } : {}),
       },
       body: JSON.stringify(localBackendPayload),
     });

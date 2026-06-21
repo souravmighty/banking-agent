@@ -7,6 +7,7 @@ export interface UseSessionReturn {
   // State
   sessionId: string;
   userId: string;
+  userEmail: string;
   isLoadingAuth: boolean;
 
   // Session management
@@ -22,15 +23,18 @@ export function useSession(): UseSessionReturn {
   const router = useRouter();
   const [sessionId, setSessionId] = useState<string>("");
   const [userId, setUserId] = useState<string>("");
+  const [userEmail, setUserEmail] = useState<string>("");
   const [isLoadingAuth, setIsLoadingAuth] = useState(true);
 
   // Sync userId with Firebase Auth
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, (user) => {
       if (user) {
-        setUserId(user.email || user.uid);
+        setUserId(user.uid);
+        setUserEmail(user.email || "");
       } else {
         setUserId("");
+        setUserEmail("");
         // Redirect to login if not authenticated
         router.push("/login");
       }
@@ -122,6 +126,7 @@ export function useSession(): UseSessionReturn {
     // State
     sessionId,
     userId,
+    userEmail,
     isLoadingAuth,
 
     // Session management

@@ -43,14 +43,12 @@ ADK_BUILTIN_BQ_EXECUTE_SQL_TOOL = "execute_sql"
 
 def setup_before_agent_call(callback_context: CallbackContext) -> None:
     """Setup the agent."""
+    if "authorized_views" in callback_context.state:
+        return
 
-    if "database_settings" not in callback_context.state:
-        callback_context.state["database_settings"] = (
-            tools.get_database_settings(email_id=callback_context.session.user_id)
-        )
-        
-    if "customer_profile" not in callback_context.state:
-        callback_context.state["customer_profile"] = tools.get_customer_profile(email_id=callback_context.session.user_id)
+    # If state not populated (e.g. called out of parent flow), load using the root agent's fetch logic
+    from ...agent import load_database_settings_in_context
+    load_database_settings_in_context(callback_context)
 
 def store_results_in_context(
     tool: BaseTool,

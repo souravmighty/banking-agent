@@ -21,6 +21,7 @@ export interface ProcessedStreamRequest {
   message: string;
   userId: string;
   sessionId: string;
+  idToken?: string;
 }
 
 /**
@@ -106,11 +107,17 @@ export async function parseStreamRequest(request: NextRequest): Promise<{
       return { data: null, validation };
     }
 
+    const authHeader = request.headers.get("Authorization");
+    const idToken = authHeader && authHeader.startsWith("Bearer ")
+      ? authHeader.substring(7)
+      : undefined;
+
     return {
       data: {
         message: requestBody.message!,
         userId: requestBody.userId!,
         sessionId: requestBody.sessionId!,
+        idToken,
       },
       validation: { isValid: true },
     };

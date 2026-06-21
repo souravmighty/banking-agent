@@ -5,6 +5,7 @@ from typing import List, Dict, Any, Optional
 class BigQueryService:
     def __init__(self):
         self.client = bigquery.Client(project=settings.GOOGLE_CLOUD_PROJECT)
+        self._metadata_cache = {}
 
     def execute_query(self, query: str, job_config: bigquery.QueryJobConfig = None) -> List[Dict[str, Any]]:
         query_job = self.client.query(query, job_config=job_config)
@@ -77,6 +78,10 @@ class BigQueryService:
         Retrieves table metadata using BigQuery metadata APIs and INFORMATION_SCHEMA.
         Gets table description, field descriptions, column types, and nullable information.
         """
+        cache_key = f"{dataset_id}.{table_id}"
+        if cache_key in self._metadata_cache:
+            return self._metadata_cache[cache_key]
+
         table_ref = f"{settings.GOOGLE_CLOUD_PROJECT}.{dataset_id}.{table_id}"
         table_description = ""
         fields = []
@@ -151,7 +156,10 @@ class BigQueryService:
             except Exception:
                 pass
 
-        return {
+        metadata_result = {
             "table_description": table_description,
             "fields": fields
         }
+        self._metadata_cache[cache_key] = metadata_result
+        return metadata_result
+

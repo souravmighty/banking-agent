@@ -21,6 +21,7 @@ import { loadSessionHistoryAction } from "@/lib/actions/session-history-actions"
 export interface ChatContextValue {
   // Session state
   userId: string;
+  userEmail: string;
   sessionId: string;
 
   // Message state
@@ -73,6 +74,7 @@ export function ChatProvider({
   // Consolidate all hooks
   const {
     userId,
+    userEmail,
     sessionId,
     isLoadingAuth,
     handleCreateNewSession,
@@ -373,6 +375,7 @@ export function ChatProvider({
   const contextValue: ChatContextValue = {
     // Session state
     userId,
+    userEmail,
     sessionId,
 
     // Message state

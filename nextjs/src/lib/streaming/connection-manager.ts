@@ -14,6 +14,7 @@ import {
 } from "./types";
 import { processSseEventData } from "./stream-processor";
 import { createDebugLog } from "@/lib/handlers/run-sse-common";
+import { auth } from "@/firebase/config";
 
 /**
  * Manages SSE streaming connections
@@ -69,11 +70,22 @@ export class StreamingConnectionManager {
         apiPayload
       );
 
+      // Get Firebase ID Token JWT
+      let idToken: string | undefined = undefined;
+      if (auth.currentUser) {
+        try {
+          idToken = await auth.currentUser.getIdToken();
+        } catch (tokenErr) {
+          console.error("Failed to get Firebase ID token on client:", tokenErr);
+        }
+      }
+
       const response = await this.retryFn(() =>
         fetch(this.endpoint, {
           method: "POST",
           headers: {
             "Content-Type": "application/json",
+            ...(idToken ? { Authorization: `Bearer ${idToken}` } : {}),
           },
           body: JSON.stringify(apiPayload),
           signal: this.abortController?.signal,

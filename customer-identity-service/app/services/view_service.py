@@ -66,19 +66,29 @@ class ViewService:
         # View for customer profile
         customer_view_id = f"{self.target_dataset}.customer_{customer_id}_customer_v"
         customer_query = f"SELECT * FROM `{self.source_dataset}.customers` WHERE customer_id = {customer_id}"
-        self.create_view_with_metadata(customer_view_id, customer_query, "customers")
+        try:
+            self.bq.client.get_table(customer_view_id)
+        except Exception:
+            self.create_view_with_metadata(customer_view_id, customer_query, "customers")
 
         # View for customer accounts
         accounts_view_id = f"{self.target_dataset}.customer_{customer_id}_accounts_v"
         accounts_query = f"SELECT * FROM `{self.source_dataset}.accounts` WHERE customer_id = {customer_id}"
-        self.create_view_with_metadata(accounts_view_id, accounts_query, "accounts")
+        try:
+            self.bq.client.get_table(accounts_view_id)
+        except Exception:
+            self.create_view_with_metadata(accounts_view_id, accounts_query, "accounts")
 
         # View for customer transactions
         transactions_view_id = f"{self.target_dataset}.customer_{customer_id}_transactions_v"
         transactions_query = f"SELECT * FROM `{self.source_dataset}.transactions` WHERE account_number IN (SELECT account_number FROM `{self.source_dataset}.accounts` WHERE customer_id = {customer_id})"
-        self.create_view_with_metadata(transactions_view_id, transactions_query, "transactions")
+        try:
+            self.bq.client.get_table(transactions_view_id)
+        except Exception:
+            self.create_view_with_metadata(transactions_view_id, transactions_query, "transactions")
         
         return [customer_view_id, accounts_view_id, transactions_view_id]
+
 
 
     def get_authorized_views_metadata(self, view_names: List[str]) -> List[Dict[str, Any]]:
