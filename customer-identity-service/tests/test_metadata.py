@@ -72,11 +72,14 @@ def test_adk_context_schema_validation(mock_get_view_service, mock_get_customer_
     ]
     
     # Try validating response model with pydantic
+    views_list = mock_view_service.get_authorized_views_metadata("...")
+    views_dict = {view["view_name"]: view for view in views_list}
+    
     response_data = {
         "customer_id": 1001,
-        "customer": {"customer_id": 1001, "name": "Test User"},
-        "authorized_views": mock_view_service.get_authorized_views_metadata("..."),
-        "authorized_accounts": [
+        "customer_profile": {"customer_id": 1001, "name": "Test User"},
+        "authorized_views": views_dict,
+        "authorized_account": [
             {"account_number": "100234567890", "account_type": "SAVINGS", "account_status": "ACTIVE"}
         ]
     }
@@ -84,11 +87,12 @@ def test_adk_context_schema_validation(mock_get_view_service, mock_get_customer_
     validated = ADKContextResponse(**response_data)
     assert validated.customer_id == 1001
     assert len(validated.authorized_views) == 1
-    assert validated.authorized_views[0].view_name == "customer_views.customer_1001_accounts_v"
-    assert validated.authorized_views[0].is_scd_type_2 is True
-    assert validated.authorized_views[0].schema[0].column_name == "account_number"
-    assert validated.authorized_accounts is not None
-    assert len(validated.authorized_accounts) == 1
-    assert validated.authorized_accounts[0].account_number == "100234567890"
-    assert validated.authorized_accounts[0].account_type == "SAVINGS"
-    assert validated.authorized_accounts[0].account_status == "ACTIVE"
+    assert "customer_views.customer_1001_accounts_v" in validated.authorized_views
+    view_detail = validated.authorized_views["customer_views.customer_1001_accounts_v"]
+    assert view_detail.is_scd_type_2 is True
+    assert view_detail.schema[0].column_name == "account_number"
+    assert validated.authorized_account is not None
+    assert len(validated.authorized_account) == 1
+    assert validated.authorized_account[0].account_number == "100234567890"
+    assert validated.authorized_account[0].account_type == "SAVINGS"
+    assert validated.authorized_account[0].account_status == "ACTIVE"

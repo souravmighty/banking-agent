@@ -155,24 +155,18 @@ def patched_init(self, *args, **kwargs):
 
 FastAPI.__init__ = patched_init
 
-def reconstruct_database_settings(state):
-    """Reconstruct legacy database settings format from authorized views context."""
-    if "authorized_views" not in state:
-        return {}
-    
+def reconstruct_database_settings(authorized_views: dict) -> dict:
+    """Reconstruct database settings format with enhanced schema metadata directly from dictionary."""
     project_id = os.getenv("BQ_PROJECT_ID") or os.getenv("GOOGLE_CLOUD_PROJECT") or "banking-agent-rag-mcp"
-    authorized_views = state.get("authorized_views") or []
     schema_dict = {}
-    dataset_id = ""
+    dataset_id = "customer_views"
     
-    for view in authorized_views:
-        view_name = view.get("view_name")
+    for view_name, view in authorized_views.items():
         if view_name and "." in view_name:
             parts = view_name.split(".")
             dataset_id = parts[0]
             table_id = parts[1]
         else:
-            dataset_id = "customer_views"
             table_id = view_name or ""
             
         full_table_ref = f"{project_id}.{dataset_id}.{table_id}"
@@ -180,9 +174,15 @@ def reconstruct_database_settings(state):
         table_schema = []
         fields = view.get("schema") or []
         for field in fields:
-            table_schema.append((field.get("column_name"), field.get("type")))
+            table_schema.append({
+                "column_name": field.get("column_name"),
+                "type": field.get("type"),
+                "description": field.get("description", ""),
+                "mode": field.get("mode", "NULLABLE")
+            })
             
         schema_dict[full_table_ref] = {
+            "table_description": view.get("table_description", ""),
             "table_schema": table_schema
         }
         
@@ -328,6 +328,19 @@ def get_firebase_jwt_token(callback_context: Optional[CallbackContext] = None) -
         _logger.info("Retrieved JWT from global _last_token fallback.")
         return _last_token
         
+    # 3.5. Fallback to environment variable for local testing (e.g., adk-web playground)
+    env_token = os.getenv("LOCAL_TEST_JWT")
+    if env_token:
+        _logger.info("Retrieved JWT from LOCAL_TEST_JWT environment variable.")
+        return env_token
+        
+    # 3.6. Dynamic mock token based on callback context user_id for local testing
+    if callback_context and getattr(callback_context, "session", None) and getattr(callback_context.session, "user_id", None):
+        user_id = callback_context.session.user_id
+        if "@" in user_id:
+            _logger.info("Using dynamic mock token for email: %s", user_id)
+            return f"mock-token:{user_id}"
+        
     # 4. Fallback to call stack inspection (handles first request imported dynamically)
     _logger.info("JWT not found in storage. Attempting call stack inspection...")
     import inspect
@@ -383,7 +396,7 @@ def get_firebase_jwt_token(callback_context: Optional[CallbackContext] = None) -
 def load_database_settings_in_context(callback_context: CallbackContext):
     """Load database settings into the callback context on first use."""
     # Check if context is already loaded
-    if "authorized_views" in callback_context.state:
+    if "customer_profile" in callback_context.state:
         return
 
     token = get_firebase_jwt_token(callback_context)
@@ -411,28 +424,11 @@ def load_database_settings_in_context(callback_context: CallbackContext):
             
             # Load all elements directly to the agent's state
             callback_context.state["customer_id"] = context_data.get("customer_id")
-            callback_context.state["customer"] = context_data.get("customer")
-            callback_context.state["authorized_views"] = context_data.get("authorized_views", [])
-            callback_context.state["authorized_accounts"] = context_data.get("authorized_accounts", [])
+            callback_context.state["customer_profile"] = context_data.get("customer_profile")
+            callback_context.state["authorized_account"] = context_data.get("authorized_account", [])
             
-            # Reconstruct legacy helper structures on the fly so other components keep working
-            customer = context_data.get("customer") or {}
-            authorized_accounts = context_data.get("authorized_accounts") or []
-            customer_profile_dict = {
-                "customer_profile": customer,
-                "accounts": [
-                    {
-                        "account_number": acc.get("account_number"),
-                        "account_type": acc.get("account_type"),
-                        "account_status": acc.get("account_status")
-                    }
-                    for acc in authorized_accounts
-                ]
-            }
-            callback_context.state["customer_profile"] = json.dumps(customer_profile_dict, indent=2)
-            
-            # Reconstruct database_settings
-            callback_context.state["database_settings"] = reconstruct_database_settings(callback_context.state)
+            # Reconstruct database_settings with enhanced schemas and descriptions
+            callback_context.state["database_settings"] = reconstruct_database_settings(context_data.get("authorized_views", {}))
             
     except Exception as e:
         _logger.exception("Error fetching context from identity service")

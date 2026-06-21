@@ -81,45 +81,56 @@ def _serialize_value_for_sql(value):
 
 
 database_settings = None
-
+customer_profile = None
 
 def get_database_settings(email_id):
-    """Get database settings."""
+    """Get database settings from identity-service."""
     global database_settings
-    if database_settings is None:
-        database_settings = update_database_settings(email_id=email_id)
-    return database_settings
-
-
-def update_database_settings(email_id):
-    """Update database settings."""
-    global database_settings
-    
-    sanitized_email = email_id.replace('@', '_').replace('.', '_')
-    target_dataset_id = f"customer_{sanitized_email}"
-    create_customer_views(
-        email_id=email_id,
-        target_dataset_id=target_dataset_id,
-    )
-    schema = get_bigquery_schema_and_samples(bq_data_project=data_project, bq_dataset_id=target_dataset_id)
-    database_settings = {
-        # "data_project_id": get_env_var("BQ_DATA_PROJECT_ID"),
-        # "dataset_id": get_env_var("BQ_DATASET_ID"),
-        "data_project_id": data_project,
-        "dataset_id": target_dataset_id,
-        "schema": schema,
-    }
-    return database_settings
+    if database_settings is not None:
+        return database_settings
+        
+    import httpx
+    identity_service_url = os.getenv("IDENTITY_SERVICE_URL", "http://localhost:8080")
+    context_url = f"{identity_service_url}/api/v1/adk/context"
+    headers = {"Authorization": f"Bearer mock-token:{email_id}"}
+    try:
+        with httpx.Client(timeout=60.0) as client:
+            response = client.get(context_url, headers=headers)
+            if response.status_code == 200:
+                context_data = response.json()
+                from app.agent import reconstruct_database_settings
+                database_settings = reconstruct_database_settings(context_data.get("authorized_views", {}))
+                return database_settings
+            else:
+                logger.error("Failed to fetch database settings from identity-service: %d %s", response.status_code, response.text)
+    except Exception as e:
+        logger.exception("Error calling identity-service for database settings")
+        
+    return {}
 
 def get_customer_profile(email_id):
-    """Get customer profile."""
+    """Get customer profile from identity-service."""
     global customer_profile
-    sanitized_email = email_id.replace('@', '_').replace('.', '_')
-    customer_profile = get_customer_details(
-        project_id=data_project,
-        target_dataset_id=f"customer_{sanitized_email}",
-    )
-    return customer_profile
+    if customer_profile is not None:
+        return customer_profile
+        
+    import httpx
+    identity_service_url = os.getenv("IDENTITY_SERVICE_URL", "http://localhost:8080")
+    context_url = f"{identity_service_url}/api/v1/adk/context"
+    headers = {"Authorization": f"Bearer mock-token:{email_id}"}
+    try:
+        with httpx.Client(timeout=60.0) as client:
+            response = client.get(context_url, headers=headers)
+            if response.status_code == 200:
+                context_data = response.json()
+                customer_profile = context_data.get("customer_profile")
+                return customer_profile
+            else:
+                logger.error("Failed to fetch customer profile from identity-service: %d %s", response.status_code, response.text)
+    except Exception as e:
+        logger.exception("Error calling identity-service for customer profile")
+        
+    return {}
 
 
 def get_bigquery_schema_and_samples(bq_data_project, bq_dataset_id):

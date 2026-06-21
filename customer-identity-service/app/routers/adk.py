@@ -26,9 +26,12 @@ async def get_adk_context(
     # Get authorized account details (including all types)
     authorized_accounts = customer_service.get_authorized_accounts(customer_id)
     
+    # Transform authorized_views list of metadata dicts into a dictionary keyed by view_name
+    views_dict = {view["view_name"]: view for view in views_metadata}
+    
     return {
         "customer_id": customer_id,
-        "customer": customer,
-        "authorized_views": views_metadata,
-        "authorized_accounts": authorized_accounts
+        "customer_profile": customer,
+        "authorized_views": views_dict,
+        "authorized_account": authorized_accounts
     }

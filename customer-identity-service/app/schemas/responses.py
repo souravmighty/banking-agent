@@ -38,9 +38,9 @@ class AccountDetail(BaseModel):
 
 class ADKContextResponse(BaseModel):
     customer_id: int
-    customer: Optional[Dict[str, Any]] = None
-    authorized_views: List[AuthorizedViewDetail]
-    authorized_accounts: Optional[List[AccountDetail]] = None
+    customer_profile: Optional[Dict[str, Any]] = None
+    authorized_views: Dict[str, AuthorizedViewDetail]
+    authorized_account: Optional[List[AccountDetail]] = None
 
 class BeneficiaryDetail(BaseModel):
     beneficiary_id: int

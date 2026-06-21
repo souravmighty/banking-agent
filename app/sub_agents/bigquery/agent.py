@@ -43,7 +43,7 @@ ADK_BUILTIN_BQ_EXECUTE_SQL_TOOL = "execute_sql"
 
 def setup_before_agent_call(callback_context: CallbackContext) -> None:
     """Setup the agent."""
-    if "authorized_views" in callback_context.state:
+    if "database_settings" in callback_context.state:
         return
 
     # If state not populated (e.g. called out of parent flow), load using the root agent's fetch logic

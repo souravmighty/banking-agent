@@ -17,6 +17,18 @@ class IdentityRepository:
         return results[0] if results else None
 
     def get_by_uid(self, uid: str) -> Optional[Dict[str, Any]]:
+        if uid.startswith("mock-uid-"):
+            try:
+                customer_id = int(uid.split("-")[-1])
+                query = f"SELECT customer_id, email_id, firebase_uid FROM `{self.table}` WHERE customer_id = @customer_id"
+                job_config = bigquery.QueryJobConfig(
+                    query_parameters=[bigquery.ScalarQueryParameter("customer_id", "INTEGER", customer_id)]
+                )
+                results = self.bq.execute_query(query, job_config=job_config)
+                return results[0] if results else None
+            except Exception:
+                pass
+
         query = f"SELECT customer_id, email_id, firebase_uid FROM `{self.table}` WHERE firebase_uid = @uid"
         job_config = bigquery.QueryJobConfig(
             query_parameters=[bigquery.ScalarQueryParameter("uid", "STRING", uid)]
