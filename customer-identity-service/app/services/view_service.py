@@ -62,32 +62,53 @@ class ViewService:
             schema=schema
         )
 
-    def create_authorized_views(self, customer_id: int):
-        # View for customer profile
-        customer_view_id = f"{self.target_dataset}.customer_{customer_id}_customer_v"
-        customer_query = f"SELECT * FROM `{self.source_dataset}.customers` WHERE customer_id = {customer_id}"
-        try:
-            self.bq.client.get_table(customer_view_id)
-        except Exception:
-            self.create_view_with_metadata(customer_view_id, customer_query, "customers")
+    def create_authorized_views(self, customer_id: int) -> List[str]:
+        tables_config = {
+            "customer_v": {
+                "source_table": "customers",
+                "query": f"SELECT * FROM `{self.source_dataset}.customers` WHERE customer_id = {customer_id}"
+            },
+            "accounts_v": {
+                "source_table": "accounts",
+                "query": f"SELECT * FROM `{self.source_dataset}.accounts` WHERE customer_id = {customer_id}"
+            },
+            "transactions_v": {
+                "source_table": "transactions",
+                "query": f"SELECT * FROM `{self.source_dataset}.transactions` WHERE account_number IN (SELECT account_number FROM `{self.source_dataset}.accounts` WHERE customer_id = {customer_id})"
+            },
+            "credit_cards_v": {
+                "source_table": "credit_cards",
+                "query": f"SELECT * FROM `{self.source_dataset}.credit_cards` WHERE customer_id = {customer_id}"
+            },
+            "loans_v": {
+                "source_table": "loans",
+                "query": f"SELECT * FROM `{self.source_dataset}.loans` WHERE customer_id = {customer_id}"
+            },
+            "fixed_deposits_v": {
+                "source_table": "fixed_deposits",
+                "query": f"SELECT * FROM `{self.source_dataset}.fixed_deposits` WHERE customer_id = {customer_id}"
+            },
+            "beneficiaries_v": {
+                "source_table": "beneficiaries",
+                "query": f"SELECT * FROM `{self.source_dataset}.beneficiaries` WHERE customer_id = {customer_id}"
+            },
+            "credit_scores_v": {
+                "source_table": "credit_scores",
+                "query": f"SELECT * FROM `{self.source_dataset}.credit_scores` WHERE customer_id = {customer_id}"
+            }
+        }
 
-        # View for customer accounts
-        accounts_view_id = f"{self.target_dataset}.customer_{customer_id}_accounts_v"
-        accounts_query = f"SELECT * FROM `{self.source_dataset}.accounts` WHERE customer_id = {customer_id}"
-        try:
-            self.bq.client.get_table(accounts_view_id)
-        except Exception:
-            self.create_view_with_metadata(accounts_view_id, accounts_query, "accounts")
+        created_views = []
+        for view_suffix, config in tables_config.items():
+            view_id = f"{self.target_dataset}.customer_{customer_id}_{view_suffix}"
+            try:
+                self.bq.client.get_table(view_id)
+            except Exception:
+                self.create_view_with_metadata(view_id, config["query"], config["source_table"])
+            created_views.append(view_id)
 
-        # View for customer transactions
-        transactions_view_id = f"{self.target_dataset}.customer_{customer_id}_transactions_v"
-        transactions_query = f"SELECT * FROM `{self.source_dataset}.transactions` WHERE account_number IN (SELECT account_number FROM `{self.source_dataset}.accounts` WHERE customer_id = {customer_id})"
-        try:
-            self.bq.client.get_table(transactions_view_id)
-        except Exception:
-            self.create_view_with_metadata(transactions_view_id, transactions_query, "transactions")
-        
-        return [customer_view_id, accounts_view_id, transactions_view_id]
+        return created_views
+
 
 
 
