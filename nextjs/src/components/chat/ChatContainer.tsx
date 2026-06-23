@@ -1,11 +1,13 @@
 "use client";
 
+import React, { useState, useEffect } from "react";
 import { BackendHealthChecker } from "@/components/chat/BackendHealthChecker";
 import { ChatHeader } from "./ChatHeader";
 import { ChatContent } from "./ChatContent";
 import { ChatInput } from "./ChatInput";
 import { useChatContext } from "./ChatProvider";
 import { Loader2, Landmark } from "lucide-react";
+import { FirstSessionLoader } from "./FirstSessionLoader";
 
 /**
  * ChatLayout - Pure layout component for chat interface
@@ -13,18 +15,55 @@ import { Loader2, Landmark } from "lucide-react";
  * Uses context for all state management
  */
 export function ChatContainer(): React.JSX.Element {
-  const { isLoadingAuth, userId } = useChatContext();
+  const { 
+    isLoadingAuth, 
+    isInitializing, 
+    isLoadingHistory, 
+    userId,
+    messages,
+    isLoading,
+    isFirstSession,
+    sessionId
+  } = useChatContext();
 
-  if (isLoadingAuth) {
+  const [hasStartedFirstSessionLoad, setHasStartedFirstSessionLoad] = useState(false);
+  const [loaderCompleted, setLoaderCompleted] = useState(false);
+
+  // Reset loader states when session changes
+  useEffect(() => {
+    setHasStartedFirstSessionLoad(false);
+    setLoaderCompleted(false);
+  }, [sessionId]);
+
+  // Trigger first session loader when we start loading the first message of the first session
+  const isFirstSessionLoading = isFirstSession && (isInitializing || isLoadingHistory || (isLoading && messages.length === 1));
+
+  useEffect(() => {
+    if (isFirstSessionLoading && !hasStartedFirstSessionLoad) {
+      setHasStartedFirstSessionLoad(true);
+    }
+  }, [isFirstSessionLoading, hasStartedFirstSessionLoad]);
+
+  const showFirstSessionLoader = hasStartedFirstSessionLoad && !loaderCompleted;
+
+  if (showFirstSessionLoader) {
+    return <FirstSessionLoader onComplete={() => setLoaderCompleted(true)} />;
+  }
+
+  if (isLoadingAuth || isInitializing || isLoadingHistory) {
     return (
-      <div className="h-screen flex flex-col items-center justify-center bg-[#1a1f71] text-white">
+      <div className="h-full flex flex-col items-center justify-center bg-[#1a1f71] text-white">
         <div className="flex flex-col items-center gap-4">
           <div className="w-16 h-16 rounded-2xl bg-white text-[#1a1f71] flex items-center justify-center shadow-2xl animate-pulse">
             <Landmark className="h-8 w-8" />
           </div>
           <div className="flex items-center gap-2">
             <Loader2 className="h-4 w-4 animate-spin text-[#f0a500]" />
-            <span className="text-sm font-medium tracking-wide">Authenticating Secure Connection...</span>
+            <span className="text-sm font-medium tracking-wide animate-pulse">
+              {isLoadingAuth && "Authenticating Secure Connection..."}
+              {isInitializing && "Initializing secure banking session..."}
+              {isLoadingHistory && "Retrieving secure chat history..."}
+            </span>
           </div>
         </div>
       </div>
@@ -35,7 +74,7 @@ export function ChatContainer(): React.JSX.Element {
   if (!userId) return <></>;
 
   return (
-    <div className="h-screen flex flex-col bg-[#f7f8fc] text-[#3a3f6e] relative overflow-hidden">
+    <div className="h-full flex flex-col bg-[#f7f8fc] text-[#3a3f6e] relative overflow-hidden">
       <BackendHealthChecker>
         {/* Banking-themed background */}
         <div className="absolute inset-0 pointer-events-none">

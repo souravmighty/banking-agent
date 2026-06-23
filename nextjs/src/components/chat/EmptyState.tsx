@@ -7,9 +7,9 @@ import {
   ShieldCheck,
   WalletCards,
   Receipt,
-  PiggyBank,
-  Ban,
-  Clock,
+  ShoppingBag,
+  CreditCard,
+  TrendingUp,
 } from "lucide-react";
 import { useChatContext } from "@/components/chat/ChatProvider";
 
@@ -25,7 +25,7 @@ export function EmptyState(): React.JSX.Element {
     <div className="flex-1 flex flex-col items-center p-4 md:p-8 overflow-y-auto">
       <div className="max-w-4xl w-full space-y-10 py-6 md:py-10">
         {/* Hero banner */}
-        <section className="rounded-3xl bg-[#1a1f71] p-10 md:p-14 text-white shadow-xl relative overflow-hidden">
+        <section className="rounded-3xl bg-[#1a1f71] p-6 md:p-14 text-white shadow-xl relative overflow-hidden">
           {/* Decorative background elements */}
           <div className="absolute top-0 right-0 w-64 h-64 bg-white/5 rounded-full -mr-32 -mt-32 blur-3xl" />
           <div className="absolute bottom-0 left-0 w-48 h-48 bg-[#f0a500]/10 rounded-full -ml-24 -mb-24 blur-3xl" />
@@ -89,9 +89,9 @@ export function EmptyState(): React.JSX.Element {
             <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
               {[
                 {label: 'What is the minimum due on my credit card this month?', icon: Receipt},
-                {label: 'How long does an IMPS transfer typically take?', icon: Clock},
-                {label: 'What is the current interest rate on a fixed deposit?', icon: PiggyBank},
-                {label: 'How do I block my debit card if it\'s lost or stolen?', icon: Ban},
+                {label: 'How much did I spend on food and groceries last month?', icon: ShoppingBag},
+                {label: 'What is my remaining credit limit and credit utilization?', icon: CreditCard},
+                {label: 'What is my current credit score?', icon: TrendingUp},
               ].map((item) => (
                 <button 
                   key={item.label} 

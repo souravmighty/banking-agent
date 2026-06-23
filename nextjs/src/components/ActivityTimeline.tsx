@@ -18,7 +18,47 @@ import {
   FileText,
 } from "lucide-react";
 import { useState } from "react";
-import ReactMarkdown from "react-markdown";
+import ReactMarkdown, { Components } from "react-markdown";
+import { mdComponents } from "@/components/chat/MarkdownRenderer";
+
+const timelineMdComponents: Partial<Components> = {
+  ...mdComponents,
+  p: ({ children, ...props }) => (
+    <p className="mb-1 leading-relaxed text-slate-600 last:mb-0 text-xs font-medium" {...props}>
+      {children}
+    </p>
+  ),
+  ul: ({ children, ...props }) => (
+    <ul className="list-disc list-inside mb-1.5 space-y-0.5 text-slate-600 text-xs" {...props}>
+      {children}
+    </ul>
+  ),
+  ol: ({ children, ...props }) => (
+    <ol className="list-decimal list-inside mb-1.5 space-y-0.5 text-slate-600 text-xs" {...props}>
+      {children}
+    </ol>
+  ),
+  li: ({ children, ...props }) => (
+    <li className="leading-relaxed text-slate-600 text-xs" {...props}>
+      {children}
+    </li>
+  ),
+  code: ({ children, ...props }) => (
+    <code className="bg-slate-100 text-[#1a1f71] px-1 py-0.5 rounded text-[11px] font-mono border border-slate-200/40" {...props}>
+      {children}
+    </code>
+  ),
+  a: ({ children, href, ...props }) => (
+    <a className="text-[#1a1f71] hover:text-[#252b82] underline transition-colors text-xs font-semibold" href={href} target="_blank" rel="noopener noreferrer" {...props}>
+      {children}
+    </a>
+  ),
+  strong: ({ children, ...props }) => (
+    <strong className="font-bold text-[#1a1f71] text-xs" {...props}>
+      {children}
+    </strong>
+  ),
+};
 
 export interface ProcessedEvent {
   title: string;
@@ -146,72 +186,85 @@ export function ActivityTimeline({
 
   const getEventColor = (title: string): string => {
     // Color code different types of events
-    if (title.includes("Function Call")) return "text-blue-400";
-    if (title.includes("Function Response")) return "text-green-400";
+    if (title.includes("Function Call")) return "text-blue-600";
+    if (title.includes("Function Response")) return "text-emerald-600";
     if (title.includes("Sources") || title.includes("Research"))
-      return "text-purple-400";
+      return "text-purple-600";
     if (title.includes("Planning") || title.includes("Strategy"))
-      return "text-yellow-400";
+      return "text-amber-600";
     if (title.includes("Processing") || title.includes("Analysis"))
-      return "text-orange-400";
+      return "text-orange-600";
     if (title.includes("Writing") || title.includes("Report"))
-      return "text-pink-400";
+      return "text-rose-600";
     if (title.includes("Thinking") || title.startsWith("🤔"))
-      return "text-cyan-400";
-    return "text-neutral-400";
+      return "text-indigo-600";
+    return "text-slate-500";
+  };
+
+  const getEventBg = (title: string): string => {
+    if (title.includes("Function Call")) return "bg-blue-50/40 border-blue-100/50";
+    if (title.includes("Function Response")) return "bg-emerald-50/40 border-emerald-100/50";
+    if (title.includes("Sources") || title.includes("Research")) return "bg-purple-50/40 border-purple-100/50";
+    if (title.includes("Planning") || title.includes("Strategy")) return "bg-amber-50/40 border-amber-100/50";
+    if (title.includes("Processing") || title.includes("Analysis")) return "bg-orange-50/40 border-orange-100/50";
+    if (title.includes("Writing") || title.includes("Report")) return "bg-rose-50/40 border-rose-100/50";
+    if (title.includes("Thinking") || title.startsWith("🤔")) return "bg-indigo-50/40 border-indigo-100/50";
+    return "bg-slate-50/40 border-slate-100/50";
   };
 
   return (
     <div className="w-full mb-4">
-      <Card className="bg-neutral-900 border-neutral-700">
-        <CardHeader className="pb-3">
+      <Card className="bg-white border-[#d0d3ea] shadow-sm rounded-2xl overflow-hidden">
+        <CardHeader className="pb-3 border-b border-[#d0d3ea]/50 bg-[#f7f8fc]/80">
           <div className="flex items-center justify-between">
-            <div className="flex items-center gap-2">
-              <Activity className="h-5 w-5 text-blue-400" />
-              <CardDescription className="text-neutral-300 font-medium">
+            <div className="flex items-center gap-2.5">
+              <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-[#1a1f71]/5 text-[#1a1f71] ring-1 ring-[#1a1f71]/10">
+                <Activity className="h-4 w-4" />
+              </div>
+              <CardDescription className="text-[#1a1f71] font-bold text-sm">
                 AI Activity Timeline
               </CardDescription>
             </div>
             <button
               onClick={() => setIsTimelineCollapsed(!isTimelineCollapsed)}
-              className="p-1 hover:bg-neutral-700 rounded transition-colors"
+              className="p-1.5 hover:bg-slate-100 rounded-lg transition-colors border border-transparent hover:border-slate-200"
             >
               {isTimelineCollapsed ? (
-                <ChevronDown className="h-4 w-4 text-neutral-400" />
+                <ChevronDown className="h-4 w-4 text-slate-500" />
               ) : (
-                <ChevronUp className="h-4 w-4 text-neutral-400" />
+                <ChevronUp className="h-4 w-4 text-slate-500" />
               )}
             </button>
           </div>
         </CardHeader>
         {!isTimelineCollapsed && (
-          <CardContent className="pt-0">
+          <CardContent className="pt-4">
             <ScrollArea className="h-48">
-              <div className="space-y-2 pr-4">
+              <div className="space-y-3 pr-4">
                 {processedEvents.map((event, index) => (
                   <div
                     key={index}
-                    className="flex items-start gap-2 p-2 rounded-lg bg-neutral-800/50 border border-neutral-700/50"
+                    className={`flex items-start gap-3 p-3.5 rounded-xl bg-white border ${getEventBg(event.title)} shadow-sm hover:shadow transition-shadow`}
                   >
-                    <div className={`mt-0.5 ${getEventColor(event.title)}`}>
+                    <div className={`mt-0.5 p-1.5 rounded-lg bg-white shadow-sm ring-1 ring-black/5 ${getEventColor(event.title)} shrink-0`}>
                       {getEventIcon(event.title)}
                     </div>
                     <div className="flex-1 min-w-0">
                       <div
-                        className={`text-sm font-medium ${getEventColor(
+                        className={`text-xs font-bold uppercase tracking-wider ${getEventColor(
                           event.title
                         )}`}
                       >
                         {event.title}
                       </div>
-                      <div className="text-xs text-neutral-400 mt-1">
+                      <div className="text-xs mt-1.5 leading-relaxed">
                         {isJsonData(event.data) ? (
-                          <pre className="whitespace-pre-wrap font-mono text-xs">
+                          <pre className="whitespace-pre-wrap font-mono text-[11px] bg-slate-50 text-slate-800 p-3 rounded-xl overflow-x-auto border border-slate-200/60 leading-normal">
                             {formatEventData(event.data)}
                           </pre>
                         ) : (
-                          <div className="prose prose-invert prose-xs">
-                            <ReactMarkdown>
+                          <div className="text-xs">
+                            <ReactMarkdown components={timelineMdComponents}>
                               {formatEventData(event.data)}
                             </ReactMarkdown>
                           </div>
@@ -221,15 +274,15 @@ export function ActivityTimeline({
                   </div>
                 ))}
                 {isLoading && (
-                  <div className="flex items-center gap-2 p-2 rounded-lg bg-neutral-800/30 border border-neutral-700/30">
-                    <Loader2 className="h-4 w-4 animate-spin text-blue-400" />
-                    <div className="text-sm text-neutral-400">
+                  <div className="flex items-center gap-2.5 p-3.5 rounded-xl bg-slate-50 border border-slate-200/50 animate-pulse">
+                    <Loader2 className="h-4 w-4 animate-spin text-[#1a1f71]" />
+                    <div className="text-xs font-bold text-[#1a1f71]/70">
                       AI is processing...
                     </div>
                   </div>
                 )}
                 {processedEvents.length === 0 && !isLoading && (
-                  <div className="text-center py-4 text-neutral-500 text-sm">
+                  <div className="text-center py-8 text-slate-400 text-xs font-semibold">
                     Activity will appear here as the AI processes your request
                   </div>
                 )}

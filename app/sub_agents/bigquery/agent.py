@@ -10,7 +10,11 @@ from google.adk.agents.callback_context import CallbackContext
 from google.adk.tools import BaseTool, ToolContext
 from google.adk.tools.bigquery import BigQueryToolset, BigQueryCredentialsConfig
 from google.adk.tools.bigquery.config import BigQueryToolConfig, WriteMode
-from google.genai import types
+from google.adk.planners import BuiltInPlanner
+
+# from google.adk.tools import load_artifacts
+import google.genai.types as genai_types
+
 from . import tools
 # from .chase_sql import chase_db_tools
 from .prompts import return_instructions_bigquery
@@ -79,6 +83,9 @@ bigquery_toolset = BigQueryToolset(
 bigquery_agent = LlmAgent(
     model=os.getenv("BIGQUERY_AGENT_MODEL", "gemini-2.5-pro"),
     name="bigquery_agent",
+    planner=BuiltInPlanner(
+        thinking_config=genai_types.ThinkingConfig(include_thoughts=True)
+    ),
     instruction=return_instructions_bigquery(),
     tools=[
         tools.bigquery_nl2sql,
@@ -86,5 +93,5 @@ bigquery_agent = LlmAgent(
     ],
     before_agent_callback=setup_before_agent_call,
     after_tool_callback=store_results_in_context,
-    generate_content_config=types.GenerateContentConfig(temperature=0.01),
+    generate_content_config=genai_types.GenerateContentConfig(temperature=0.01),
 )

@@ -335,13 +335,6 @@ def get_firebase_jwt_token(callback_context: Optional[CallbackContext] = None) -
         _logger.info("Retrieved JWT from LOCAL_TEST_JWT environment variable.")
         return env_token
         
-    # 3.6. Dynamic mock token based on callback context user_id for local testing
-    if callback_context and getattr(callback_context, "session", None) and getattr(callback_context.session, "user_id", None):
-        user_id = callback_context.session.user_id
-        if "@" in user_id:
-            _logger.info("Using dynamic mock token for email: %s", user_id)
-            return f"mock-token:{user_id}"
-        
     # 4. Fallback to call stack inspection (handles first request imported dynamically)
     _logger.info("JWT not found in storage. Attempting call stack inspection...")
     import inspect
@@ -357,11 +350,11 @@ def get_firebase_jwt_token(callback_context: Optional[CallbackContext] = None) -
             # Try to get from any FastAPI/Starlette/Uvicorn request or scope variable
             for key, val in locals_dict.items():
                 # Check for explicit request variable
-                if key == "request" and hasattr(val, "headers"):
+                if key in ("request", "req") and hasattr(val, "headers"):
                     auth_header = val.headers.get("Authorization")
                     if auth_header and auth_header.startswith("Bearer "):
                         token = auth_header[7:]
-                        _logger.info("Successfully extracted JWT from 'request' in stack frame '%s'.", func_name)
+                        _logger.info("Successfully extracted JWT from '%s' in stack frame '%s'.", key, func_name)
                         return token
                 
                 # Check for explicit scope variable
@@ -389,19 +382,104 @@ def get_firebase_jwt_token(callback_context: Optional[CallbackContext] = None) -
                         pass
         except Exception as inspect_err:
             _logger.debug("Error inspecting frame: %s", inspect_err)
-            
+
+    # 4.5. Fallback to scanning active connections and request objects in memory (Garbage Collector)
+    _logger.info("JWT not found in stack. Scanning GC for active request objects...")
+    try:
+        import gc
+        for obj in gc.get_objects():
+            try:
+                # Check for Starlette Request or similar request objects
+                if hasattr(obj, "headers") and hasattr(obj, "url") and hasattr(obj, "method"):
+                    auth_header = obj.headers.get("Authorization") or obj.headers.get("authorization")
+                    if auth_header and auth_header.startswith("Bearer "):
+                        token = auth_header[7:]
+                        _logger.info("Successfully extracted JWT from active request object in GC.")
+                        return token
+                
+                # Check for ASGI scope dictionaries
+                if isinstance(obj, dict) and "headers" in obj and "type" in obj and obj.get("type") in ("http", "websocket"):
+                    headers = dict(obj.get("headers", []))
+                    auth_bytes = headers.get(b"authorization") or headers.get("authorization")
+                    if auth_bytes:
+                        auth_str = auth_bytes.decode("utf-8") if isinstance(auth_bytes, bytes) else str(auth_bytes)
+                        if auth_str.startswith("Bearer "):
+                            token = auth_str[7:]
+                            _logger.info("Successfully extracted JWT from active ASGI scope in GC.")
+                            return token
+            except Exception:
+                pass
+    except Exception as gc_err:
+        _logger.warning("Error scanning GC for JWT: %s", gc_err)
+        
+    # 5. Dynamic mock token based on callback context user_id for local testing (last resort fallback)
+    if callback_context and getattr(callback_context, "session", None) and getattr(callback_context.session, "user_id", None):
+        user_id = callback_context.session.user_id
+        _logger.info("Using dynamic mock token for user_id: %s", user_id)
+        return f"mock-token:{user_id}"
+        
     return ""
 
 
 
+import time
+import threading
+from typing import Dict, Any
+
+class UserContextCache:
+    def __init__(self, ttl_seconds: int = 300):
+        self._cache: Dict[str, Dict[str, Any]] = {}
+        self._lock = threading.Lock()
+        self.ttl = ttl_seconds
+
+    def get(self, user_id: str) -> Optional[Dict[str, Any]]:
+        """Retrieve context data if it exists and hasn't expired."""
+        with self._lock:
+            if user_id in self._cache:
+                entry = self._cache[user_id]
+                if time.time() - entry["timestamp"] < self.ttl:
+                    _logger.debug("Cache HIT for user: %s", user_id)
+                    return entry["data"]
+                else:
+                    _logger.debug("Cache EXPIRED for user: %s", user_id)
+                    del self._cache[user_id]
+            return None
+
+    def set(self, user_id: str, data: Dict[str, Any]) -> None:
+        """Cache fresh context data with current timestamp."""
+        with self._lock:
+            self._cache[user_id] = {
+                "data": data,
+                "timestamp": time.time()
+            }
+            _logger.debug("Cache SET for user: %s", user_id)
+
+# Initialize a global cache with a 5-minute TTL (300 seconds)
+user_context_cache = UserContextCache(ttl_seconds=300)
+
+
 def load_database_settings_in_context(callback_context: CallbackContext):
-    """Load database settings into the callback context on first use."""
-    # Check if context is already loaded
+    """Load database settings into the callback context on first use, leveraging a server-side cache."""
+    # Check if context is already loaded in this specific session state
     if "customer_profile" in callback_context.state:
         return
 
+    # Extract the user ID from the callback context session if available
+    user_id = getattr(callback_context.session, "user_id", None)
+    
+    # Check global server-side cache if user_id is present
+    if user_id:
+        cached_context = user_context_cache.get(user_id)
+        if cached_context:
+            _logger.info("Using cached customer context for user %s (bypassing HTTP fetch)", user_id)
+            callback_context.state["customer_id"] = cached_context.get("customer_id")
+            callback_context.state["customer_profile"] = cached_context.get("customer_profile")
+            callback_context.state["authorized_account"] = cached_context.get("authorized_account", [])
+            callback_context.state["database_settings"] = reconstruct_database_settings(cached_context.get("authorized_views", {}))
+            return
+
     token = get_firebase_jwt_token(callback_context)
-    _logger.info("Fetching context from identity-service. JWT length: %d", len(token) if token else 0)
+    _logger.info("Cache miss. Fetching context from identity-service. JWT length: %d", len(token) if token else 0)
     
     headers = {}
     if token:
@@ -422,6 +500,10 @@ def load_database_settings_in_context(callback_context: CallbackContext):
             
             context_data = response.json()
             _logger.info("Successfully fetched context for customer %s", context_data.get("customer_id"))
+            
+            # Populate global cache for subsequent sessions
+            if user_id:
+                user_context_cache.set(user_id, context_data)
             
             # Load all elements directly to the agent's state
             callback_context.state["customer_id"] = context_data.get("customer_id")

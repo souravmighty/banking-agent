@@ -14,6 +14,7 @@ export interface ParsedSSEData {
   textParts: string[];
   thoughtParts: string[];
   agent: string;
+  error?: string; // Backend-reported error message
   functionCall?: {
     name: string;
     args: Record<string, unknown>;
@@ -31,6 +32,7 @@ export interface ParsedSSEData {
  */
 export interface RawSSEData {
   id?: string; // Message ID from backend
+  error?: string; // Backend-reported error message
   content?: {
     parts?: Array<{
       text?: string;

@@ -257,6 +257,7 @@ export class StreamingConnectionManager {
                 "❌ [SSE ERROR] Problematic JSON:",
                 jsonDataToParse.substring(0, 500)
               );
+              throw error;
             }
             eventDataBuffer = ""; // Reset for next event
           }
@@ -307,6 +308,7 @@ export class StreamingConnectionManager {
               "❌ [SSE ERROR] Problematic JSON:",
               jsonDataToParse.substring(0, 500)
             );
+            throw error;
           }
           eventDataBuffer = "";
         }

@@ -16,6 +16,7 @@ import { Message } from "@/types";
 import { ProcessedEvent } from "@/components/ActivityTimeline";
 import { toast } from "sonner";
 import { loadSessionHistoryAction } from "@/lib/actions/session-history-actions";
+import { fetchActiveSessionsAction } from "@/lib/actions/session-list-actions";
 
 // Context value interface - consolidates all chat state and actions
 export interface ChatContextValue {
@@ -23,6 +24,7 @@ export interface ChatContextValue {
   userId: string;
   userEmail: string;
   sessionId: string;
+  isFirstSession: boolean;
 
   // Message state
   messages: Message[];
@@ -33,6 +35,7 @@ export interface ChatContextValue {
   isLoading: boolean;
   isLoadingHistory: boolean; // New loading state for session history
   isLoadingAuth: boolean;
+  isInitializing: boolean; // Loading state for new session auto-creation
   currentAgent: string;
 
   // Session actions
@@ -46,6 +49,7 @@ export interface ChatContextValue {
     requestUserId?: string,
     requestSessionId?: string
   ) => Promise<void>;
+  handleStopStream: () => void;
   addMessage: (message: Message) => void;
 
   // Refs for external access
@@ -67,9 +71,12 @@ export function ChatProvider({
   children,
 }: ChatProviderProps): React.JSX.Element {
   const scrollAreaRef = useRef<HTMLDivElement | null>(null);
+  const newlyCreatedSessionIdRef = useRef<string | null>(null);
 
   // Session history loading state
   const [isLoadingHistory, setIsLoadingHistory] = useState(false);
+  const [isInitializing, setIsInitializing] = useState(false);
+  const [isFirstSession, setIsFirstSession] = useState<boolean>(false);
 
   // Consolidate all hooks
   const {
@@ -77,10 +84,27 @@ export function ChatProvider({
     userEmail,
     sessionId,
     isLoadingAuth,
-    handleCreateNewSession,
     handleSessionSwitch,
     handleSignOut,
   } = useSession();
+
+  // Check if it's the user's first ever session
+  useEffect(() => {
+    if (userId) {
+      fetchActiveSessionsAction(userId)
+        .then((result) => {
+          if (result.success) {
+            setIsFirstSession(result.sessions.length <= 1);
+          } else {
+            setIsFirstSession(true);
+          }
+        })
+        .catch((err) => {
+          console.error("Error checking sessions in provider:", err);
+          setIsFirstSession(true);
+        });
+    }
+  }, [userId]);
 
   const {
     messages,
@@ -91,6 +115,36 @@ export function ChatProvider({
     setMessageEvents,
     updateWebsiteCount,
   } = useMessages();
+
+  // Custom handleCreateNewSession wrapper to intercept manual new session creation
+  const handleCreateNewSession = useCallback(
+    async (sessionUserId: string): Promise<void> => {
+      try {
+        setIsInitializing(true);
+        const { createSessionAction } = await import(
+          "@/lib/actions/session-actions"
+        );
+        const result = await createSessionAction(sessionUserId);
+        
+        if (result.success && result.sessionId) {
+          newlyCreatedSessionIdRef.current = result.sessionId;
+          // Pre-emptively clear messages and events to avoid flashing previous session content
+          setMessages([]);
+          setMessageEvents(new Map());
+          updateWebsiteCount(0);
+          handleSessionSwitch(result.sessionId);
+        } else {
+          throw new Error(result.error || "Failed to create session");
+        }
+      } catch (error) {
+        console.error("Error creating new session:", error);
+        toast.error("Failed to create session");
+      } finally {
+        setIsInitializing(false);
+      }
+    },
+    [handleSessionSwitch, setMessages, setMessageEvents, updateWebsiteCount]
+  );
 
   // Streaming management
   const streamingManager = useStreamingManager({
@@ -219,6 +273,12 @@ export function ChatProvider({
   // Load session history when session changes
   useEffect(() => {
     if (userId && sessionId) {
+      if (newlyCreatedSessionIdRef.current === sessionId) {
+        console.log("⏭️ [CHAT_PROVIDER] Skipping history load for newly created session:", sessionId);
+        newlyCreatedSessionIdRef.current = null;
+        return;
+      }
+
       // Function to load session history
       const loadSessionHistory = async () => {
         try {
@@ -329,6 +389,7 @@ export function ChatProvider({
         // Auto-create session if missing
         if (!currentSessionId) {
           console.log("🚀 [CHAT_PROVIDER] No session ID found, creating new session automatically...");
+          setIsInitializing(true);
           
           // Show a toast so the user knows what's happening
           const toastId = toast.loading("Creating secure banking session...");
@@ -339,15 +400,18 @@ export function ChatProvider({
             
             if (result.success && result.sessionId) {
               currentSessionId = result.sessionId;
+              newlyCreatedSessionIdRef.current = currentSessionId;
               handleSessionSwitch(currentSessionId);
               toast.success("Session created", { id: toastId });
               console.log("✅ [CHAT_PROVIDER] Auto-session created:", currentSessionId);
             } else {
               toast.error("Failed to create session", { id: toastId });
+              setIsInitializing(false);
               throw new Error(result.error || "Failed to create auto-session");
             }
           } catch (error) {
             toast.error("Session error", { id: toastId });
+            setIsInitializing(false);
             throw error;
           }
         }
@@ -360,16 +424,39 @@ export function ChatProvider({
           timestamp: new Date(),
         };
         addMessage(userMessage);
+        setIsInitializing(false);
 
         // Submit message for streaming - pass the explicit sessionId
         await streamingManager.submitMessage(query, currentSessionId);
       } catch (error) {
         console.error("Error submitting message:", error);
-        throw error;
+        setIsInitializing(false);
+        
+        const errorMsg = error instanceof Error ? error.message : String(error);
+        
+        if (
+          errorMsg.includes("Failed to establish a new connection") ||
+          errorMsg.includes("Network is unreachable") ||
+          errorMsg.includes("oauth2.googleapis.com")
+        ) {
+          toast.error("Secure Connection Unreachable", {
+            description: "We are unable to connect to Google OAuth servers. Please verify your system's internet connection or cloud credential variables.",
+            duration: 6000,
+          });
+        } else {
+          toast.error("Query Execution Failed", {
+            description: errorMsg || "We encountered an unexpected error compiling your banking query.",
+            duration: 4000,
+          });
+        }
       }
     },
     [userId, sessionId, addMessage, streamingManager, handleSessionSwitch]
   );
+
+  const handleStopStream = useCallback((): void => {
+    streamingManager.stopMessageStream();
+  }, [streamingManager]);
 
   // Context value
   const contextValue: ChatContextValue = {
@@ -377,6 +464,7 @@ export function ChatProvider({
     userId,
     userEmail,
     sessionId,
+    isFirstSession,
 
     // Message state
     messages,
@@ -387,6 +475,7 @@ export function ChatProvider({
     isLoading: streamingManager.isLoading,
     isLoadingHistory,
     isLoadingAuth,
+    isInitializing,
     currentAgent: streamingManager.currentAgent,
 
     // Session actions
@@ -396,6 +485,7 @@ export function ChatProvider({
 
     // Message actions
     handleSubmit,
+    handleStopStream,
     addMessage,
 
     // Refs

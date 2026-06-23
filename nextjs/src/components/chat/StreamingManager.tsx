@@ -19,6 +19,7 @@ export interface StreamingManagerReturn {
   isLoading: boolean;
   currentAgent: string;
   submitMessage: (message: string, overrideSessionId?: string) => Promise<void>;
+  stopMessageStream: () => void;
 }
 
 /**
@@ -35,7 +36,7 @@ export function useStreamingManager({
 }: StreamingManagerProps): StreamingManagerReturn {
   const { retryWithBackoff } = useBackendHealth();
 
-  const { isLoading, currentAgent, startStream } =
+  const { isLoading, currentAgent, startStream, stopStream } =
     useStreaming(retryWithBackoff);
 
   // Notify parent of loading state changes
@@ -82,9 +83,15 @@ export function useStreamingManager({
     ]
   );
 
+  // Cancel active query stream
+  const stopMessageStream = useCallback((): void => {
+    stopStream();
+  }, [stopStream]);
+
   return {
     isLoading,
     currentAgent,
     submitMessage,
+    stopMessageStream,
   };
 }

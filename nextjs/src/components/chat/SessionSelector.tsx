@@ -231,9 +231,8 @@ export function SessionSelector({
         </div>
       ) : (
         <div className="flex items-center gap-2">
-          <span className="text-[11px] uppercase tracking-[0.08em] text-[#c8cadf]">Session</span>
           <Select value={currentSessionId} onValueChange={handleSessionSelect}>
-            <SelectTrigger className="w-44 h-10 text-xs rounded-[8px] border border-[#4a509a] bg-transparent text-[#c8cadf] hover:bg-white/6 hover:text-white focus:border-[#f0a500] px-4 py-1">
+            <SelectTrigger className="w-48 h-10 text-xs rounded-full border border-slate-200 bg-white text-slate-700 hover:bg-slate-50 hover:text-slate-900 focus:border-[#1a1f71] focus:ring-1 focus:ring-[#1a1f71] px-4 py-1.5 shadow-sm transition-all duration-200">
               <SelectValue
                 placeholder={
                   isLoadingSessions
@@ -246,7 +245,7 @@ export function SessionSelector({
                 }
               />
             </SelectTrigger>
-            <SelectContent className="bg-[#1a1f71] border-[#4a509a] min-w-44 text-[#c8cadf]">
+            <SelectContent className="bg-white border border-slate-200 rounded-2xl min-w-48 text-slate-800 shadow-2xl z-50">
               {/* Loading state */}
               {isLoadingSessions && (
                 <div className="flex items-center gap-2 p-3 text-slate-400">
@@ -257,7 +256,7 @@ export function SessionSelector({
 
               {/* Error state */}
               {sessionError && !isLoadingSessions && (
-                <div className="flex items-center gap-2 p-3 text-red-400">
+                <div className="flex items-center gap-2 p-3 text-red-500">
                   <AlertCircle className="w-4 h-4" />
                   <span className="text-sm">Failed to load sessions</span>
                 </div>
@@ -265,25 +264,25 @@ export function SessionSelector({
 
               {/* Sessions list */}
               {!isLoadingSessions && !sessionError && (
-                <>
+                <div className="p-1.5 space-y-0.5">
                   {sessions.map((session) => (
                     <SelectItem
                       key={session.id}
                       value={session.id}
-                      className="text-slate-100 focus:bg-slate-700 focus:text-slate-50 cursor-pointer py-3 px-3"
+                      className="text-slate-700 focus:bg-slate-50 focus:text-slate-950 cursor-pointer py-2.5 px-3 rounded-xl transition-colors"
                     >
                       <div className="flex flex-col items-start w-full min-w-0">
-                        <span className="font-medium text-slate-100 text-sm truncate w-full">
+                        <span className="font-semibold text-slate-800 text-xs truncate w-full">
                           {session.title}
                         </span>
-                        <div className="flex items-center gap-2 text-xs text-slate-300 mt-1">
+                        <div className="flex items-center gap-2 text-[10px] text-slate-400 mt-1">
                           <Calendar className="w-3 h-3 flex-shrink-0" />
                           <span className="flex-shrink-0">
                             {formatDate(session.lastActivity)}
                           </span>
                           {session.messageCount !== undefined && (
                             <>
-                              <span className="text-slate-500">•</span>
+                              <span className="text-slate-300">•</span>
                               <span className="flex-shrink-0">
                                 {session.messageCount} msg
                               </span>
@@ -296,23 +295,23 @@ export function SessionSelector({
                   {/* Create New Session Option */}
                   <SelectItem
                     value="create-new"
-                    className="text-slate-100 focus:bg-slate-700 focus:text-slate-50 border-t border-slate-600 mt-1 cursor-pointer py-3 px-3"
+                    className="text-slate-700 focus:bg-slate-50 focus:text-slate-950 border-t border-slate-100 mt-1.5 pt-2.5 cursor-pointer py-2.5 px-3 rounded-xl transition-colors"
                     disabled={isCreatingSession}
                   >
                     <div className="flex items-center gap-2">
                       {isCreatingSession ? (
-                        <Loader2 className="w-4 h-4 animate-spin text-[#f0a500] flex-shrink-0" />
+                        <Loader2 className="w-3.5 h-3.5 animate-spin text-[#1a1f71] flex-shrink-0" />
                       ) : (
-                        <Plus className="w-4 h-4 text-[#f0a500] flex-shrink-0" />
+                        <Plus className="w-3.5 h-3.5 text-[#1a1f71] flex-shrink-0" />
                       )}
-                      <span className="text-[#f0a500] font-medium">
+                      <span className="text-[#1a1f71] font-bold text-xs">
                         {isCreatingSession
                           ? "Creating..."
                           : "Create New Session"}
                       </span>
                     </div>
                   </SelectItem>
-                </>
+                </div>
               )}
             </SelectContent>
           </Select>

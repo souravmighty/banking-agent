@@ -9,6 +9,39 @@
 import { ParsedSSEData, RawSSEData } from "./types";
 
 /**
+ * Sanitizes raw SSE data that may contain invalid JSON formatting.
+ * For example, backend errors formatted as JSON can have unescaped nested double quotes:
+ * {"error": "ConnectionError(... NewConnectionError("... Failed to establish..."))"}
+ *
+ * This function extracts the error message, escapes it properly, and reconstructs a valid JSON string.
+ */
+function sanitizeSSEData(data: string): string {
+  const trimmed = data.trim();
+  if (trimmed.startsWith('{"error":') && trimmed.endsWith('}')) {
+    const errorPrefix = '"error":';
+    const prefixIndex = trimmed.indexOf(errorPrefix);
+    if (prefixIndex !== -1) {
+      const valStartIdx = trimmed.indexOf('"', prefixIndex + errorPrefix.length);
+      const valEndIdx = trimmed.lastIndexOf('"');
+      if (valStartIdx !== -1 && valEndIdx !== -1 && valEndIdx > valStartIdx) {
+        const errorContent = trimmed.substring(valStartIdx + 1, valEndIdx);
+        // Normalize first (unescape backslashes/quotes to raw representation to prevent double-escaping)
+        const normalized = errorContent.replace(/\\"/g, '"').replace(/\\\\/g, '\\');
+        // Re-escape properly for JSON
+        const escaped = normalized
+          .replace(/\\/g, '\\\\')
+          .replace(/"/g, '\\"')
+          .replace(/\n/g, '\\n')
+          .replace(/\r/g, '\\r')
+          .replace(/\t/g, '\\t');
+        return `{"error": "${escaped}"}`;
+      }
+    }
+  }
+  return data;
+}
+
+/**
  * Extracts and processes data from SSE JSON strings
  *
  * This function handles the complex parsing of SSE data received from the backend,
@@ -20,7 +53,8 @@ import { ParsedSSEData, RawSSEData } from "./types";
  */
 export function extractDataFromSSE(data: string): ParsedSSEData {
   try {
-    const parsed: RawSSEData = JSON.parse(data);
+    const sanitizedData = sanitizeSSEData(data);
+    const parsed: RawSSEData = JSON.parse(sanitizedData);
 
     console.log("📄 [SSE PARSER] Raw parsed JSON:", {
       hasContent: !!parsed.content,
@@ -28,8 +62,19 @@ export function extractDataFromSSE(data: string): ParsedSSEData {
       partsLength: parsed.content?.parts?.length || 0,
       author: parsed.author,
       id: parsed.id,
+      error: parsed.error,
       rawData: JSON.stringify(parsed, null, 2),
     });
+
+    if (parsed.error) {
+      return {
+        messageId: undefined,
+        textParts: [],
+        thoughtParts: [],
+        agent: "",
+        error: parsed.error,
+      };
+    }
 
     let textParts: string[] = [];
     let agent = "";

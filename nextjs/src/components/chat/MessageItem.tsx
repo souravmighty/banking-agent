@@ -1,5 +1,8 @@
 "use client";
 
+/* eslint-disable @next/next/no-img-element */
+
+import React, { useState } from "react";
 import ReactMarkdown from "react-markdown";
 import remarkGfm from "remark-gfm";
 import { MarkdownRenderer, mdComponents } from "./MarkdownRenderer";
@@ -9,6 +12,7 @@ import {
 } from "@/components/ActivityTimeline";
 import { Copy, CopyCheck, Loader2, Landmark, User } from "lucide-react";
 import { Message } from "@/types";
+import { useAuth } from "@/hooks/useAuth";
 
 interface MessageItemProps {
   message: Message;
@@ -29,6 +33,33 @@ export function MessageItem({
   onCopy,
   copiedMessageId,
 }: MessageItemProps) {
+  const { user, customerContext } = useAuth();
+  const [imgError, setImgError] = useState(false);
+
+  const isValidPhotoURL = (url: string | null | undefined): boolean => {
+    if (!url) return false;
+    const trimmed = url.trim();
+    if (trimmed === "" || trimmed === "undefined" || trimmed === "null") return false;
+    
+    // Check if it's a default Google initials avatar
+    // If the URL is from googleusercontent.com and contains '/a/' but NOT '/a-/', it is a default initials avatar
+    if (trimmed.includes("googleusercontent.com") && trimmed.includes("/a/") && !trimmed.includes("/a-/")) {
+      return false;
+    }
+    
+    return trimmed.startsWith("http://") || trimmed.startsWith("https://") || trimmed.startsWith("/");
+  };
+
+  const getInitials = (name?: string | null) => {
+    if (!name) return "U";
+    return name
+      .split(" ")
+      .map((n) => n[0])
+      .slice(0, 2)
+      .join("")
+      .toUpperCase();
+  };
+
   const handleCopy = (text: string, messageId: string) => {
     if (onCopy) {
       onCopy(text, messageId);
@@ -95,8 +126,12 @@ export function MessageItem({
             {message.content}
           </ReactMarkdown>
         </div>
-        <div className="flex-shrink-0 w-9 h-9 rounded-2xl bg-[#1a1f71] text-white flex items-center justify-center shadow-sm ring-1 ring-[#d0d3ea]">
-          <User className="h-4 w-4" />
+        <div className="flex-shrink-0 w-9 h-9 rounded-2xl overflow-hidden bg-[#1a1f71] text-white flex items-center justify-center font-bold text-xs shadow-sm ring-1 ring-[#d0d3ea]">
+          {customerContext?.name ? (
+            getInitials(customerContext.name)
+          ) : (
+            <User className="h-5 w-5" />
+          )}
         </div>
       </div>
     );
@@ -114,7 +149,7 @@ export function MessageItem({
     return (
       <div className="flex items-start gap-3 max-w-[90%]">
         <div className="flex-shrink-0 w-8 h-8 rounded-full bg-[#f0a500] text-[#1a1f71] flex items-center justify-center shadow-sm border border-[#f0a500]">
-          <Landmark className="h-4 w-4" />
+          <Landmark className="h-4 w-4 -translate-y-[1px]" />
         </div>
 
         <div className="flex-1 rounded-2xl rounded-tl-sm border border-[#d0d3ea] bg-white p-4 shadow-sm">
@@ -154,7 +189,7 @@ export function MessageItem({
       return (
         <div className="flex items-start gap-3 max-w-[90%]">
           <div className="flex-shrink-0 w-8 h-8 rounded-full bg-[#f0a500] text-[#1a1f71] flex items-center justify-center shadow-sm border border-[#f0a500]">
-            <Landmark className="h-4 w-4" />
+            <Landmark className="h-4 w-4 -translate-y-[1px]" />
           </div>
 
           <div className="flex-1 rounded-3xl border border-[#d0d3ea] bg-white p-4 shadow-sm">
@@ -176,7 +211,7 @@ export function MessageItem({
     return (
       <div className="flex items-start gap-3 max-w-[90%]">
         <div className="flex-shrink-0 w-8 h-8 rounded-full bg-[#f0a500] text-[#1a1f71] flex items-center justify-center shadow-sm border border-[#f0a500]">
-          <Landmark className="h-4 w-4" />
+          <Landmark className="h-4 w-4 -translate-y-[1px]" />
         </div>
         <div className="flex items-center gap-2 rounded-2xl border border-[#d0d3ea] bg-white px-3 py-2 shadow-sm">
           <span className="text-sm text-[#5a6197]">No content</span>
@@ -189,7 +224,7 @@ export function MessageItem({
   return (
     <div className="flex items-start gap-3 max-w-[90%]">
       <div className="flex-shrink-0 w-8 h-8 rounded-full bg-[#f0a500] text-[#1a1f71] flex items-center justify-center shadow-sm border border-[#f0a500]">
-        <Landmark className="h-4 w-4" />
+        <Landmark className="h-4 w-4 -translate-y-[1px]" />
       </div>
 
       <div className="flex-1 rounded-3xl border border-[#d0d3ea] bg-white p-4 shadow-sm relative group">

@@ -3,18 +3,20 @@
 import { useState, useRef, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
-import { Loader2, Send } from "lucide-react";
+import { Loader2, Send, Square } from "lucide-react";
 
 interface InputFormProps {
   onSubmit: (query: string) => void;
   isLoading: boolean;
   context?: "homepage" | "chat";
+  onStop?: () => void;
 }
 
 export function InputForm({
   onSubmit,
   isLoading,
   context = "homepage",
+  onStop,
 }: InputFormProps): React.JSX.Element {
   const [inputValue, setInputValue] = useState("");
   const [isFocused, setIsFocused] = useState(false);
@@ -86,26 +88,41 @@ export function InputForm({
             />
           </div>
 
-          {/* Send Button */}
-          <Button
-            type="submit"
-            disabled={!inputValue.trim() || isLoading}
-            className="
-              h-11 px-6 rounded-xl bg-[#1a1f71] hover:bg-[#252b82]
-              text-white border-0 shadow-sm transition-all duration-200
-              disabled:opacity-40 disabled:bg-[#6b6f99]
-              flex items-center gap-2 font-semibold
-            "
-          >
-            {isLoading ? (
-              <Loader2 className="h-4 w-4 animate-spin" />
-            ) : (
-              <>
-                <Send className="h-4 w-4" />
-                <span className="hidden md:inline">Send</span>
-              </>
-            )}
-          </Button>
+          {/* Send / Stop Button */}
+          {isLoading && onStop ? (
+            <Button
+              type="button"
+              onClick={onStop}
+              className="
+                h-11 px-4 md:px-6 rounded-xl bg-[#1a1f71] hover:bg-[#252b82] active:scale-[0.98]
+                text-white border-0 shadow-sm transition-all duration-200
+                flex items-center gap-2 font-semibold shrink-0
+              "
+            >
+              <Square className="h-3.5 w-3.5 fill-current" />
+              <span className="hidden md:inline">Stop</span>
+            </Button>
+          ) : (
+            <Button
+              type="submit"
+              disabled={!inputValue.trim() || isLoading}
+              className="
+                h-11 px-4 md:px-6 rounded-xl bg-[#1a1f71] hover:bg-[#252b82]
+                text-white border-0 shadow-sm transition-all duration-200
+                disabled:opacity-40 disabled:bg-[#6b6f99]
+                flex items-center gap-2 font-semibold shrink-0
+              "
+            >
+              {isLoading ? (
+                <Loader2 className="h-4 w-4 animate-spin" />
+              ) : (
+                <>
+                  <Send className="h-4 w-4" />
+                  <span className="hidden md:inline">Send</span>
+                </>
+              )}
+            </Button>
+          )}
         </div>
       </form>
     </div>

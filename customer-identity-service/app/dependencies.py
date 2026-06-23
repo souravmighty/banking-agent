@@ -56,23 +56,34 @@ async def get_current_user(
     if auth_creds:
         token = auth_creds.credentials
         
+    import os
     # Check for local developer mode bypass
+    mock_auth_bypass = os.getenv("MOCK_AUTH_BYPASS", "false").lower() == "true"
+    
     if not token or token == "mock-token" or token == "":
-        # Use default email
-        email = "souravmaiti1997@gmail.com"
-        identity = identity_repo.get_by_email(email)
-        if not identity:
-            raise UnauthorizedException(detail="Local mock user identity not found in database")
-        return {
-            "uid": identity["firebase_uid"] or f"mock-uid-{identity['customer_id']}",
-            "email": identity["email_id"]
-        }
+        if mock_auth_bypass:
+            # Use default email
+            email = os.getenv("CUSTOMER_EMAIL_ID", "souravmaiti1997@gmail.com")
+            identity = identity_repo.get_by_email(email)
+            if not identity:
+                raise UnauthorizedException(detail="Local mock user identity not found in database")
+            return {
+                "uid": identity["firebase_uid"] or f"mock-uid-{identity['customer_id']}",
+                "email": identity["email_id"]
+            }
+        else:
+            raise UnauthorizedException(detail="Authentication token is missing or empty")
         
     if token.startswith("mock-token:"):
-        email = token.split(":", 1)[1]
-        identity = identity_repo.get_by_email(email)
-        if not identity:
-            raise UnauthorizedException(detail=f"Mock email {email} not found in database")
+        val = token.split(":", 1)[1]
+        if "@" in val:
+            identity = identity_repo.get_by_email(val)
+            if not identity:
+                raise UnauthorizedException(detail=f"Mock email {val} not found in database")
+        else:
+            identity = identity_repo.get_by_uid(val)
+            if not identity:
+                raise UnauthorizedException(detail=f"Mock UID {val} not found in database")
         return {
             "uid": identity["firebase_uid"] or f"mock-uid-{identity['customer_id']}",
             "email": identity["email_id"]

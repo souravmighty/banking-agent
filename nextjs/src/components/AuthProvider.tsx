@@ -7,6 +7,7 @@ import { authService } from "@/lib/services/authService";
 import { customerIdentityService, CustomerMeResponse } from "@/lib/services/customerIdentityService";
 import { useRouter, usePathname } from "next/navigation";
 import { toast } from "sonner";
+import { Landmark, Loader2 } from "lucide-react";
 
 interface AuthContextType {
   user: User | null;
@@ -82,6 +83,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       
       if (currentUser) {
         if (currentUser.emailVerified) {
+          setLoading(true);
           await fetchCustomerContext(currentUser);
           
           // Redirect from login page to dashboard/home if authenticated & verified
@@ -170,7 +172,86 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     refreshContext,
   };
 
-  return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
+  return (
+    <AuthContext.Provider value={value}>
+      {loading ? (
+        <AuthLoader />
+      ) : (
+        children
+      )}
+    </AuthContext.Provider>
+  );
+}
+
+export function AuthLoader(): React.JSX.Element {
+  const [step, setStep] = useState(0);
+
+  const steps = [
+    "Establishing secure TLS handshake...",
+    "Verifying single sign-on credentials...",
+    "Retrieving customer identity context...",
+    "Decrypting personal banking context...",
+    "Synchronizing secure dashboard data...",
+  ];
+
+  useEffect(() => {
+    const interval = setInterval(() => {
+      setStep((prev) => (prev < steps.length - 1 ? prev + 1 : prev));
+    }, 1200);
+    return () => clearInterval(interval);
+  }, [steps.length]);
+
+  return (
+    <div className="flex h-screen w-screen items-center justify-center bg-[#f7f8fc]">
+      <div className="flex flex-col items-center max-w-sm w-full p-6 text-center">
+        {/* Animated logo container */}
+        <div className="w-14 h-14 rounded-2xl bg-[#1a1f71] text-white flex items-center justify-center animate-bounce shadow-xl mb-6">
+          <Landmark className="h-8 w-8" />
+        </div>
+
+        {/* Header */}
+        <h2 className="text-md font-extrabold text-[#1a1f71] tracking-tight mb-1">
+          Securing Your Session
+        </h2>
+        <p className="text-[11px] text-slate-500 max-w-xs leading-relaxed mb-6">
+          Please wait while we perform compliance checks and synchronize your private ledger parameters.
+        </p>
+
+        {/* Step list card */}
+        <div className="w-full bg-white border border-slate-100 p-4 rounded-2xl shadow-sm text-left space-y-3">
+          {steps.map((text, idx) => {
+            const isDone = idx < step;
+            const isActive = idx === step;
+
+            return (
+              <div key={idx} className="flex items-center gap-2.5 transition-opacity duration-300">
+                {isDone ? (
+                  <div className="flex-shrink-0 w-4 h-4 rounded-full bg-emerald-100 text-emerald-600 flex items-center justify-center text-[9px] font-extrabold">
+                    ✓
+                  </div>
+                ) : isActive ? (
+                  <Loader2 className="h-3.5 w-3.5 animate-spin text-[#f0a500] flex-shrink-0" />
+                ) : (
+                  <div className="h-1.5 w-1.5 rounded-full bg-slate-200 ml-1.5 mr-1 flex-shrink-0" />
+                )}
+                <span
+                  className={`text-xs font-semibold ${
+                    isDone
+                      ? "text-slate-400 line-through decoration-slate-100"
+                      : isActive
+                      ? "text-[#1a1f71] font-bold"
+                      : "text-slate-400 font-medium"
+                  }`}
+                >
+                  {text}
+                </span>
+              </div>
+            );
+          })}
+        </div>
+      </div>
+    </div>
+  );
 }
 
 export function useAuth() {

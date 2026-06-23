@@ -40,12 +40,33 @@ export async function processSseEventData(
   currentAgentRef: { current: string },
   setCurrentAgent: (agent: string) => void
 ): Promise<void> {
-  const { textParts, thoughtParts, agent, functionCall, functionResponse } =
+  const { textParts, thoughtParts, agent, functionCall, functionResponse, error } =
     extractDataFromSSE(jsonData);
 
   // Use frontend-generated aiMessageId for consistent message correlation
   // Backend sends different IDs for each SSE event, which would create separate messages
   const actualMessageId = aiMessageId;
+
+  // Handle backend error
+  if (error) {
+    let userFriendlyDetails = error;
+    if (error.includes("oauth2.googleapis.com") && error.includes("Network is unreachable")) {
+      userFriendlyDetails = "The secure banking assistant was unable to contact Google OAuth authentication services (oauth2.googleapis.com). This typically indicates an offline network status, restricted firewall rules, or DNS resolution issues on your current system environment.";
+    }
+
+    const errorMessage: Message = {
+      type: "ai",
+      content: `⚠️ **System Network Error:** We encountered an issue while communicating with our secure services.\n\n*Details:* ${userFriendlyDetails}\n\n*Recommendation:* Please verify your network connectivity, ensure your cloud parameters are configured correctly, and try again.`,
+      id: actualMessageId,
+      timestamp: new Date(),
+    };
+    flushSync(() => {
+      callbacks.onMessageUpdate(errorMessage);
+    });
+    // Log gracefully in console without throwing a crash-inducing error stack trace
+    console.warn("⚠️ [STREAM PROCESSOR] Handled backend connection/network error:", error);
+    return;
+  }
 
   // Update current agent if changed
   if (agent && agent !== currentAgentRef.current) {

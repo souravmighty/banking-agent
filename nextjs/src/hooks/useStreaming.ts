@@ -22,6 +22,8 @@ export interface UseStreamingReturn {
     onWebsiteCountUpdate: (count: number) => void
   ) => Promise<void>;
 
+  stopStream: () => void;
+
   getEventTitle: (agentName: string) => string;
 }
 
@@ -93,6 +95,18 @@ export function useStreaming(
     []
   );
 
+  // Stop streaming operation
+  const stopStream = useCallback((): void => {
+    if (connectionManager.current) {
+      connectionManager.current.cancelRequest(
+        accumulatedTextRef,
+        currentAgentRef,
+        setCurrentAgent,
+        setIsLoading
+      );
+    }
+  }, []);
+
   const getEventTitleCallback = useCallback((agentName: string): string => {
     return getEventTitle(agentName);
   }, []);
@@ -104,6 +118,7 @@ export function useStreaming(
 
     // Operations
     startStream,
+    stopStream,
 
     // Utilities
     getEventTitle: getEventTitleCallback,
