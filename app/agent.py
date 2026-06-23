@@ -9,9 +9,10 @@ from dotenv import load_dotenv
 from google.adk.agents import LlmAgent
 from google.adk.agents.callback_context import CallbackContext
 from google.adk.tools import BaseTool, ToolContext
+from google.adk.planners import BuiltInPlanner
 
 # from google.adk.tools import load_artifacts
-from google.genai import types
+import google.genai.types as genai_types
 # from opentelemetry import trace
 # from opentelemetry.exporter.otlp.proto.http.trace_exporter import (
 #     OTLPSpanExporter,
@@ -440,16 +441,15 @@ def load_database_settings_in_context(callback_context: CallbackContext):
 def get_root_agent() -> LlmAgent:
     tools = []
     sub_agents = []
-    for dataset in _dataset_config["datasets"]:
-        if dataset["type"] == "bigquery":
-            tools.append(call_bigquery_agent)
-        elif dataset["type"] == "alloydb":
-            tools.append(call_alloydb_agent)
+    tools.append(call_bigquery_agent)
 
     # tools.append(call_transaction_agent)
     agent = LlmAgent(
         model=os.getenv("ROOT_AGENT_MODEL", "gemini-2.5-flash"),
         name="banking_root_agent",
+        planner=BuiltInPlanner(
+        thinking_config=genai_types.ThinkingConfig(include_thoughts=True)
+    ),
         instruction=return_instructions_root,
         # + get_dataset_definitions_for_instructions(),
         # + get_customer_details_for_instructions(),
@@ -462,7 +462,7 @@ def get_root_agent() -> LlmAgent:
         # sub_agents=[bigquery_agent],  # type: ignore
         tools=tools,  # type: ignore
         before_agent_callback=load_database_settings_in_context,
-        generate_content_config=types.GenerateContentConfig(temperature=0.01),
+        generate_content_config=genai_types.GenerateContentConfig(temperature=0.01),
     )
 
     return agent
