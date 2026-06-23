@@ -2,7 +2,7 @@ import os
 import sys
 
 import vertexai
-from absl import app, flags
+from absl import app as absl_app, flags
 from dotenv import load_dotenv
 from vertexai import agent_engines
 from vertexai.preview import reasoning_engines
@@ -44,14 +44,14 @@ flags.mark_bool_flags_as_mutual_exclusive(
 def create() -> None:
     """Creates a new deployment."""
     # First wrap the agent in AdkApp
-    app = reasoning_engines.AdkApp(
+    adk_app_instance = reasoning_engines.AdkApp(
         agent=app.agent.root_agent,
         enable_tracing=True,
     )
 
     # Now deploy to Agent Engine
     remote_app = agent_engines.create(
-        agent_engine=app,
+        agent_engine=adk_app_instance,
         display_name="Banking Agent",
         requirements=[
             "google-cloud-aiplatform[adk,agent_engines]", 
@@ -72,7 +72,8 @@ def create() -> None:
             "TRANSACTION_AGENT_MODEL": "gemini-2.5-flash",
             "BQ_PROJECT_ID": "banking-agent-rag-mcp", 
             "BQ_DATASET_ID": "banking_data",
-            "BIGQUERY_AGENT_MODEL": "gemini-2.5-pro"
+            "BIGQUERY_AGENT_MODEL": "gemini-2.5-pro",
+            "IDENTITY_SERVICE_URL": "https://customer-identity-service-569817520730.us-central1.run.app"
         }
     )
     print(f"Created remote app: {remote_app.resource_name}")
@@ -219,4 +220,4 @@ def main(argv=None):
 
 
 if __name__ == "__main__":
-    app.run(main)
+    absl_app.run(main)
