@@ -39,9 +39,7 @@ lint:
 
 # Deploy the agent remotely
 deploy-adk:
-	# Export dependencies to requirements file using uv export.
-	uv export --no-hashes --no-header --no-dev --no-emit-project --no-annotate > .requirements.txt 2>/dev/null || \
-	uv export --no-hashes --no-header --no-dev --no-emit-project > .requirements.txt && uv run python3 -m deployment.remote --create
+	PYTHONPATH=. uv run python3 -m deployment.remote --create
 
 # Deploy the customer identity service remotely to GCP Cloud Run
 deploy-identity-service:

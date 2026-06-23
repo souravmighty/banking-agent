@@ -65,7 +65,7 @@ def create() -> None:
             "pandas>=2.3.3",
             "vertexai>=1.43.0"
         ],
-        extra_packages=["./bq_agent"],
+        extra_packages=["./app"],
         service_account = os.getenv("GOOGLE_CLOUD_SERVICE_ACCOUNT"),  # Make sure this service account has the necessary permissions
         env_vars={
             "ROOT_AGENT_MODEL": "gemini-2.5-pro",
