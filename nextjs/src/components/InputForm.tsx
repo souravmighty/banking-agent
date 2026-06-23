@@ -92,7 +92,11 @@ export function InputForm({
           {isLoading && onStop ? (
             <Button
               type="button"
-              onClick={onStop}
+              onClick={(e) => {
+                e.preventDefault();
+                e.stopPropagation();
+                onStop();
+              }}
               className="
                 h-11 px-4 md:px-6 rounded-xl bg-[#1a1f71] hover:bg-[#252b82] active:scale-[0.98]
                 text-white border-0 shadow-sm transition-all duration-200
