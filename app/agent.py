@@ -52,22 +52,33 @@ class ASGIJWTInterceptorMiddleware:
             return
 
         headers = dict(scope.get("headers", []))
-        auth_bytes = headers.get(b"authorization", b"")
-        auth_header = auth_bytes.decode("utf-8") if auth_bytes else ""
         
+        # Check custom headers first (important for remote deployment where authorization header contains GCP IAM token)
         token = ""
-        if auth_header.startswith("Bearer "):
-            token = auth_header[7:]
+        fb_token_bytes = headers.get(b"x-firebase-id-token") or headers.get(b"x-auth-token")
+        if fb_token_bytes:
+            token = fb_token_bytes.decode("utf-8")
+            _logger.info("ASGIJWTInterceptorMiddleware: Captured JWT from custom X-Firebase-Id-Token / X-Auth-Token header.")
+        else:
+            auth_bytes = headers.get(b"authorization", b"")
+            auth_header = auth_bytes.decode("utf-8") if auth_bytes else ""
+            if auth_header.startswith("Bearer "):
+                token = auth_header[7:]
+                _logger.info("ASGIJWTInterceptorMiddleware: Captured JWT from Authorization header.")
+                
+        if token:
             firebase_jwt_var.set(token)
             global _last_token
             _last_token = token
-            _logger.info("ASGIJWTInterceptorMiddleware: Captured JWT token.")
         else:
             firebase_jwt_var.set("")
             
         # Try to parse session_id and user_id from POST requests to map token
         path = scope.get("path", "")
-        if token and path in ("/run_sse", "/run") and scope.get("method") == "POST":
+        method = scope.get("method", "")
+        
+        # Check if we should extract from body: match any POST request with a token
+        if token and method == "POST":
             try:
                 # Read ASGI body stream safely
                 body = b""
@@ -82,12 +93,25 @@ class ASGIJWTInterceptorMiddleware:
                 # Parse body
                 try:
                     body_json = json.loads(body.decode("utf-8"))
-                    user_id = body_json.get("user_id") or body_json.get("userId")
-                    session_id = body_json.get("session_id") or body_json.get("sessionId")
+                    
+                    # Extract user_id and session_id from top level OR from nested 'input' (for Vertex AI)
+                    user_id = (
+                        body_json.get("user_id") or 
+                        body_json.get("userId") or 
+                        body_json.get("input", {}).get("user_id") or 
+                        body_json.get("input", {}).get("userId")
+                    )
+                    session_id = (
+                        body_json.get("session_id") or 
+                        body_json.get("sessionId") or 
+                        body_json.get("input", {}).get("session_id") or 
+                        body_json.get("input", {}).get("sessionId")
+                    )
+                    
                     if user_id and session_id:
                         _session_tokens[(user_id, session_id)] = token
                         _session_tokens[session_id] = token
-                        _logger.info("Successfully mapped session %s to JWT token in middleware.", session_id)
+                        _logger.info("Successfully mapped session %s (user: %s) to JWT token in middleware.", session_id, user_id)
                 except Exception as parse_err:
                     _logger.warning("Failed to parse JSON body in middleware: %s", parse_err)
                 

@@ -326,6 +326,7 @@ export async function handleAgentEngineStreamRequest(
       headers: {
         "Content-Type": "application/json",
         ...authHeaders,
+        ...(requestData.idToken ? { "X-Firebase-Id-Token": requestData.idToken } : {}),
       },
       body: JSON.stringify(agentEnginePayload),
     });
