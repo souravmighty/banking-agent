@@ -13,37 +13,44 @@ ApexBanking uses a **Dual-Agent Architecture** overseen by a central orchestrati
 ```mermaid
 graph TD
     User([User / Client Portal]) <--> NextJS[Next.js Web UI]
+    
     NextJS <-->|gRPC / HTTP API| Root[Root Agent Orchestrator]
+    NextJS <-->|Authenticate & Map Identity| CIS[customer-identity-service]
+
+    CIS -->|Injects Secure Customer Profile Context| Root
+    CIS -->|Validates Claims & Authorizes Actions| MCP[Model Context Protocol Server]
     
     subgraph Multi-Agent Workspace [Multi-Agent Workspace]
         Root <-->|Route Intent| BQAgent[BigQuery Agent]
         Root <-->|Route Intent| TxAgent[Transaction Agent]
     end
 
-    subgraph Identity & Security Layers
-        Auth[OAuth2 / Identity Resolution] <--> customer-identity-service
-    end
-
     subgraph Data Platform [Google Cloud Platform]
         BQAgent <-->|NL2SQL / RLS Views| BQ[(BigQuery Dataset)]
-        TxAgent <-->|Tools Interface| MCP[Model Context Protocol Server]
+        TxAgent <-->|Tools Interface| MCP
         MCP <-->|Secure Ledger Operations| BQ
     end
 
     classDef agent fill:#0A2540,stroke:#639FAB,stroke-width:2px,color:#fff;
     classDef infra fill:#f4f6f8,stroke:#333,stroke-width:1px;
     class Root,BQAgent,TxAgent agent;
-    class BQ,MCP,NextJS,customer-identity-service infra;
+    class BQ,MCP,NextJS,CIS infra;
 ```
 
-### Flow Sequences
+### Flow Sequences & Identity Context Injection
 
-1.  **Analytical Inquiries (Data Query Flow)**:
+1.  **Identity Resolution & Context Injection**:
+    *   When a user authenticates on the **Next.js Web UI**, the client queries the **`customer-identity-service`**.
+    *   This service resolves the user's authenticated identity, fetches their secure Customer Profile (accounts, credit cards, fixed deposits, loans), and securely injects this authorized context into the **Root Agent Orchestrator (ADK)**.
+    *   This guarantees that the AI agent's boundary of knowledge is restricted only to the customer's legitimate products.
+2.  **Authorization Verification**:
+    *   When the **Transaction Agent** triggers financial tools via the **MCP Server**, the MCP Server validates the operation's parameters against claims verified by the **`customer-identity-service`** (ensuring the source account belongs to the verified user).
+3.  **Analytical Inquiries (Data Query Flow)**:
     *   The user requests a spend analysis (e.g., *"What was my highest shopping expense last month?"*).
     *   The **Root Agent** routes the request to the **BigQuery Agent**.
     *   The BigQuery Agent dynamically generates a valid, optimal SQL query matching the customer's schema.
     *   The query is executed against **Row-Level Security (RLS)** views in BigQuery, strictly isolating data.
-2.  **Financial Operations (Transaction Flow)**:
+4.  **Financial Operations (Transaction Flow)**:
     *   The user requests a transfer or payment (e.g., *"Transfer ₹5,000 to Raj"*).
     *   The **Root Agent** routes the request to the **Transaction Agent**.
     *   The Transaction Agent triggers secure operations on the **MCP Server**.
@@ -110,6 +117,8 @@ erDiagram
     CUSTOMERS ||--o{ BENEFICIARIES : "registers"
     ACCOUNTS ||--o{ TRANSACTIONS : "records"
     CREDIT_CARDS ||--o{ TRANSACTIONS : "records"
+    LOANS ||--o{ TRANSACTIONS : "records"
+    FIXED_DEPOSITS ||--o{ TRANSACTIONS : "records"
 ```
 
 ### 1. Slowly Changing Dimensions (SCD Type 2)
@@ -123,7 +132,7 @@ All transfers generate exactly two corresponding records in the `transactions` t
 *   **DEBIT Record**: Records the outflow on the sender's `account_number`.
 *   **CREDIT Record**: Records the inflow on the receiver's `account_number`.
 
-This guarantees auditing completeness and eliminates balance sync issues during ledger calculations.
+This guarantees auditing completeness and eliminates balance sync issues during ledger calculations across Savings Accounts, Credit Cards, Loans, and Fixed Deposits.
 
 ---
 
@@ -155,9 +164,6 @@ BQ_DATASET_ID=banking_data
 ROOT_AGENT_MODEL=gemini-2.5-pro
 TRANSACTION_AGENT_MODEL=gemini-2.5-flash
 BIGQUERY_AGENT_MODEL=gemini-2.5-pro
-
-# Client Portal Specs
-CUSTOMER_EMAIL_ID=souravmaiti1997@gmail.com
 ```
 
 ---
