@@ -1,6 +1,6 @@
 terraform {
   required_version = ">= 1.0"
-  
+
   required_providers {
     google = {
       source  = "hashicorp/google"
@@ -38,85 +38,85 @@ resource "google_bigquery_table" "customers" {
       name        = "customer_id"
       type        = "INTEGER"
       mode        = "REQUIRED"
-      description = "Business meaning: Unique 16-digit customer identifier. Primary key for customer entities. Example value: 1001. Relationship information: Joined with accounts, credit_cards, loans, fixed_deposits, credit_scores, beneficiaries, and identity mapping tables. Nullability: Never null."
+      description = "Business meaning: Unique 16-digit customer identifier. Primary key for customer entities. Relationship information: Joined with accounts, credit_cards, loans, fixed_deposits, credit_scores, beneficiaries, and identity mapping tables. Nullability: Never null."
     },
     {
       name        = "name"
       type        = "STRING"
       mode        = "REQUIRED"
-      description = "Business meaning: Full legal name of the customer. Example value: John Doe. Relationship information: None. Nullability: Never null."
+      description = "Business meaning: Full legal name of the customer. Relationship information: None. Nullability: Never null."
     },
     {
       name        = "email"
       type        = "STRING"
       mode        = "REQUIRED"
-      description = "Business meaning: Primary email address used for contact and identity matching. Example value: john.doe@example.com. Relationship information: Matches email_id in customer_identity_mapping. Nullability: Never null."
+      description = "Business meaning: Primary email address used for contact and identity matching. Relationship information: Matches email_id in customer_identity_mapping. Nullability: Never null."
     },
     {
       name        = "phone"
       type        = "STRING"
       mode        = "NULLABLE"
-      description = "Business meaning: Mobile phone number. Contact method for alerts and verification. Example value: +91-9876543210. Relationship information: None. Nullability: Nullable if not provided."
+      description = "Business meaning: Mobile phone number. Contact method for alerts and verification. Relationship information: None. Nullability: Nullable if not provided."
     },
     {
       name        = "address"
       type        = "STRING"
       mode        = "NULLABLE"
-      description = "Business meaning: Current residential address. Physical location for mailing or KYC. Example value: 123 Baker St, London. Relationship information: None. Nullability: Nullable."
+      description = "Business meaning: Current residential address. Physical location for mailing or KYC. Relationship information: None. Nullability: Nullable."
     },
     {
       name        = "customer_status"
       type        = "STRING"
       mode        = "REQUIRED"
-      description = "Business meaning: Operational status of the customer. Example value: ACTIVE. Allowed values: ACTIVE, DORMANT, BLOCKED, CLOSED. Relationship information: None. Nullability: Never null."
+      description = "Business meaning: Operational status of the customer. Allowed values: ACTIVE, DORMANT, BLOCKED, CLOSED. Relationship information: None. Nullability: Never null."
     },
     {
       name        = "customer_segment"
       type        = "STRING"
       mode        = "REQUIRED"
-      description = "Business meaning: Customer tier used for targeted marketing and personalization. Example value: PREMIUM. Allowed values: RETAIL, PREMIUM, WEALTH, STUDENT, SENIOR_CITIZEN. Relationship information: None. Nullability: Never null."
+      description = "Business meaning: Customer tier used for targeted marketing and personalization. Allowed values: RETAIL, PREMIUM, WEALTH, STUDENT, SENIOR_CITIZEN. Relationship information: None. Nullability: Never null."
     },
     {
       name        = "risk_profile"
       type        = "STRING"
       mode        = "REQUIRED"
-      description = "Business meaning: Internal credit and compliance risk rating. Example value: LOW. Allowed values: LOW, MEDIUM, HIGH. Relationship information: None. Nullability: Never null."
+      description = "Business meaning: Internal credit and compliance risk rating. Allowed values: LOW, MEDIUM, HIGH. Relationship information: None. Nullability: Never null."
     },
     {
       name        = "kyc_status"
       type        = "STRING"
       mode        = "REQUIRED"
-      description = "Business meaning: Know Your Customer identity verification status. Example value: VERIFIED. Allowed values: VERIFIED, PENDING, REJECTED. Relationship information: None. Nullability: Never null."
+      description = "Business meaning: Know Your Customer identity verification status. Allowed values: VERIFIED, PENDING, REJECTED. Relationship information: None. Nullability: Never null."
     },
     {
       name        = "created_at"
       type        = "DATE"
       mode        = "REQUIRED"
-      description = "Business meaning: Original date when the customer was onboarded. Example value: 2023-01-15. Relationship information: None. Nullability: Never null."
+      description = "Business meaning: Original date when the customer was onboarded. Relationship information: None. Nullability: Never null."
     },
     {
       name        = "eff_start_ts"
       type        = "TIMESTAMP"
       mode        = "REQUIRED"
-      description = "Business meaning: SCD Type 2 Effective Start Timestamp. When this version of the customer record became active. Example value: 2025-01-01T00:00:00Z. Relationship information: None. Nullability: Never null."
+      description = "Business meaning: SCD Type 2 Effective Start Timestamp. When this version of the customer record became active. Relationship information: None. Nullability: Never null."
     },
     {
       name        = "eff_end_ts"
       type        = "TIMESTAMP"
       mode        = "NULLABLE"
-      description = "Business meaning: SCD Type 2 Effective End Timestamp. When this version stopped being effective. NULL means currently active. Example value: 2025-06-01T00:00:00Z. Relationship information: None. Nullability: Nullable."
+      description = "Business meaning: SCD Type 2 Effective End Timestamp. When this version stopped being effective. NULL means currently active. Relationship information: None. Nullability: Nullable."
     },
     {
       name        = "is_current"
       type        = "BOOLEAN"
       mode        = "REQUIRED"
-      description = "Business meaning: SCD Type 2 Flag indicating if this is the latest active version. Example value: true. Relationship information: None. Nullability: Never null."
+      description = "Business meaning: SCD Type 2 Flag indicating if this is the latest active version. Relationship information: None. Nullability: Never null."
     },
     {
       name        = "record_version"
       type        = "INTEGER"
       mode        = "REQUIRED"
-      description = "Business meaning: Incremental version number for this customer business key. Example value: 2. Relationship information: None. Nullability: Never null."
+      description = "Business meaning: Incremental version number for this customer business key. Relationship information: None. Nullability: Never null."
     }
   ])
 }
@@ -134,31 +134,31 @@ resource "google_bigquery_table" "customer_identity_mapping" {
       name        = "customer_id"
       type        = "INTEGER"
       mode        = "REQUIRED"
-      description = "Business meaning: Unique internal customer identifier. Example value: 1001. Relationship information: Foreign key referencing customers.customer_id. Nullability: Never null."
+      description = "Business meaning: Unique internal customer identifier. Relationship information: Foreign key referencing customers.customer_id. Nullability: Never null."
     },
     {
       name        = "email_id"
       type        = "STRING"
       mode        = "REQUIRED"
-      description = "Business meaning: Digital identity email address. Example value: john.doe@example.com. Relationship information: Corresponds to customers.email. Nullability: Never null."
+      description = "Business meaning: Digital identity email address. Relationship information: Corresponds to customers.email. Nullability: Never null."
     },
     {
       name        = "firebase_uid"
       type        = "STRING"
       mode        = "NULLABLE"
-      description = "Business meaning: Unique identifier provided by Firebase Auth. Example value: firebase_uid_123. Relationship information: Identifies authenticated user. Nullability: Nullable if customer is NOT_REGISTERED."
+      description = "Business meaning: Unique identifier provided by Firebase Auth. Relationship information: Identifies authenticated user. Nullability: Nullable if customer is NOT_REGISTERED."
     },
     {
       name        = "registration_status"
       type        = "STRING"
       mode        = "NULLABLE"
-      description = "Business meaning: Stage in digital onboarding. Example value: REGISTERED. Allowed values: NOT_REGISTERED, REGISTERED. Relationship information: None. Nullability: Nullable."
+      description = "Business meaning: Stage in digital onboarding. Allowed values: NOT_REGISTERED, REGISTERED. Relationship information: None. Nullability: Nullable."
     },
     {
       name        = "linked_at"
       type        = "TIMESTAMP"
       mode        = "NULLABLE"
-      description = "Business meaning: Point-in-time when the digital identity was linked to customer record. Example value: 2024-05-20T14:30:00Z. Relationship information: None. Nullability: Nullable for unregistered customers."
+      description = "Business meaning: Point-in-time when the digital identity was linked to customer record. Relationship information: None. Nullability: Nullable for unregistered customers."
     }
   ])
 }
@@ -176,79 +176,79 @@ resource "google_bigquery_table" "accounts" {
       name        = "account_number"
       type        = "STRING"
       mode        = "REQUIRED"
-      description = "Business meaning: Unique business key for the bank account. Primary identifier exposed to users. Example value: 100234567890. Relationship information: Joined with transactions.account_number and beneficiaries.beneficiary_account_number. Nullability: Never null."
+      description = "Business meaning: Unique business key for the bank account. Primary identifier exposed to users. Relationship information: Joined with transactions.account_number and beneficiaries.beneficiary_account_number. Nullability: Never null."
     },
     {
       name        = "customer_id"
       type        = "INTEGER"
       mode        = "REQUIRED"
-      description = "Business meaning: Internal identifier of the account owner. Example value: 1001. Relationship information: Foreign key to customers.customer_id. Nullability: Never null."
+      description = "Business meaning: Internal identifier of the account owner. Relationship information: Foreign key to customers.customer_id. Nullability: Never null."
     },
     {
       name        = "account_type"
       type        = "STRING"
       mode        = "REQUIRED"
-      description = "Business meaning: Type of deposit account. Example value: SAVINGS. Allowed values: SAVINGS, CURRENT, SALARY. Relationship information: None. Nullability: Never null."
+      description = "Business meaning: Type of deposit account. Allowed values: SAVINGS, CURRENT, SALARY. Relationship information: None. Nullability: Never null."
     },
     {
       name        = "account_status"
       type        = "STRING"
       mode        = "REQUIRED"
-      description = "Business meaning: Lifecycle state of the account. Example value: ACTIVE. Allowed values: ACTIVE, DORMANT, FROZEN, CLOSED. Relationship information: None. Nullability: Never null."
+      description = "Business meaning: Lifecycle state of the account. Allowed values: ACTIVE, DORMANT, FROZEN, CLOSED. Relationship information: None. Nullability: Never null."
     },
     {
       name        = "balance"
       type        = "FLOAT"
       mode        = "REQUIRED"
-      description = "Business meaning: Current available funds or balance. Example value: 50000.50. Relationship information: None. Nullability: Never null."
+      description = "Business meaning: Current available funds or balance. Relationship information: None. Nullability: Never null."
     },
     {
       name        = "currency"
       type        = "STRING"
       mode        = "REQUIRED"
-      description = "Business meaning: Base currency code of the account. Example value: INR. Allowed values: INR, USD, EUR. Relationship information: None. Nullability: Never null."
+      description = "Business meaning: Base currency code of the account. Allowed values: INR, USD, EUR. Relationship information: None. Nullability: Never null."
     },
     {
       name        = "ifsc_code"
       type        = "STRING"
       mode        = "REQUIRED"
-      description = "Business meaning: Indian Financial System Code for branch routing. Example value: ABCB0001234. Relationship information: Identifies the branch in beneficiaries. Nullability: Never null."
+      description = "Business meaning: Indian Financial System Code for branch routing. Relationship information: Identifies the branch in beneficiaries. Nullability: Never null."
     },
     {
       name        = "branch_name"
       type        = "STRING"
       mode        = "REQUIRED"
-      description = "Business meaning: Name of the bank branch where the account is held. Example value: Central Square, Mumbai. Relationship information: None. Nullability: Never null."
+      description = "Business meaning: Name of the bank branch where the account is held. Relationship information: None. Nullability: Never null."
     },
     {
       name        = "created_at"
       type        = "DATE"
       mode        = "REQUIRED"
-      description = "Business meaning: Date when the account was initially opened. Example value: 2023-02-10. Relationship information: None. Nullability: Never null."
+      description = "Business meaning: Date when the account was initially opened. Relationship information: None. Nullability: Never null."
     },
     {
       name        = "eff_start_ts"
       type        = "TIMESTAMP"
       mode        = "REQUIRED"
-      description = "Business meaning: SCD Type 2 Effective Start Timestamp. When this account configuration version became active. Example value: 2025-01-01T00:00:00Z. Relationship information: None. Nullability: Never null."
+      description = "Business meaning: SCD Type 2 Effective Start Timestamp. When this account configuration version became active. Relationship information: None. Nullability: Never null."
     },
     {
       name        = "eff_end_ts"
       type        = "TIMESTAMP"
       mode        = "NULLABLE"
-      description = "Business meaning: SCD Type 2 Effective End Timestamp. When this account configuration version expired. NULL for active version. Example value: 2025-06-01T00:00:00Z. Relationship information: None. Nullability: Nullable."
+      description = "Business meaning: SCD Type 2 Effective End Timestamp. When this account configuration version expired. NULL for active version. Relationship information: None. Nullability: Nullable."
     },
     {
       name        = "is_current"
       type        = "BOOLEAN"
       mode        = "REQUIRED"
-      description = "Business meaning: SCD Type 2 Flag indicating if this is the current active configuration of the account. Example value: true. Relationship information: None. Nullability: Never null."
+      description = "Business meaning: SCD Type 2 Flag indicating if this is the current active configuration of the account. Relationship information: None. Nullability: Never null."
     },
     {
       name        = "record_version"
       type        = "INTEGER"
       mode        = "REQUIRED"
-      description = "Business meaning: Incremental version number of the account configuration. Example value: 1. Relationship information: None. Nullability: Never null."
+      description = "Business meaning: Incremental version number of the account configuration. Relationship information: None. Nullability: Never null."
     }
   ])
 }
@@ -266,49 +266,49 @@ resource "google_bigquery_table" "beneficiaries" {
       name        = "beneficiary_id"
       type        = "INTEGER"
       mode        = "REQUIRED"
-      description = "Business meaning: Unique internal identifier for the saved contact. Example value: 5001. Relationship information: Primary key. Nullability: Never null."
+      description = "Business meaning: Unique internal identifier for the saved contact. Relationship information: Primary key. Nullability: Never null."
     },
     {
       name        = "customer_id"
       type        = "INTEGER"
       mode        = "REQUIRED"
-      description = "Business meaning: Identifier of the customer who saved this beneficiary. Example value: 1001. Relationship information: Foreign key to customers.customer_id. Nullability: Never null."
+      description = "Business meaning: Identifier of the customer who saved this beneficiary. Relationship information: Foreign key to customers.customer_id. Nullability: Never null."
     },
     {
       name        = "beneficiary_name"
       type        = "STRING"
       mode        = "REQUIRED"
-      description = "Business meaning: Nickname or full name of the payee. Example value: Mom's Account. Relationship information: None. Nullability: Never null."
+      description = "Business meaning: Nickname or full name of the payee. Relationship information: None. Nullability: Never null."
     },
     {
       name        = "beneficiary_account_number"
       type        = "STRING"
       mode        = "REQUIRED"
-      description = "Business meaning: Bank account number of the payee. Example value: 998877665544. Relationship information: Target account in transfer transactions. Nullability: Never null."
+      description = "Business meaning: Bank account number of the payee. Relationship information: Target account in transfer transactions. Nullability: Never null."
     },
     {
       name        = "bank_name"
       type        = "STRING"
       mode        = "REQUIRED"
-      description = "Business meaning: Name of the payee's bank. Example value: HDFC Bank. Relationship information: None. Nullability: Never null."
+      description = "Business meaning: Name of the payee's bank. Relationship information: None. Nullability: Never null."
     },
     {
       name        = "ifsc_code"
       type        = "STRING"
       mode        = "REQUIRED"
-      description = "Business meaning: Branch routing code for the payee bank. Example value: HDFC0000001. Relationship information: Route code for payments. Nullability: Never null."
+      description = "Business meaning: Branch routing code for the payee bank. Relationship information: Route code for payments. Nullability: Never null."
     },
     {
       name        = "status"
       type        = "STRING"
       mode        = "REQUIRED"
-      description = "Business meaning: Safety or activation status of the beneficiary. Example value: ACTIVE. Allowed values: ACTIVE, BLOCKED. Relationship information: None. Nullability: Never null."
+      description = "Business meaning: Safety or activation status of the beneficiary. Allowed values: ACTIVE, BLOCKED. Relationship information: None. Nullability: Never null."
     },
     {
       name        = "created_at"
       type        = "TIMESTAMP"
       mode        = "REQUIRED"
-      description = "Business meaning: Point-in-time when contact was added. Example value: 2024-06-15T10:00:00Z. Relationship information: None. Nullability: Never null."
+      description = "Business meaning: Point-in-time when contact was added. Relationship information: None. Nullability: Never null."
     }
   ])
 }
@@ -326,73 +326,73 @@ resource "google_bigquery_table" "transactions" {
       name        = "transaction_id"
       type        = "STRING"
       mode        = "REQUIRED"
-      description = "Business meaning: Unique transaction identifier. Example value: TXN_202506180001. Relationship information: Primary key. Nullability: Never null."
+      description = "Business meaning: Unique transaction identifier. Relationship information: Primary key. Nullability: Never null."
     },
     {
       name        = "reference_id"
       type        = "STRING"
       mode        = "REQUIRED"
-      description = "Business meaning: Logical transaction reference linking debit/credit entries for transfers. Example value: REF_202506180001. Relationship information: Shared across transfer leg records. Nullability: Never null."
+      description = "Business meaning: Logical transaction reference linking debit/credit entries for transfers. Relationship information: Shared across transfer leg records. Nullability: Never null."
     },
     {
       name        = "account_number"
       type        = "STRING"
       mode        = "REQUIRED"
-      description = "Business meaning: The bank account on which this entry is recorded. Example value: 100234567890. Relationship information: Foreign key to accounts.account_number. Nullability: Never null."
+      description = "Business meaning: The bank account on which this entry is recorded. Relationship information: Foreign key to accounts.account_number. Nullability: Never null."
     },
     {
       name        = "counterparty_account_number"
       type        = "STRING"
       mode        = "NULLABLE"
-      description = "Business meaning: The other party's bank account in transfers. Example value: 987654321098. Relationship information: Target or source account. Nullability: Null for non-transfer transactions."
+      description = "Business meaning: The other party's bank account in transfers. Relationship information: Target or source account. Nullability: Null for non-transfer transactions."
     },
     {
       name        = "transaction_type"
       type        = "STRING"
       mode        = "REQUIRED"
-      description = "Business meaning: Financial category of the transaction. Example value: TRANSFER. Allowed values: TRANSFER, UPI, CARD_PAYMENT, ATM_WITHDRAWAL, ATM_DEPOSIT, SALARY_CREDIT, INTEREST_CREDIT, LOAN_EMI, FD_DEPOSIT, FD_MATURITY, BILL_PAYMENT. Relationship information: None. Nullability: Never null."
+      description = "Business meaning: Financial category of the transaction. Allowed values: TRANSFER, UPI, CARD_PAYMENT, ATM_WITHDRAWAL, ATM_DEPOSIT, SALARY_CREDIT, INTEREST_CREDIT, LOAN_EMI, FD_DEPOSIT, FD_MATURITY, BILL_PAYMENT. Relationship information: None. Nullability: Never null."
     },
     {
       name        = "currency"
       type        = "STRING"
       mode        = "REQUIRED"
-      description = "Business meaning: Base currency of the transaction. Example value: INR. Allowed values: INR, USD, EUR. Relationship information: None. Nullability: Never null."
+      description = "Business meaning: Base currency of the transaction. Allowed values: INR, USD, EUR. Relationship information: None. Nullability: Never null."
     },
     {
       name        = "direction"
       type        = "STRING"
       mode        = "REQUIRED"
-      description = "Business meaning: Balance change direction (inflow vs. outflow). Example value: DEBIT. Allowed values: DEBIT (outflow), CREDIT (inflow). Relationship information: None. Nullability: Never null."
+      description = "Business meaning: Balance change direction (inflow vs. outflow). Allowed values: DEBIT (outflow), CREDIT (inflow). Relationship information: None. Nullability: Never null."
     },
     {
       name        = "amount"
       type        = "FLOAT"
       mode        = "REQUIRED"
-      description = "Business meaning: Absolute value of the transaction. Always positive. Example value: 5000.0. Relationship information: None. Nullability: Never null."
+      description = "Business meaning: Absolute value of the transaction. Always positive. Relationship information: None. Nullability: Never null."
     },
     {
       name        = "merchant_name"
       type        = "STRING"
       mode        = "NULLABLE"
-      description = "Business meaning: Commercial name of the retailer or receiver. Example value: Amazon. Relationship information: None. Nullability: Null for bank transfers or interest credits."
+      description = "Business meaning: Commercial name of the retailer or receiver. Relationship information: None. Nullability: Null for bank transfers or interest credits."
     },
     {
       name        = "category"
       type        = "STRING"
       mode        = "NULLABLE"
-      description = "Business meaning: High-level classification of merchant or purpose for spending analysis. Example value: SHOPPING. Allowed values: GROCERY, FOOD, TRAVEL, SHOPPING, ENTERTAINMENT, UTILITIES, HEALTHCARE, EDUCATION, BANKING, SALARY, INVESTMENT, LOAN, OTHER. Relationship information: None. Nullability: Nullable."
+      description = "Business meaning: High-level classification of merchant or purpose for spending analysis. Allowed values: GROCERY, FOOD, TRAVEL, SHOPPING, ENTERTAINMENT, UTILITIES, HEALTHCARE, EDUCATION, BANKING, SALARY, INVESTMENT, LOAN, OTHER. Relationship information: None. Nullability: Nullable."
     },
     {
       name        = "description"
       type        = "STRING"
       mode        = "REQUIRED"
-      description = "Business meaning: Detailed transaction narration/memo. Example value: UPI payment to Swiggy. Relationship information: None. Nullability: Never null."
+      description = "Business meaning: Detailed transaction narration/memo. Relationship information: None. Nullability: Never null."
     },
     {
       name        = "transaction_timestamp"
       type        = "TIMESTAMP"
       mode        = "REQUIRED"
-      description = "Business meaning: Point-in-time when transaction occurred. Example value: 2025-06-18T10:00:00Z. Relationship information: None. Nullability: Never null."
+      description = "Business meaning: Point-in-time when transaction occurred. Relationship information: None. Nullability: Never null."
     }
   ])
 
@@ -417,109 +417,109 @@ resource "google_bigquery_table" "credit_cards" {
       name        = "card_account_number"
       type        = "STRING"
       mode        = "REQUIRED"
-      description = "Business meaning: Unique credit card account business key. Example value: CC10000012345. Relationship information: Primary key. Nullability: Never null."
+      description = "Business meaning: Unique credit card account business key. Relationship information: Primary key. Nullability: Never null."
     },
     {
       name        = "customer_id"
       type        = "INTEGER"
       mode        = "REQUIRED"
-      description = "Business meaning: Customer ID of the credit card holder. Example value: 1001. Relationship information: Foreign key referencing customers.customer_id. Nullability: Never null."
+      description = "Business meaning: Customer ID of the credit card holder. Relationship information: Foreign key referencing customers.customer_id. Nullability: Never null."
     },
     {
       name        = "card_number"
       type        = "STRING"
       mode        = "REQUIRED"
-      description = "Business meaning: Masked/full card identification number. Example value: 4532XXXXXXXX1234. Relationship information: None. Nullability: Never null."
+      description = "Business meaning: Masked/full card identification number. Relationship information: None. Nullability: Never null."
     },
     {
       name        = "card_type"
       type        = "STRING"
       mode        = "REQUIRED"
-      description = "Business meaning: Card processing network and tier. Example value: VISA. Allowed values: VISA, MASTERCARD, RUPAY. Relationship information: None. Nullability: Never null."
+      description = "Business meaning: Card processing network and tier. Allowed values: VISA, MASTERCARD, RUPAY. Relationship information: None. Nullability: Never null."
     },
     {
       name        = "credit_limit"
       type        = "FLOAT"
       mode        = "REQUIRED"
-      description = "Business meaning: Maximum credit limit approved on the card. Example value: 100000.0. Relationship information: None. Nullability: Never null."
+      description = "Business meaning: Maximum credit limit approved on the card. Relationship information: None. Nullability: Never null."
     },
     {
       name        = "available_credit"
       type        = "FLOAT"
       mode        = "REQUIRED"
-      description = "Business meaning: Remaining spending power on the card. Example value: 85000.0. Relationship information: Calculated as credit_limit - outstanding_balance. Nullability: Never null."
+      description = "Business meaning: Remaining spending power on the card. Relationship information: Calculated as credit_limit - outstanding_balance. Nullability: Never null."
     },
     {
       name        = "outstanding_balance"
       type        = "FLOAT"
       mode        = "REQUIRED"
-      description = "Business meaning: Total unpaid statement and unbilled balances. Example value: 15000.0. Relationship information: None. Nullability: Never null."
+      description = "Business meaning: Total unpaid statement and unbilled balances. Relationship information: None. Nullability: Never null."
     },
     {
       name        = "statement_amount"
       type        = "FLOAT"
       mode        = "REQUIRED"
-      description = "Business meaning: Total due balance from the last billing cycle. Example value: 12000.0. Relationship information: None. Nullability: Never null."
+      description = "Business meaning: Total due balance from the last billing cycle. Relationship information: None. Nullability: Never null."
     },
     {
       name        = "minimum_due_amount"
       type        = "FLOAT"
       mode        = "REQUIRED"
-      description = "Business meaning: Minimum required payment to avoid late penalties. Example value: 600.0. Relationship information: None. Nullability: Never null."
+      description = "Business meaning: Minimum required payment to avoid late penalties. Relationship information: None. Nullability: Never null."
     },
     {
       name        = "payment_due_date"
       type        = "DATE"
       mode        = "REQUIRED"
-      description = "Business meaning: Deadline for paying the minimum or full statement amount. Example value: 2025-07-05. Relationship information: None. Nullability: Never null."
+      description = "Business meaning: Deadline for paying the minimum or full statement amount. Relationship information: None. Nullability: Never null."
     },
     {
       name        = "statement_date"
       type        = "DATE"
       mode        = "REQUIRED"
-      description = "Business meaning: Date when the monthly billing statement was compiled. Example value: 2025-06-15. Relationship information: None. Nullability: Never null."
+      description = "Business meaning: Date when the monthly billing statement was compiled. Relationship information: None. Nullability: Never null."
     },
     {
       name        = "utilization_percentage"
       type        = "FLOAT"
       mode        = "REQUIRED"
-      description = "Business meaning: Card credit utilization ratio. Example value: 15.0. Relationship information: Calculated as (outstanding_balance / credit_limit) * 100. Nullability: Never null."
+      description = "Business meaning: Card credit utilization ratio. Relationship information: Calculated as (outstanding_balance / credit_limit) * 100. Nullability: Never null."
     },
     {
       name        = "status"
       type        = "STRING"
       mode        = "REQUIRED"
-      description = "Business meaning: Activation state of the credit card. Example value: ACTIVE. Allowed values: ACTIVE, BLOCKED, CLOSED. Relationship information: None. Nullability: Never null."
+      description = "Business meaning: Activation state of the credit card. Allowed values: ACTIVE, BLOCKED, CLOSED. Relationship information: None. Nullability: Never null."
     },
     {
       name        = "created_at"
       type        = "DATE"
       mode        = "REQUIRED"
-      description = "Business meaning: Date when the credit card was issued. Example value: 2024-01-10. Relationship information: None. Nullability: Never null."
+      description = "Business meaning: Date when the credit card was issued. Relationship information: None. Nullability: Never null."
     },
     {
       name        = "eff_start_ts"
       type        = "TIMESTAMP"
       mode        = "REQUIRED"
-      description = "Business meaning: SCD Type 2 Effective Start Timestamp. When this card record version became effective. Example value: 2025-01-01T00:00:00Z. Relationship information: None. Nullability: Never null."
+      description = "Business meaning: SCD Type 2 Effective Start Timestamp. When this card record version became effective. Relationship information: None. Nullability: Never null."
     },
     {
       name        = "eff_end_ts"
       type        = "TIMESTAMP"
       mode        = "NULLABLE"
-      description = "Business meaning: SCD Type 2 Effective End Timestamp. When this card record version expired. NULL means current active version. Example value: 2025-06-01T00:00:00Z. Relationship information: None. Nullability: Nullable."
+      description = "Business meaning: SCD Type 2 Effective End Timestamp. When this card record version expired. NULL means current active version. Relationship information: None. Nullability: Nullable."
     },
     {
       name        = "is_current"
       type        = "BOOLEAN"
       mode        = "REQUIRED"
-      description = "Business meaning: SCD Type 2 Flag indicating if this is the current active profile. Example value: true. Relationship information: None. Nullability: Never null."
+      description = "Business meaning: SCD Type 2 Flag indicating if this is the current active profile. Relationship information: None. Nullability: Never null."
     },
     {
       name        = "record_version"
       type        = "INTEGER"
       mode        = "REQUIRED"
-      description = "Business meaning: Incremental version count for this credit card configuration. Example value: 1. Relationship information: None. Nullability: Never null."
+      description = "Business meaning: Incremental version count for this credit card configuration. Relationship information: None. Nullability: Never null."
     }
   ])
 }
@@ -537,73 +537,73 @@ resource "google_bigquery_table" "loans" {
       name        = "loan_account_number"
       type        = "STRING"
       mode        = "REQUIRED"
-      description = "Business meaning: Unique loan account business key. Example value: PL100001234. Relationship information: Primary key. Nullability: Never null."
+      description = "Business meaning: Unique loan account business key. Relationship information: Primary key. Nullability: Never null."
     },
     {
       name        = "customer_id"
       type        = "INTEGER"
       mode        = "REQUIRED"
-      description = "Business meaning: Customer ID of the borrower. Example value: 1001. Relationship information: Foreign key referencing customers.customer_id. Nullability: Never null."
+      description = "Business meaning: Customer ID of the borrower. Relationship information: Foreign key referencing customers.customer_id. Nullability: Never null."
     },
     {
       name        = "loan_type"
       type        = "STRING"
       mode        = "REQUIRED"
-      description = "Business meaning: Classification of the loan product. Example value: PERSONAL. Allowed values: PERSONAL, HOME, AUTO, EDUCATION. Relationship information: None. Nullability: Never null."
+      description = "Business meaning: Classification of the loan product. Allowed values: PERSONAL, HOME, AUTO, EDUCATION. Relationship information: None. Nullability: Never null."
     },
     {
       name        = "loan_amount"
       type        = "FLOAT"
       mode        = "REQUIRED"
-      description = "Business meaning: Total sanctioned principal loan amount. Example value: 500000.0. Relationship information: None. Nullability: Never null."
+      description = "Business meaning: Total sanctioned principal loan amount. Relationship information: None. Nullability: Never null."
     },
     {
       name        = "outstanding_amount"
       type        = "FLOAT"
       mode        = "REQUIRED"
-      description = "Business meaning: Current unpaid loan amount including accrued interest. Example value: 450000.0. Relationship information: None. Nullability: Never null."
+      description = "Business meaning: Current unpaid loan amount including accrued interest. Relationship information: None. Nullability: Never null."
     },
     {
       name        = "interest_rate"
       type        = "FLOAT"
       mode        = "REQUIRED"
-      description = "Business meaning: Annual percentage rate (APR) of interest on the loan. Example value: 10.5. Relationship information: None. Nullability: Never null."
+      description = "Business meaning: Annual percentage rate (APR) of interest on the loan. Relationship information: None. Nullability: Never null."
     },
     {
       name        = "emi_amount"
       type        = "FLOAT"
       mode        = "REQUIRED"
-      description = "Business meaning: Equated Monthly Installment to be repaid. Example value: 12500.0. Relationship information: None. Nullability: Never null."
+      description = "Business meaning: Equated Monthly Installment to be repaid. Relationship information: None. Nullability: Never null."
     },
     {
       name        = "remaining_tenure_months"
       type        = "INTEGER"
       mode        = "REQUIRED"
-      description = "Business meaning: Number of months/repayments left. Example value: 48. Relationship information: None. Nullability: Never null."
+      description = "Business meaning: Number of months/repayments left. Relationship information: None. Nullability: Never null."
     },
     {
       name        = "original_tenure_months"
       type        = "INTEGER"
       mode        = "REQUIRED"
-      description = "Business meaning: Total scheduled tenure of the loan in months. Example value: 60. Relationship information: None. Nullability: Never null."
+      description = "Business meaning: Total scheduled tenure of the loan in months. Relationship information: None. Nullability: Never null."
     },
     {
       name        = "next_emi_date"
       type        = "DATE"
       mode        = "REQUIRED"
-      description = "Business meaning: Date of the next scheduled EMI payment. Example value: 2025-07-01. Relationship information: None. Nullability: Never null."
+      description = "Business meaning: Date of the next scheduled EMI payment. Relationship information: None. Nullability: Never null."
     },
     {
       name        = "status"
       type        = "STRING"
       mode        = "REQUIRED"
-      description = "Business meaning: Current status of the loan account. Example value: ACTIVE. Allowed values: ACTIVE, CLOSED. Relationship information: None. Nullability: Never null."
+      description = "Business meaning: Current status of the loan account. Allowed values: ACTIVE, CLOSED. Relationship information: None. Nullability: Never null."
     },
     {
       name        = "start_date"
       type        = "DATE"
       mode        = "REQUIRED"
-      description = "Business meaning: Date when the loan was disbursed. Example value: 2024-06-01. Relationship information: None. Nullability: Never null."
+      description = "Business meaning: Date when the loan was disbursed. Relationship information: None. Nullability: Never null."
     }
   ])
 }
@@ -621,55 +621,55 @@ resource "google_bigquery_table" "fixed_deposits" {
       name        = "fd_account_number"
       type        = "STRING"
       mode        = "REQUIRED"
-      description = "Business meaning: Unique FD account business key. Example value: FD100001234. Relationship information: Primary key. Nullability: Never null."
+      description = "Business meaning: Unique FD account business key. Relationship information: Primary key. Nullability: Never null."
     },
     {
       name        = "customer_id"
       type        = "INTEGER"
       mode        = "REQUIRED"
-      description = "Business meaning: Internal customer ID of the depositor. Example value: 1001. Relationship information: Foreign key to customers.customer_id. Nullability: Never null."
+      description = "Business meaning: Internal customer ID of the depositor. Relationship information: Foreign key to customers.customer_id. Nullability: Never null."
     },
     {
       name        = "principal_amount"
       type        = "FLOAT"
       mode        = "REQUIRED"
-      description = "Business meaning: Initial principal amount deposited. Example value: 100000.0. Relationship information: None. Nullability: Never null."
+      description = "Business meaning: Initial principal amount deposited. Relationship information: None. Nullability: Never null."
     },
     {
       name        = "current_value"
       type        = "FLOAT"
       mode        = "REQUIRED"
-      description = "Business meaning: Current value of the FD including accrued compound interest. Example value: 105500.0. Relationship information: None. Nullability: Never null."
+      description = "Business meaning: Current value of the FD including accrued compound interest. Relationship information: None. Nullability: Never null."
     },
     {
       name        = "interest_rate"
       type        = "FLOAT"
       mode        = "REQUIRED"
-      description = "Business meaning: Annual interest rate agreed at inception. Example value: 6.5. Relationship information: None. Nullability: Never null."
+      description = "Business meaning: Annual interest rate agreed at inception. Relationship information: None. Nullability: Never null."
     },
     {
       name        = "start_date"
       type        = "DATE"
       mode        = "REQUIRED"
-      description = "Business meaning: Creation date of the fixed deposit. Example value: 2024-01-01. Relationship information: None. Nullability: Never null."
+      description = "Business meaning: Creation date of the fixed deposit. Relationship information: None. Nullability: Never null."
     },
     {
       name        = "maturity_date"
       type        = "DATE"
       mode        = "REQUIRED"
-      description = "Business meaning: Date when the FD matures and funds are released. Example value: 2025-01-01. Relationship information: None. Nullability: Never null."
+      description = "Business meaning: Date when the FD matures and funds are released. Relationship information: None. Nullability: Never null."
     },
     {
       name        = "tenure_months"
       type        = "INTEGER"
       mode        = "REQUIRED"
-      description = "Business meaning: Total length of the deposit term in months. Example value: 12. Relationship information: None. Nullability: Never null."
+      description = "Business meaning: Total length of the deposit term in months. Relationship information: None. Nullability: Never null."
     },
     {
       name        = "status"
       type        = "STRING"
       mode        = "REQUIRED"
-      description = "Business meaning: Current status of the deposit. Example value: ACTIVE. Allowed values: ACTIVE, MATURED. Relationship information: None. Nullability: Never null."
+      description = "Business meaning: Current status of the deposit. Allowed values: ACTIVE, MATURED. Relationship information: None. Nullability: Never null."
     }
   ])
 }
@@ -687,25 +687,25 @@ resource "google_bigquery_table" "credit_scores" {
       name        = "customer_id"
       type        = "INTEGER"
       mode        = "REQUIRED"
-      description = "Business meaning: Internal customer ID of the record. Example value: 1001. Relationship information: Foreign key to customers.customer_id. Nullability: Never null."
+      description = "Business meaning: Internal customer ID of the record. Relationship information: Foreign key to customers.customer_id. Nullability: Never null."
     },
     {
       name        = "score"
       type        = "INTEGER"
       mode        = "REQUIRED"
-      description = "Business meaning: Numeric credit score value between 300 and 850. Example value: 750. Relationship information: None. Nullability: Never null."
+      description = "Business meaning: Numeric credit score value between 300 and 850. Relationship information: None. Nullability: Never null."
     },
     {
       name        = "last_updated"
       type        = "DATE"
       mode        = "REQUIRED"
-      description = "Business meaning: Date when the credit score was retrieved or refreshed. Example value: 2024-12-01. Relationship information: None. Nullability: Never null."
+      description = "Business meaning: Date when the credit score was retrieved or refreshed. Relationship information: None. Nullability: Never null."
     },
     {
       name        = "bureau_source"
       type        = "STRING"
       mode        = "REQUIRED"
-      description = "Business meaning: Credit bureau supplying the credit data. Example value: EXPERIAN. Allowed values: EXPERIAN, EQUIFAX, TRANSUNION, CIBIL. Relationship information: None. Nullability: Never null."
+      description = "Business meaning: Credit bureau supplying the credit data. Allowed values: EXPERIAN, EQUIFAX, TRANSUNION, CIBIL. Relationship information: None. Nullability: Never null."
     }
   ])
 }
