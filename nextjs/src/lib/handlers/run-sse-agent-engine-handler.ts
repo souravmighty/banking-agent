@@ -78,7 +78,7 @@ class JSONFragmentProcessor {
 
   /**
    * Process incoming chunk of data from Agent Engine.
-   * Accumulates chunks and looks for complete parts to stream immediately.
+   * Accumulates chunks and looks for complete fragments to process.
    */
   processChunk(chunk: string): void {
     console.log(`🔄 [JSON PROCESSOR] Processing chunk: ${chunk.length} bytes`);
@@ -89,69 +89,79 @@ class JSONFragmentProcessor {
 
     this.buffer += chunk;
 
-    // Use improved part-level parsing approach
-    this.extractCompletePartsFromBuffer();
+    // Use robust fragment-level parsing approach
+    this.extractCompleteFragmentsFromBuffer();
   }
 
   /**
-   * Extract complete part objects from buffer using JSON.parse()
-   * Much simpler than manual brace counting - just try to parse incrementally!
+   * Extract complete fragment objects from buffer by counting curly braces.
+   * This handles nested objects, string literals, and escaped characters.
    */
-  private extractCompletePartsFromBuffer(): void {
-    // Find the start of the parts array if we haven't found it yet
-    const partsMatch = this.buffer.match(/"parts"\s*:\s*\[/);
-    if (!partsMatch) {
-      return; // No parts array found yet
-    }
-
-    const partsArrayStart = partsMatch.index! + partsMatch[0].length;
-    const partsContent = this.buffer.substring(partsArrayStart);
-
-    // Look for potential object starts and try to parse them
+  private extractCompleteFragmentsFromBuffer(): void {
     let searchPos = 0;
+    while (searchPos < this.buffer.length) {
+      const startIdx = this.buffer.indexOf("{", searchPos);
+      if (startIdx === -1) {
+        // No start brace found, clear buffer if it's just whitespace/newlines
+        if (!this.buffer.trim()) {
+          this.buffer = "";
+        }
+        break;
+      }
 
-    while (searchPos < partsContent.length) {
-      // Find the next potential object start
-      const objStart = partsContent.indexOf("{", searchPos);
-      if (objStart === -1) break; // No more objects to find
+      let braceCount = 0;
+      let inString = false;
+      let escapeNext = false;
+      let matchIdx = -1;
 
-      // Try to parse increasingly larger substrings until we get a valid JSON
-      for (let endPos = objStart + 1; endPos <= partsContent.length; endPos++) {
-        const potentialJson = partsContent.substring(objStart, endPos);
+      for (let i = startIdx; i < this.buffer.length; i++) {
+        const char = this.buffer[i];
 
-        // Skip if it doesn't end with }
-        if (!potentialJson.endsWith("}")) continue;
+        if (escapeNext) {
+          escapeNext = false;
+          continue;
+        }
 
-        try {
-          const part = JSON.parse(potentialJson);
+        if (char === "\\") {
+          escapeNext = true;
+          continue;
+        }
 
-          // Check if this is a valid part object with text
-          if (part.text && typeof part.text === "string") {
-            const partHash = this.hashPart(part);
+        if (char === '"') {
+          inString = !inString;
+          continue;
+        }
 
-            if (!this.sentParts.has(partHash)) {
-              console.log(
-                `✅ [JSON PROCESSOR] Found new part (thought: ${
-                  part.thought
-                }): ${part.text.substring(0, 100)}...`
-              );
-              this.emitCompletePart(part);
-              this.sentParts.add(partHash);
+        if (!inString) {
+          if (char === "{") {
+            braceCount++;
+          } else if (char === "}") {
+            braceCount--;
+            if (braceCount === 0) {
+              matchIdx = i;
+              break;
             }
           }
-
-          // Successfully parsed! Move search position past this object
-          searchPos = objStart + potentialJson.length;
-          break; // Found a valid object, stop trying longer substrings
-        } catch {
-          // Not valid JSON yet, try a longer substring
-          continue;
         }
       }
 
-      // If we couldn't parse anything starting from this position, move forward
-      if (searchPos <= objStart) {
-        searchPos = objStart + 1;
+      if (matchIdx !== -1) {
+        const jsonStr = this.buffer.substring(startIdx, matchIdx + 1);
+        try {
+          const fragment: AgentEngineFragment = JSON.parse(jsonStr);
+          this.processCompleteFragment(fragment);
+        } catch (error) {
+          console.error(
+            "❌ [JSON PROCESSOR] Failed to parse complete fragment JSON:",
+            error
+          );
+        }
+        // Consume this part of the buffer
+        this.buffer = this.buffer.substring(matchIdx + 1);
+        searchPos = 0; // Reset search position as buffer changed
+      } else {
+        // Matching closing brace not found yet, wait for more data
+        break;
       }
     }
   }
@@ -160,18 +170,19 @@ class JSONFragmentProcessor {
    * Create a simple hash of a part to detect duplicates
    */
   private hashPart(part: AgentEngineContentPart): string {
-    // Use full text for better uniqueness and include position info
+    if (part.function_call) {
+      return `func-call-${part.function_call.id || part.function_call.name}`;
+    }
+    if (part.function_response) {
+      return `func-resp-${part.function_response.id || part.function_response.name}`;
+    }
     const textHash = part.text?.substring(0, 100) || "";
-    return `${textHash}-${part.thought}-${!!part.function_call}-${
-      textHash.length
-    }`;
+    return `${textHash}-${part.thought}-${textHash.length}`;
   }
 
   /**
    * Emit a complete part as SSE format to the frontend
    * Converts from Agent Engine JSON fragments to standard SSE format
-   *
-   * IMPROVED: Now outputs proper SSE format for unified processing
    */
   private emitCompletePart(part: AgentEngineContentPart): void {
     console.log(
@@ -197,7 +208,7 @@ class JSONFragmentProcessor {
   }
 
   /**
-   * Process a complete JSON fragment (called when we have the full response)
+   * Process a complete JSON fragment (called when we have a full/valid response chunk)
    */
   processCompleteFragment(fragment: AgentEngineFragment): void {
     console.log(
@@ -207,21 +218,25 @@ class JSONFragmentProcessor {
 
     this.currentAgent = fragment.author || "goal_planning_agent";
 
-    // CRITICAL FIX: Process the actual content parts!
+    // Process the actual content parts (text thoughts, function calls, function responses)
     if (fragment.content?.parts && Array.isArray(fragment.content.parts)) {
       console.log(
         `🔍 [JSON PROCESSOR] Found ${fragment.content.parts.length} parts in complete fragment`
       );
 
       for (const [index, part] of fragment.content.parts.entries()) {
-        if (part.text && typeof part.text === "string") {
+        if (
+          (part.text && typeof part.text === "string") ||
+          part.function_call ||
+          part.function_response
+        ) {
           const partHash = this.hashPart(part);
 
           if (!this.sentParts.has(partHash)) {
             console.log(
               `✅ [JSON PROCESSOR] Processing complete fragment part ${
                 index + 1
-              } (thought: ${part.thought}): ${part.text.substring(0, 100)}...`
+              } (thought: ${part.thought}): ${part.text?.substring(0, 100) || "no-text"}...`
             );
             this.emitCompletePart(part);
             this.sentParts.add(partHash);
@@ -258,7 +273,6 @@ class JSONFragmentProcessor {
 
       console.log(`📤 [JSON PROCESSOR] Emitting final metadata as SSE format`);
       const sseEvent = `data: ${JSON.stringify(additionalData)}\n\n`;
-      // IMPROVED: Use Buffer.from() and emit SSE format
       this.controller.enqueue(Buffer.from(sseEvent));
     }
 
@@ -274,11 +288,15 @@ class JSONFragmentProcessor {
   finalize(): void {
     console.log("🏁 [JSON PROCESSOR] Finalizing stream");
 
-    // Try to parse any remaining buffer content
+    // Try to extract any remaining fragments
+    this.extractCompleteFragmentsFromBuffer();
+
+    // Fallback parser if there is any remaining text in buffer
     if (this.buffer.trim()) {
       try {
         const fragment: AgentEngineFragment = JSON.parse(this.buffer);
         this.processCompleteFragment(fragment);
+        this.buffer = "";
       } catch (error) {
         console.error(
           "❌ [JSON PROCESSOR] Failed to parse remaining buffer on finalize:",

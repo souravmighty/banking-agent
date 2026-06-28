@@ -41,6 +41,31 @@ function sanitizeSSEData(data: string): string {
   return data;
 }
 
+interface ExtendedPart {
+  text?: string;
+  thought?: boolean;
+  functionCall?: {
+    name: string;
+    args: Record<string, unknown>;
+    id: string;
+  };
+  function_call?: {
+    name: string;
+    args: Record<string, unknown>;
+    id: string;
+  };
+  functionResponse?: {
+    name: string;
+    response: Record<string, unknown>;
+    id: string;
+  };
+  function_response?: {
+    name: string;
+    response: Record<string, unknown>;
+    id: string;
+  };
+}
+
 /**
  * Extracts and processes data from SSE JSON strings
  *
@@ -130,26 +155,36 @@ export function extractDataFromSSE(data: string): ParsedSSEData {
 
       // Check for function calls
       const functionCallPart = parsed.content.parts.find(
-        (part: { functionCall?: unknown }) => part.functionCall
+        (part) => {
+          const ep = part as unknown as ExtendedPart;
+          return ep.functionCall || ep.function_call;
+        }
       );
       if (functionCallPart) {
-        functionCall = functionCallPart.functionCall as {
+        const ep = functionCallPart as unknown as ExtendedPart;
+        const fc = (ep.functionCall || ep.function_call) as {
           name: string;
           args: Record<string, unknown>;
           id: string;
         };
+        functionCall = fc;
       }
 
       // Check for function responses
       const functionResponsePart = parsed.content.parts.find(
-        (part: { functionResponse?: unknown }) => part.functionResponse
+        (part) => {
+          const ep = part as unknown as ExtendedPart;
+          return ep.functionResponse || ep.function_response;
+        }
       );
       if (functionResponsePart) {
-        functionResponse = functionResponsePart.functionResponse as {
+        const ep = functionResponsePart as unknown as ExtendedPart;
+        const fr = (ep.functionResponse || ep.function_response) as {
           name: string;
           response: Record<string, unknown>;
           id: string;
         };
+        functionResponse = fr;
       }
     }
 
