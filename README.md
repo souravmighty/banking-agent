@@ -3,7 +3,7 @@
 Production-inspired AI Banking Platform featuring Google ADK, Vertex AI Agent Engine, Firebase Authentication, Customer Identity Service, and secure BigQuery tool execution.
 
 [![GCP](https://img.shields.io/badge/GCP-Vertex_AI_Agent_Engine-4285F4?style=for-the-badge&logo=google-cloud&logoColor=white)](https://cloud.google.com/vertex-ai)
-[![Framework](https://img.shields.io/badge/Framework-Google_ADK-0F9D58?style=for-the-badge&logo=google&logoColor=white)](https://github.com)
+[![Framework](https://img.shields.io/badge/Framework-Google_ADK-0F9D58?style=for-the-badge&logo=google&logoColor=white)](https://adk.dev/)
 [![Database](https://img.shields.io/badge/Database-BigQuery_SCD_Type_2-3776AB?style=for-the-badge&logo=google-cloud&logoColor=white)](https://cloud.google.com/bigquery)
 [![Auth](https://img.shields.io/badge/Security-Firebase_Admin_SDK-D32F2F?style=for-the-badge&logo=firebase&logoColor=white)](https://firebase.google.com)
 [![IaC](https://img.shields.io/badge/IaC-Terraform-7B42BC?style=for-the-badge&logo=terraform&logoColor=white)](https://www.terraform.io)
@@ -14,8 +14,30 @@ Production-inspired AI Banking Platform featuring Google ADK, Vertex AI Agent En
 
 BankPilot separates client-side interactions, identity resolution, and analytical databases. The diagram below illustrates the system interaction and data boundaries:
 
-![System Architecture](docs/images/architecture_blueprint.png)
-*Figure 1: Macro system interaction and secure data boundaries.*
+```mermaid
+graph TD
+    User([User Client]) <-->|HTTPS / gRPC| NextJS[Next.js Client UI]
+    NextJS <-->|JWT Bearer Token| CIS[customer-identity-service]
+    NextJS <-->|Session Initialization| ADK[Root Agent Orchestrator]
+
+    CIS -->|1. Generate Authorized Views| BQ[(BigQuery Engine)]
+    CIS -->|2. Inject Profile & View Context| ADK
+    CIS -->|3. Authorize Transaction Limits| MCP[Model Context Protocol Server]
+
+    subgraph Multi-Agent Boundary [Multi-Agent Boundary]
+        ADK <-->|Analytical Tasks| BQA[BigQuery Sub-Agent]
+        ADK <-->|Transactional Tasks| TxA[Transaction Sub-Agent]
+    end
+
+    BQA <-->|Query Filtered Views Only| BQ
+    TxA <-->|Execute Tools| MCP
+    MCP <-->|Commit Balanced Ledger Records| BQ
+
+    classDef agent fill:#0A2540,stroke:#639FAB,stroke-width:2px,color:#fff;
+    classDef infra fill:#f4f6f8,stroke:#333,stroke-width:1px;
+    class ADK,BQA,TxA agent;
+    class BQ,MCP,NextJS,CIS infra;
+```
 
 ---
 
@@ -232,19 +254,28 @@ To demonstrate engineering maturity, the following list outlines known technical
 
 ---
 
-## 📷 Screenshots
+## 📷 Interface Placeholders
 
 ### 🔑 Login Portal
-![Login Page](docs/images/login_placeholder.png)
-*Client credential authentication utilizing Firebase OAuth2.*
+> [!NOTE]
+> **Interface Placeholder: Login Portal**
+> *   **URL / Route**: `/login`
+> *   **Primary Flow**: Client credential authentication utilizing Firebase OAuth2.
+> *   **Visual Elements**: Secure input fields for customer email/password, integration with Firebase Client SDK, JWT token generation, and secure redirect to dashboard.
 
 ### 💬 Conversational Analytics Portal
-![Chat Interface](docs/images/chat_interface.png)
-*Interactive chat UI featuring step-by-step AI activity tracing and analytics.*
+> [!NOTE]
+> **Interface Placeholder: Conversational Analytics Portal**
+> *   **URL / Route**: `/dashboard/chat`
+> *   **Primary Flow**: Interactive conversational interface utilizing Google ADK and Vertex AI Agent Engine.
+> *   **Visual Elements**: Real-time streaming response window, interactive thought/reasoning timeline, expandable step-by-step execution details, and live transaction/spend analytics charts.
 
 ### 📊 Sandboxed SQL Views
-![BigQuery Views](docs/images/bq_views_placeholder.png)
-*BigQuery dynamic customer-scoped views physically isolating account records.*
+> [!NOTE]
+> **Interface Placeholder: BigQuery Authorized Views**
+> *   **Location**: Google Cloud Console -> BigQuery
+> *   **Primary Flow**: Physically isolating account records via customer-scoped views dynamically compiled at session startup.
+> *   **Visual Elements**: Dynamic view schema `v_transactions_<customer_id>` mapped with column-level descriptions, executing isolation logic without direct table exposure to LLMs.
 
 ---
 
