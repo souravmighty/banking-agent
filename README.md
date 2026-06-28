@@ -219,6 +219,26 @@ All REST routes are hosted under `/api/v1` of the `customer-identity-service`:
 
 ---
 
+## ⚡ Current Capabilities
+
+### Phase 1 (Implemented)
+*   ✅ **Customer onboarding**
+*   ✅ **Firebase Authentication**
+*   ✅ **Customer Identity Service**
+*   ✅ **Customer-scoped BigQuery Views**
+*   ✅ **Google ADK SQL Agent**
+*   ✅ **Natural language banking queries**
+*   ✅ **Cloud deployment**
+
+### Phase 2 (In Progress)
+*   ⬜ **MCP Transaction Service**
+*   ⬜ **OTP Verification**
+*   ⬜ **CI/CD**
+*   ⬜ **Observability**
+*   ⬜ **Analytics Copilot**
+
+---
+
 ## 🚧 Current Limitations & Roadmap
 
 To demonstrate engineering maturity, the following list outlines known technical limitations of the current implementation:
