@@ -16,17 +16,17 @@ BankPilot separates client-side interactions, identity resolution, and analytica
 
 ```mermaid
 graph TD
-    User([User Client]) <-->|HTTPS / gRPC| NextJS[Next.js Client UI]
-    NextJS <-->|JWT Bearer Token| CIS[customer-identity-service]
-    NextJS <-->|Session Initialization| ADK[Root Agent Orchestrator]
+    User(["👤 User Client"]) <-->|HTTPS / gRPC| NextJS["<img src='https://www.vectorlogo.zone/logos/nextjs/nextjs-icon.svg' width='16' height='16' /> Next.js Client UI"]
+    NextJS <-->|JWT Bearer Token| CIS["<img src='https://www.vectorlogo.zone/logos/fastapi/fastapi-icon.svg' width='16' height='16' /> customer-identity-service (FastAPI)"]
+    NextJS <-->|Session Initialization| ADK["<img src='https://www.vectorlogo.zone/logos/google/google-icon.svg' width='16' height='16' /> Google ADK (Root Orchestrator)"]
 
-    CIS -->|1. Generate Authorized Views| BQ[(BigQuery Engine)]
+    CIS -->|1. Generate Authorized Views| BQ[("<img src='https://www.vectorlogo.zone/logos/google_bigquery/google_bigquery-icon.svg' width='16' height='16' /> Google Cloud BigQuery")]
     CIS -->|2. Inject Profile & View Context| ADK
-    CIS -->|3. Authorize Transaction Limits| MCP[Model Context Protocol Server]
+    CIS -->|3. Authorize Transaction Limits| MCP["🔌 Model Context Protocol Server (FastMCP)"]
 
     subgraph Multi-Agent Boundary [Multi-Agent Boundary]
-        ADK <-->|Analytical Tasks| BQA[BigQuery Sub-Agent]
-        ADK <-->|Transactional Tasks| TxA[Transaction Sub-Agent]
+        ADK <-->|Analytical Tasks| BQA["🔍 BigQuery Sub-Agent (NL2SQL)"]
+        ADK <-->|Transactional Tasks| TxA["💳 Transaction Sub-Agent"]
     end
 
     BQA <-->|Query Filtered Views Only| BQ
