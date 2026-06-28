@@ -97,14 +97,14 @@ export const mdComponents: Partial<Components> = {
   ),
   pre: ({ children, ...props }) => (
     <pre
-      className="bg-[#f5f7ff] text-[#1a1f71] p-3 rounded-lg mb-2 overflow-x-auto border border-[#d0d3ea]"
+      className="bg-[#f5f7ff] text-[#1a1f71] p-2.5 sm:p-3 rounded-lg mb-2 overflow-x-auto border border-[#d0d3ea] w-full max-w-full min-w-0"
       {...props}
     >
       {children}
     </pre>
   ),
   table: ({ children, ...props }) => (
-    <div className="mb-2 overflow-x-auto">
+    <div className="mb-2 overflow-x-auto w-full max-w-full scrollbar-thin scrollbar-thumb-slate-300">
       <table
         className="min-w-full border-collapse border border-[#d0d3ea] text-[#3a3f6e]"
         {...props}
@@ -165,7 +165,7 @@ export function MarkdownRenderer({
   components = mdComponents,
 }: MarkdownRendererProps) {
   return (
-    <div className={`markdown-content ${className}`}>
+    <div className={`markdown-content ${className} w-full max-w-full min-w-0 overflow-hidden`}>
       <ReactMarkdown components={components} remarkPlugins={[remarkGfm]}>
         {content}
       </ReactMarkdown>

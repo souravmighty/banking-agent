@@ -74,7 +74,7 @@ export function ChatContainer(): React.JSX.Element {
   if (!userId) return <></>;
 
   return (
-    <div className="h-full flex flex-col bg-[#f7f8fc] text-[#3a3f6e] relative overflow-hidden">
+    <div className="h-full w-full max-w-full flex flex-col bg-[#f7f8fc] text-[#3a3f6e] relative overflow-hidden">
       <BackendHealthChecker>
         {/* Banking-themed background */}
         <div className="absolute inset-0 pointer-events-none">

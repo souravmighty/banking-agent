@@ -2,7 +2,6 @@
 
 import { useState, useEffect } from "react";
 import { MessageItem } from "./MessageItem";
-import { ScrollArea } from "@/components/ui/scroll-area";
 import { Landmark, Loader2 } from "lucide-react";
 import { Message } from "@/types";
 import { ProcessedEvent } from "@/components/ActivityTimeline";
@@ -31,19 +30,25 @@ export function MessageList({
   // If no messages, show empty state
   if (messages.length === 0) {
     return (
-      <ScrollArea ref={scrollAreaRef} className="flex-1 px-4 py-6">
+      <div
+        ref={scrollAreaRef}
+        className="flex-1 overflow-y-auto overflow-x-hidden px-2 sm:px-6 py-4 sm:py-6 w-full max-w-full min-w-0 scrollbar-thin scrollbar-thumb-slate-200 scrollbar-track-transparent"
+      >
         <div className="flex items-center justify-center h-full">
           <div className="rounded-3xl border border-white/10 bg-white/6 px-6 py-5 text-center shadow-xl shadow-black/25 backdrop-blur-md">
             <div className="text-emerald-200 text-lg">💬</div>
             <p className="text-slate-200 text-sm mt-2">No messages yet. Start a secure conversation.</p>
           </div>
         </div>
-      </ScrollArea>
+      </div>
     );
   }
 
   return (
-    <ScrollArea ref={scrollAreaRef} className="flex-1 px-4 py-6">
+    <div
+      ref={scrollAreaRef}
+      className="flex-1 overflow-y-auto overflow-x-hidden px-2 sm:px-6 py-4 sm:py-6 w-full max-w-full min-w-0 scrollbar-thin scrollbar-thumb-slate-200 scrollbar-track-transparent"
+    >
       <div className="space-y-6 max-w-4xl mx-auto w-full">
         {messages.map((message, index) => (
           <MessageItem
@@ -61,11 +66,11 @@ export function MessageList({
         {isLoading &&
           messages.length > 1 &&
           messages[messages.length - 1].type === "human" && (
-            <div className="flex items-start gap-3 max-w-[90%]">
+            <div className="flex items-start gap-3 w-full max-w-[95%] sm:max-w-[90%]">
               <div className="flex-shrink-0 w-8 h-8 rounded-full bg-[#f0a500] text-[#1a1f71] flex items-center justify-center shadow-sm border border-[#f0a500]">
                 <Landmark className="h-4 w-4" />
               </div>
-              <div className="flex-1 rounded-3xl border border-[#d0d3ea] bg-white p-4 shadow-sm">
+              <div className="flex-1 min-w-0 rounded-3xl border border-[#d0d3ea] bg-white p-3 sm:p-4 shadow-sm">
                 <div className="flex items-center gap-2">
                   <Loader2 className="h-4 w-4 animate-spin text-[#f0a500]" />
                   <span className="text-sm text-[#3a3f6e]">
@@ -83,7 +88,7 @@ export function MessageList({
             <ContextLoader />
           )}
       </div>
-    </ScrollArea>
+    </div>
   );
 }
 

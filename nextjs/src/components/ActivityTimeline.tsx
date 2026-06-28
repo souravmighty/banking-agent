@@ -4,7 +4,6 @@ import {
   CardDescription,
   CardHeader,
 } from "@/components/ui/card";
-import { ScrollArea } from "@/components/ui/scroll-area";
 import {
   Loader2,
   Activity,
@@ -213,21 +212,21 @@ export function ActivityTimeline({
   };
 
   return (
-    <div className="w-full mb-4">
-      <Card className="bg-white border-[#d0d3ea] shadow-sm rounded-2xl overflow-hidden">
-        <CardHeader className="pb-3 border-b border-[#d0d3ea]/50 bg-[#f7f8fc]/80">
-          <div className="flex items-center justify-between">
-            <div className="flex items-center gap-2.5">
-              <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-[#1a1f71]/5 text-[#1a1f71] ring-1 ring-[#1a1f71]/10">
+    <div className="w-full max-w-full mb-4 min-w-0">
+      <Card className="bg-white border-[#d0d3ea] shadow-sm rounded-2xl overflow-hidden w-full max-w-full">
+        <CardHeader className="pb-3 border-b border-[#d0d3ea]/50 bg-[#f7f8fc]/80 w-full">
+          <div className="flex items-center justify-between w-full min-w-0 gap-2">
+            <div className="flex items-center gap-2.5 min-w-0 flex-1">
+              <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-[#1a1f71]/5 text-[#1a1f71] ring-1 ring-[#1a1f71]/10 shrink-0">
                 <Activity className="h-4 w-4" />
               </div>
-              <CardDescription className="text-[#1a1f71] font-bold text-sm">
+              <CardDescription className="text-[#1a1f71] font-bold text-sm truncate">
                 AI Activity Timeline
               </CardDescription>
             </div>
             <button
               onClick={() => setIsTimelineCollapsed(!isTimelineCollapsed)}
-              className="p-1.5 hover:bg-slate-100 rounded-lg transition-colors border border-transparent hover:border-slate-200"
+              className="p-1.5 hover:bg-slate-100 rounded-lg transition-colors border border-transparent hover:border-slate-200 shrink-0"
             >
               {isTimelineCollapsed ? (
                 <ChevronDown className="h-4 w-4 text-slate-500" />
@@ -238,32 +237,32 @@ export function ActivityTimeline({
           </div>
         </CardHeader>
         {!isTimelineCollapsed && (
-          <CardContent className="pt-4">
-            <ScrollArea className="h-48">
-              <div className="space-y-3 pr-4">
+          <CardContent className="pt-3 p-2 sm:p-4 w-full min-w-0">
+            <div className="h-48 overflow-y-auto overflow-x-hidden w-full max-w-full pr-1 scrollbar-thin scrollbar-thumb-slate-200 scrollbar-track-transparent">
+              <div className="space-y-3 pr-2 sm:pr-4 w-full min-w-0">
                 {processedEvents.map((event, index) => (
                   <div
                     key={index}
-                    className={`flex items-start gap-3 p-3.5 rounded-xl bg-white border ${getEventBg(event.title)} shadow-sm hover:shadow transition-shadow`}
+                    className={`flex items-start gap-3 p-2.5 sm:p-3.5 rounded-xl border ${getEventBg(event.title)} shadow-sm hover:shadow transition-shadow w-full min-w-0`}
                   >
                     <div className={`mt-0.5 p-1.5 rounded-lg bg-white shadow-sm ring-1 ring-black/5 ${getEventColor(event.title)} shrink-0`}>
                       {getEventIcon(event.title)}
                     </div>
-                    <div className="flex-1 min-w-0">
+                    <div className="flex-1 min-w-0 w-full">
                       <div
-                        className={`text-xs font-bold uppercase tracking-wider ${getEventColor(
+                        className={`text-[10px] sm:text-xs font-bold uppercase tracking-wider ${getEventColor(
                           event.title
-                        )}`}
+                        )} truncate`}
                       >
                         {event.title}
                       </div>
-                      <div className="text-xs mt-1.5 leading-relaxed">
+                      <div className="text-xs mt-1.5 leading-relaxed w-full min-w-0">
                         {isJsonData(event.data) ? (
-                          <pre className="whitespace-pre-wrap font-mono text-[11px] bg-slate-50 text-slate-800 p-3 rounded-xl overflow-x-auto border border-slate-200/60 leading-normal">
+                          <pre className="whitespace-pre-wrap break-all font-mono text-[11px] bg-slate-50 text-slate-800 p-2 sm:p-3 rounded-xl overflow-x-auto border border-slate-200/60 leading-normal w-full max-w-full">
                             {formatEventData(event.data)}
                           </pre>
                         ) : (
-                          <div className="text-xs">
+                          <div className="text-xs w-full min-w-0 break-words">
                             <ReactMarkdown components={timelineMdComponents}>
                               {formatEventData(event.data)}
                             </ReactMarkdown>
@@ -274,20 +273,20 @@ export function ActivityTimeline({
                   </div>
                 ))}
                 {isLoading && (
-                  <div className="flex items-center gap-2.5 p-3.5 rounded-xl bg-slate-50 border border-slate-200/50 animate-pulse">
-                    <Loader2 className="h-4 w-4 animate-spin text-[#1a1f71]" />
-                    <div className="text-xs font-bold text-[#1a1f71]/70">
+                  <div className="flex items-center gap-2.5 p-3.5 rounded-xl bg-slate-50 border border-slate-200/50 animate-pulse w-full min-w-0">
+                    <Loader2 className="h-4 w-4 animate-spin text-[#1a1f71] shrink-0" />
+                    <div className="text-xs font-bold text-[#1a1f71]/70 truncate">
                       AI is processing...
                     </div>
                   </div>
                 )}
                 {processedEvents.length === 0 && !isLoading && (
-                  <div className="text-center py-8 text-slate-400 text-xs font-semibold">
+                  <div className="text-center py-8 text-slate-400 text-xs font-semibold w-full">
                     Activity will appear here as the AI processes your request
                   </div>
                 )}
               </div>
-            </ScrollArea>
+            </div>
           </CardContent>
         )}
       </Card>
