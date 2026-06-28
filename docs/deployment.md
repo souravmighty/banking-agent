@@ -14,20 +14,20 @@ graph TD
     FB_Host -->|SPA Assets / Static JS| Client
     
     subgraph Google Cloud Platform [Google Cloud Platform]
-        Client -->|gRPC / HTTP API| CloudRun_Agent[Cloud Run: ADK Agent]
+        Client -->|gRPC / Session API| AgentEngine[Vertex AI Agent Engine: ADK App]
         Client -->|HTTP REST APIs| CloudRun_CIS[Cloud Run: customer-identity-service]
         
-        CloudRun_Agent -->|System Prompts| VertexAI[Vertex AI / Gemini 2.5]
-        CloudRun_Agent -->|Analytics / SQL Execution| BQ[(BigQuery Dataset)]
+        AgentEngine -->|System Prompts| VertexAI[Vertex AI / Gemini 2.5]
+        AgentEngine -->|Analytics / SQL Execution| BQ[(BigQuery Dataset)]
         CloudRun_CIS -->|SCD & View Creations| BQ
         
-        CloudRun_Agent -->|Tools gRPC| CloudRun_MCP[Cloud Run: MCP Server]
+        AgentEngine -->|Tools gRPC| CloudRun_MCP[Cloud Run: MCP Server]
         CloudRun_MCP -->|Ledger Writes| BQ
     end
 
     classDef gcp fill:#4285F4,stroke:#333,stroke-width:2px,color:#fff;
     classDef client fill:#f4f6f8,stroke:#333,stroke-width:1px;
-    class CloudRun_Agent,CloudRun_CIS,CloudRun_MCP,VertexAI,BQ gcp;
+    class AgentEngine,CloudRun_CIS,CloudRun_MCP,VertexAI,BQ gcp;
     class Client,FB_Host client;
 ```
 
@@ -47,12 +47,12 @@ graph TD
     *   **Scaling Limit**: Auto-scales from 0 to 10 instances based on concurrent HTTP requests.
     *   **Authentication Boundary**: Public HTTP endpoint, utilizing in-memory Firebase Admin SDK key verification.
 
-### 3. Agent Orchestrator: Cloud Run (`adk-agent-server`)
-*   **Purpose**: Runs the ADK multi-agent pipeline.
+### 3. Agent Orchestrator: Vertex AI Agent Engine (`reasoning_engines.AdkApp`)
+*   **Purpose**: Runs the stateful Google ADK multi-agent pipeline inside a managed, secure container sandbox on Google Vertex AI.
 *   **Configuration**:
-    *   **Port**: `8501`
-    *   **Memory**: 1GB RAM, 2 vCPUs
-    *   **Scaling Limit**: Auto-scales dynamically. High CPU settings are applied to speed up long-running JSON generation and parsing cycles.
+    *   **Runtime Environment**: Python-based Vertex AI reasoning engine instance.
+    *   **Tracing**: Enabled natively, forwarding thought cycles, intermediate outputs, and tools execution paths directly to Vertex AI Console Observability.
+    *   **Access Control**: Decoupled from public internet; reachable via authenticated Google Cloud Vertex AI API sessions.
 
 ### 4. Database & SQL Execution: BigQuery
 *   **Purpose**: Enterprise analytical database holding the financial profiles and transactional ledgers.

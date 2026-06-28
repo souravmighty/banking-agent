@@ -16,11 +16,12 @@ The platform is built as a high-fidelity simulation of a modern banking environm
 
 ```
 /
-├───terraform/                  # Infrastructure as Code (BigQuery)
-│   ├───main.tf                 # SCD Type 2 table definitions & schemas
-├───src/                        # Data Engineering & Ingestion
-│   ├───generate_data.py        # Segmented synthetic data generator (SCD, Paired TXs)
-│   ├───upload_to_bigquery.py   # Bulk ingestion scripts
+├───infra/                      # Cloud Infrastructure & Data Pipelines
+│   ├───bq_schema/              # Terraform Infrastructure (BigQuery)
+│   │   ├───main.tf             # SCD Type 2 table definitions & schemas
+│   └───data_scripts/           # Data Engineering & Ingestion
+│       ├───generate_data.py    # Segmented synthetic data generator (SCD, Paired TXs)
+│       └───upload_to_bigquery.py # Bulk ingestion scripts
 ├───mcp_server/                 # Transactional Layer (FastMCP)
 │   ├───server.py               # OAuth2 protected tool entrypoints
 │   ├───tools.py                # Ledger-aware financial logic (Transfers, CC Payments)
