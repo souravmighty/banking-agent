@@ -338,7 +338,7 @@ resource "google_bigquery_table" "transactions" {
       name        = "account_number"
       type        = "STRING"
       mode        = "REQUIRED"
-      description = "Business meaning: The bank account on which this entry is recorded. Relationship information: Foreign key to accounts.account_number. Nullability: Never null."
+      description = "Business meaning: The bank account on which this entry is recorded. Relationship information: Foreign key to accounts.account_number, credit_cards.card_account_number, fixed_deposits.fd_account_number, loans.loan_account_number. Nullability: Never null."
     },
     {
       name        = "counterparty_account_number"

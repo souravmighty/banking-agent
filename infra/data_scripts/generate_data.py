@@ -37,7 +37,24 @@ CATEGORIES = [
 
 CURRENCIES = ['INR', 'USD', 'EUR']
 BANKS = ['ABC Bank', 'HDFC Bank', 'ICICI Bank', 'SBI', 'Axis Bank']
-MERCHANTS = ['Amazon', 'Flipkart', 'Swiggy', 'Zomato', 'Uber', 'IRCTC', 'Reliance Fresh', 'D-Mart', 'Starbucks', 'Netflix']
+
+# Map of merchants to their correct category
+MERCHANT_CATEGORY_MAP = {
+    'Amazon': 'SHOPPING',
+    'Flipkart': 'SHOPPING',
+    'Swiggy': 'FOOD',
+    'Zomato': 'FOOD',
+    'Uber': 'TRAVEL',
+    'IRCTC': 'TRAVEL',
+    'Reliance Fresh': 'GROCERY',
+    'D-Mart': 'GROCERY',
+    'Starbucks': 'FOOD',
+    'Netflix': 'ENTERTAINMENT',
+}
+
+UTILITY_MERCHANTS = ['Tata Power', 'Airtel Broadband', 'Indraprastha Gas', 'Reliance Energy', 'Jio Fiber']
+
+MERCHANTS = list(MERCHANT_CATEGORY_MAP.keys())
 
 # Helper functions
 def random_date(start, end):
@@ -277,7 +294,7 @@ def generate_fds(customers_df):
             })
     return pd.DataFrame(fds)
 
-def generate_transactions(accounts_df):
+def generate_transactions(accounts_df, cards_df=None):
     transactions = []
     # Only generate transactions for CURRENT active versions of accounts
     active_accounts = accounts_df[accounts_df['is_current'] == True]
@@ -334,13 +351,44 @@ def generate_transactions(accounts_df):
             else:
                 # Single Entry
                 direction = 'CREDIT' if tx_type in ['SALARY_CREDIT', 'INTEREST_CREDIT', 'ATM_DEPOSIT', 'FD_MATURITY'] else 'DEBIT'
-                merchant = random.choice(MERCHANTS) if tx_type in ['CARD_PAYMENT', 'UPI', 'BILL_PAYMENT'] else None
-                category = random.choice(CATEGORIES)
                 
-                # Logical category overrides
-                if tx_type == 'SALARY_CREDIT': category = 'SALARY'
-                elif tx_type == 'LOAN_EMI': category = 'LOAN'
-                elif tx_type in ['FD_DEPOSIT', 'FD_MATURITY']: category = 'INVESTMENT'
+                # Align merchant and category based on transaction type
+                if tx_type == 'CARD_PAYMENT':
+                    merchant = random.choice(list(MERCHANT_CATEGORY_MAP.keys()))
+                    category = MERCHANT_CATEGORY_MAP[merchant]
+                elif tx_type == 'UPI':
+                    # UPI can be merchant payment or P2P transfer
+                    if random.random() < 0.75:
+                        merchant = random.choice(list(MERCHANT_CATEGORY_MAP.keys()))
+                        category = MERCHANT_CATEGORY_MAP[merchant]
+                    else:
+                        merchant = None
+                        category = 'BANKING'
+                elif tx_type == 'BILL_PAYMENT':
+                    merchant = random.choice(UTILITY_MERCHANTS)
+                    category = 'UTILITIES'
+                elif tx_type == 'SALARY_CREDIT':
+                    merchant = None
+                    category = 'SALARY'
+                elif tx_type == 'LOAN_EMI':
+                    merchant = None
+                    category = 'LOAN'
+                elif tx_type in ['FD_DEPOSIT', 'FD_MATURITY']:
+                    merchant = None
+                    category = 'INVESTMENT'
+                elif tx_type == 'INTEREST_CREDIT':
+                    merchant = None
+                    category = 'BANKING'
+                elif tx_type in ['ATM_WITHDRAWAL', 'ATM_DEPOSIT']:
+                    merchant = None
+                    category = 'BANKING'
+                else:
+                    merchant = None
+                    category = 'OTHER'
+                
+                desc = f"{tx_type} {f'at {merchant}' if merchant else ''}"
+                if tx_type == 'UPI' and merchant is None:
+                    desc = "UPI P2P Transfer"
                 
                 transactions.append({
                     'transaction_id': f"TXN_{tx_id_pool}",
@@ -353,7 +401,49 @@ def generate_transactions(accounts_df):
                     'amount': amount,
                     'merchant_name': merchant,
                     'category': category,
-                    'description': f"{tx_type} {f'at {merchant}' if merchant else ''}",
+                    'description': desc,
+                    'transaction_timestamp': ts
+                })
+                tx_id_pool += 1
+                
+    if cards_df is not None and len(cards_df) > 0:
+        active_cards = cards_df[cards_df['is_current'] == True]
+        for _, card in active_cards.iterrows():
+            num_tx = random.randint(20, 100)
+            card_acc_num = card['card_account_number']
+            
+            for _ in range(num_tx):
+                ref_id = f"REF_{random.randint(10**9, 10**10-1)}"
+                ts = random_date(datetime(2024, 1, 1), datetime(2024, 6, 17))
+                
+                # 85% card spend (DEBIT), 15% payment of card bill (CREDIT)
+                if random.random() < 0.85:
+                    tx_type = 'CARD_PAYMENT'
+                    direction = 'DEBIT'
+                    amount = round(random.uniform(50, 10000), 2)
+                    merchant = random.choice(list(MERCHANT_CATEGORY_MAP.keys()))
+                    category = MERCHANT_CATEGORY_MAP[merchant]
+                    desc = f"CARD_PAYMENT at {merchant}"
+                else:
+                    tx_type = 'BILL_PAYMENT'
+                    direction = 'CREDIT'
+                    amount = round(random.uniform(500, 20000), 2)
+                    merchant = None
+                    category = 'BANKING'
+                    desc = f"Credit Card Bill Payment"
+                
+                transactions.append({
+                    'transaction_id': f"TXN_{tx_id_pool}",
+                    'reference_id': ref_id,
+                    'account_number': card_acc_num,
+                    'counterparty_account_number': None,
+                    'transaction_type': tx_type,
+                    'currency': 'INR',
+                    'direction': direction,
+                    'amount': amount,
+                    'merchant_name': merchant,
+                    'category': category,
+                    'description': desc,
                     'transaction_timestamp': ts
                 })
                 tx_id_pool += 1
@@ -405,7 +495,7 @@ print("Generating Fixed Deposits...")
 fds_df = generate_fds(customers_df)
 
 print("Generating Transactions (Ledger Model)...")
-transactions_df = generate_transactions(accounts_df)
+transactions_df = generate_transactions(accounts_df, cards_df)
 
 print("Generating Credit Scores...")
 scores_df = generate_credit_scores(customers_df)
