@@ -1,6 +1,6 @@
-# 🏦 ApexBanking: Secure AI Financial Portal
+# 🏦 BankPilot: Secure AI Financial Portal
 
-An AI-driven financial analytics and transaction platform built with Google's **Agent Development Kit (ADK)**, **Vertex AI Agent Engine**, **Model Context Protocol (MCP)**, and **Google Cloud BigQuery**.
+Production-inspired AI Banking Platform featuring Google ADK, Vertex AI Agent Engine, Firebase Authentication, Customer Identity Service, and secure BigQuery tool execution.
 
 [![GCP](https://img.shields.io/badge/GCP-Vertex_AI_Agent_Engine-4285F4?style=for-the-badge&logo=google-cloud&logoColor=white)](https://cloud.google.com/vertex-ai)
 [![Framework](https://img.shields.io/badge/Framework-Google_ADK-0F9D58?style=for-the-badge&logo=google&logoColor=white)](https://github.com)
@@ -12,7 +12,7 @@ An AI-driven financial analytics and transaction platform built with Google's **
 
 ## 🏗️ Architecture Overview
 
-ApexBanking separates client-side interactions, identity resolution, and analytical databases. The diagram below illustrates the system interaction and data boundaries:
+BankPilot separates client-side interactions, identity resolution, and analytical databases. The diagram below illustrates the system interaction and data boundaries:
 
 ![System Architecture](docs/images/architecture_blueprint.png)
 *Figure 1: Macro system interaction and secure data boundaries.*
@@ -21,7 +21,7 @@ ApexBanking separates client-side interactions, identity resolution, and analyti
 
 ## 📊 System Statistics
 
-The following statistics represent the current, actual implementation of the ApexBanking repository:
+The following statistics represent the current, actual implementation of the BankPilot repository:
 
 | Metric / Component | Verified Repository Value |
 | :--- | :--- |
@@ -48,7 +48,7 @@ Most LLM-based database chat assistants are built as proof-of-concept demos with
 3.  **Lax Ledger Safety**: They write balance updates to loose, non-auditable records, failing basic transactional consistency.
 
 ### Our Solution
-ApexBanking is built on secure, modular, and cloud-native software engineering practices:
+BankPilot is built on secure, modular, and cloud-native software engineering practices:
 *   **Cryptographic Verification**: Validates short-lived Firebase JWT tokens in-memory at the API gateway.
 *   **Isolated Data Sandboxes**: Restricts database queries to dynamically compiled, customer-specific BigQuery views.
 *   **Structured Ledger Tracking**: Enforces atomic, double-entry ledger transactions (`DEBIT` and `CREDIT` balance records) for all financial operations.
@@ -146,11 +146,11 @@ Google's **Agent Development Kit (ADK)** was selected as the foundational multi-
 ## 🔐 Data Security & SQL Accuracy
 
 ### Dynamic Sandboxing
-ApexBanking guarantees data isolation at the database layer. The AI Agent's database credentials grant no read access to the base `transactions` or `accounts` tables. Instead, the `customer-identity-service` creates a custom view pre-filtered on the user's specific account numbers.
+BankPilot guarantees data isolation at the database layer. The AI Agent's database credentials grant no read access to the base `transactions` or `accounts` tables. Instead, the `customer-identity-service` creates a custom view pre-filtered on the user's specific account numbers.
 If a prompt injection attack attempts to access other users' data, the compiled query executes within the restricted view, which structurally contains no other users' rows.
 
 ### Enhancing SQL Compilation with Semantic Metadata
-Generative models running text-to-SQL tasks frequently hallucinate table joins and column names. To address this, ApexBanking attaches rich, context-heavy metadata descriptions directly to database columns using Terraform:
+Generative models running text-to-SQL tasks frequently hallucinate table joins and column names. To address this, BankPilot attaches rich, context-heavy metadata descriptions directly to database columns using Terraform:
 
 ```hcl
 # Example Terraform schema-level documentation

@@ -1,6 +1,6 @@
-# 🤝 Contributing to ApexBanking
+# 🤝 Contributing to BankPilot
 
-Thank you for your interest in contributing to **ApexBanking**! As a production-inspired multi-agent AI platform, we maintain high standards for architectural clean-code, comprehensive documentation, and secure agent design.
+Thank you for your interest in contributing to **BankPilot**! As a production-inspired multi-agent AI platform, we maintain high standards for architectural clean-code, comprehensive documentation, and secure agent design.
 
 ---
 
@@ -21,7 +21,7 @@ To ensure the system remains resilient, scalable, and secure, all contributions 
 
 ## 🏗️ Local Development Setup
 
-To establish a complete, localized replication of the ApexBanking stack:
+To establish a complete, localized replication of the BankPilot stack:
 
 1.  **Clone the Repository & Sync Packages**:
     ```bash

@@ -6,7 +6,7 @@ This document describes the multi-agent structure, routing principles, prompts, 
 
 ## 🏛️ Multi-Agent Orchestration Blueprint
 
-ApexBanking uses a multi-layered agent pipeline. The **Root Agent Orchestrator** is the direct conversational partner of the client portal. It manages conversational context and uses semantic classification to delegate analytical or transactional intents to specialized sub-agents.
+BankPilot uses a multi-layered agent pipeline. The **Root Agent Orchestrator** is the direct conversational partner of the client portal. It manages conversational context and uses semantic classification to delegate analytical or transactional intents to specialized sub-agents.
 
 ```mermaid
 graph TD

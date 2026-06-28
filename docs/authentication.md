@@ -1,12 +1,12 @@
 # 🔐 Authentication Architecture
 
-This document describes the cryptographic authentication, JWT token verification, and session establishment flows used to secure **ApexBanking**.
+This document describes the cryptographic authentication, JWT token verification, and session establishment flows used to secure **BankPilot**.
 
 ---
 
 ## 🔑 Authentication Architecture Blueprint
 
-ApexBanking uses a multi-layered identity validation pipeline, ensuring that every operation (analytical or financial) is bound to a cryptographically validated tenant. The frontend client never interacts directly with backend datastores without a verified JWT token.
+BankPilot uses a multi-layered identity validation pipeline, ensuring that every operation (analytical or financial) is bound to a cryptographically validated tenant. The frontend client never interacts directly with backend datastores without a verified JWT token.
 
 ```mermaid
 graph TD
@@ -47,7 +47,7 @@ sequenceDiagram
 
 ### 2. Identity Resolution Mapping
 
-A critical design pattern in ApexBanking is **anonymous user mapping**. The Firebase User ID (`firebase_uid`) is distinct from the internal banking identifier (`customer_id`). This decoupling allows changing authentication providers without altering financial transactional tables.
+A critical design pattern in BankPilot is **anonymous user mapping**. The Firebase User ID (`firebase_uid`) is distinct from the internal banking identifier (`customer_id`). This decoupling allows changing authentication providers without altering financial transactional tables.
 
 ```sql
 -- Query executed by customer-identity-service to resolve firebase_uid

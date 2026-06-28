@@ -1,12 +1,12 @@
 # 🏗️ Core Architecture Blueprint
 
-This document details the macro architecture, components, and communication standards used throughout **ApexBanking**.
+This document details the macro architecture, components, and communication standards used throughout **BankPilot**.
 
 ---
 
 ## 🏛️ High-Level System Architecture
 
-ApexBanking is a distributed financial operations platform that acts as a secure, AI-native layer over a Google Cloud BigQuery transaction database. It employs a **Zero-Trust** security architecture that prevents direct client-database access by routing all queries through a multi-agent routing system.
+BankPilot is a distributed financial operations platform that acts as a secure, AI-native layer over a Google Cloud BigQuery transaction database. It employs a **Zero-Trust** security architecture that prevents direct client-database access by routing all queries through a multi-agent routing system.
 
 ```mermaid
 graph TD

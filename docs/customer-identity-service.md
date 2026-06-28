@@ -1,6 +1,6 @@
 # 👥 Customer Identity Service
 
-The **`customer-identity-service`** is the identity mapping, session creation, and security gateway of the **ApexBanking** platform.
+The **`customer-identity-service`** is the identity mapping, session creation, and security gateway of the **BankPilot** platform.
 
 ---
 

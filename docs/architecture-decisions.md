@@ -1,6 +1,6 @@
 # 🏛️ Architecture Decision Records (ADR)
 
-This document contains the Architecture Decision Records for **ApexBanking**, detailing the structural trade-offs, options analyzed, decisions made, and future alternatives for the platform's core components.
+This document contains the Architecture Decision Records for **BankPilot**, detailing the structural trade-offs, options analyzed, decisions made, and future alternatives for the platform's core components.
 
 ---
 

@@ -1,12 +1,12 @@
 # 🚀 Cloud Deployment Architecture
 
-This document describes the enterprise deployment strategy, Google Cloud Platform (GCP) configurations, and infrastructure-as-code models used for **ApexBanking**.
+This document describes the enterprise deployment strategy, Google Cloud Platform (GCP) configurations, and infrastructure-as-code models used for **BankPilot**.
 
 ---
 
 ## 🏛️ Deployment Architecture Blueprint
 
-ApexBanking is a cloud-native platform deployed entirely on GCP, utilizing fully managed, containerized services to ensure massive scaling, low latency, and zero-ops maintenance.
+BankPilot is a cloud-native platform deployed entirely on GCP, utilizing fully managed, containerized services to ensure massive scaling, low latency, and zero-ops maintenance.
 
 ```mermaid
 graph TD
@@ -87,7 +87,7 @@ terraform apply -var="project_id=banking-agent-rag-mcp" -auto-approve
 
 ## 🔄 CI/CD & Deploy Pipelines
 
-ApexBanking is integrated with Google Cloud Build for continuous deployment.
+BankPilot is integrated with Google Cloud Build for continuous deployment.
 
 ### Deploying customer-identity-service:
 ```bash

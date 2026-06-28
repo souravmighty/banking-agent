@@ -1,12 +1,12 @@
 # 🛡️ Authorization & Row-Level Security Architecture
 
-This document describes how **ApexBanking** enforces strict data access controls, isolates customer records, and implements Zero-Trust authorization through **customer-scoped BigQuery Views** and **Row-Level Security (RLS)**.
+This document describes how **BankPilot** enforces strict data access controls, isolates customer records, and implements Zero-Trust authorization through **customer-scoped BigQuery Views** and **Row-Level Security (RLS)**.
 
 ---
 
 ## 🏛️ Authorization & Security Principles
 
-In an enterprise banking environment, under no circumstances should the client UI or the AI Agent have unrestricted query access to the raw transaction database. ApexBanking utilizes **dynamic, tenant-isolated authorized views** to ensure compile-time data boundary protection.
+In an enterprise banking environment, under no circumstances should the client UI or the AI Agent have unrestricted query access to the raw transaction database. BankPilot utilizes **dynamic, tenant-isolated authorized views** to ensure compile-time data boundary protection.
 
 ```mermaid
 graph TD

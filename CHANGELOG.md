@@ -1,12 +1,12 @@
 # 📄 Semantic Changelog
 
-All notable changes to **ApexBanking** will be documented in this file, adhering to the [Keep a Changelog](https://keepachangelog.com/en/1.0.0/) and [Semantic Versioning](https://semver.org/spec/v2.0.0.html) conventions.
+All notable changes to **BankPilot** will be documented in this file, adhering to the [Keep a Changelog](https://keepachangelog.com/en/1.0.0/) and [Semantic Versioning](https://semver.org/spec/v2.0.0.html) conventions.
 
 ---
 
 ## [1.0.0] - 2026-06-28
 
-This release establishes the baseline production-grade architecture of the **ApexBanking** AI-powered financial platform, delivering secure, multi-agent orchestration alongside a responsive web interface.
+This release establishes the baseline production-grade architecture of the **BankPilot** AI-powered financial platform, delivering secure, multi-agent orchestration alongside a responsive web interface.
 
 ### Added
 *   **Root Agent Orchestrator**: Conversational agent powered by the Google Agent Development Kit (ADK) that classifies user intent and securely delegates operations.
