@@ -40,7 +40,7 @@ dataset_id = os.getenv("BQ_DATASET_ID")
 data_project = os.getenv("BQ_PROJECT_ID")
 compute_project = os.getenv("GOOGLE_CLOUD_PROJECT")
 vertex_project = os.getenv("GOOGLE_CLOUD_PROJECT")
-location = os.getenv("GOOGLE_CLOUD_LOCATION", "us-central1")
+location = os.getenv("GOOGLE_CLOUD_LOCATION", "global")
 http_options = HttpOptions(headers={"user-agent": USER_AGENT})
 llm_client = Client(
     vertexai=True,

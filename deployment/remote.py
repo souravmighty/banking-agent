@@ -68,11 +68,12 @@ def create() -> None:
         extra_packages=["./app"],
         service_account = os.getenv("GOOGLE_CLOUD_SERVICE_ACCOUNT"),  # Make sure this service account has the necessary permissions
         env_vars={
-            "ROOT_AGENT_MODEL": "gemini-2.5-pro",
-            "TRANSACTION_AGENT_MODEL": "gemini-2.5-flash",
+            "GOOGLE_CLOUD_LOCATION": "global",
+            "ROOT_AGENT_MODEL": "gemini-3.5-flash",
+            "TRANSACTION_AGENT_MODEL": "gemini-3.5-flash",
             "BQ_PROJECT_ID": "banking-agent-rag-mcp", 
             "BQ_DATASET_ID": "banking_data",
-            "BIGQUERY_AGENT_MODEL": "gemini-2.5-pro",
+            "BIGQUERY_AGENT_MODEL": "gemini-3.5-flash",
             "IDENTITY_SERVICE_URL": "https://customer-identity-service-569817520730.us-central1.run.app"
         }
     )
