@@ -63,7 +63,29 @@ export class AdkSessionService {
           throw new Error(`Failed to get session: ${response.statusText}`);
         }
 
-        return response.json();
+        const session = await response.json();
+        const sessionUserId = session.userId || session.user_id;
+
+        // Verify that the requested session belongs to the logged-in user
+        if (sessionUserId && sessionUserId !== userId) {
+          console.warn(
+            `⚠️ [ADK SESSION SERVICE] Unauthorized session access: session ${sessionId} belongs to ${sessionUserId}, but requested by ${userId}`
+          );
+          return null;
+        }
+
+        // Extract session ID from name field: "projects/.../sessions/SESSION_ID"
+        const actualSessionId = session.name
+          ? session.name.split("/sessions/")[1]
+          : sessionId;
+
+        return {
+          id: actualSessionId,
+          app_name: getAdkAppName(),
+          user_id: sessionUserId || "",
+          state: null,
+          last_update_time: session.updateTime || session.createTime || null,
+        };
       } catch (error) {
         console.error(
           "❌ [ADK SESSION SERVICE] Agent Engine getSession error:",
@@ -150,6 +172,7 @@ export class AdkSessionService {
             createTime?: string;
             updateTime?: string;
             userId?: string;
+            user_id?: string;
           }) => {
             // Extract session ID from name field: "projects/.../sessions/SESSION_ID"
             const sessionId = session.name
@@ -157,11 +180,11 @@ export class AdkSessionService {
               : null;
 
             return {
-              id: sessionId,
+              id: sessionId || "",
               app_name: getAdkAppName(), // Add app_name for compatibility
-              user_id: session.userId,
+              user_id: session.userId || session.user_id || "",
               state: null,
-              last_update_time: session.updateTime || session.createTime,
+              last_update_time: session.updateTime || session.createTime || null,
               // Keep original fields for reference
               name: session.name,
               createTime: session.createTime,
@@ -170,11 +193,14 @@ export class AdkSessionService {
           }
         );
 
+        // Filter sessions by the requested userId to prevent users from seeing each other's sessions
+        const filteredSessions = sessions.filter(
+          (session) => session.user_id === userId
+        );
+
         return {
-          sessions: Array.isArray(sessions) ? sessions : [],
-          sessionIds: Array.isArray(sessions)
-            ? sessions.map((session) => session.id)
-            : [],
+          sessions: filteredSessions,
+          sessionIds: filteredSessions.map((session) => session.id),
         };
       } catch (error) {
         console.error(
@@ -323,6 +349,13 @@ export class AdkSessionService {
   ): Promise<AdkSessionWithEvents | null> {
     try {
       if (shouldUseAgentEngine()) {
+        // First retrieve session and verify that it belongs to the logged-in user
+        const session = await AdkSessionService.getSession(userId, sessionId);
+        if (!session) {
+          console.warn(`⚠️ [ADK SESSION SERVICE] Session not found or unauthorized for user ${userId}: ${sessionId}`);
+          return null;
+        }
+
         // For Agent Engine, get events directly from the /events endpoint
         const eventsResponse = await AdkSessionService.listEvents(
           userId,
@@ -330,17 +363,13 @@ export class AdkSessionService {
         );
         const events = eventsResponse?.events || [];
 
-        // Create a minimal session object with the events
-        const session: AdkSessionWithEvents = {
-          id: sessionId,
-          user_id: userId,
-          app_name: process.env.ADK_APP_NAME || "app",
-          state: null,
-          last_update_time: new Date().toISOString(),
+        // Create a combined session object with the events
+        const sessionWithEvents: AdkSessionWithEvents = {
+          ...session,
           events: events,
         };
 
-        return session;
+        return sessionWithEvents;
       } else {
         // Local backend - fetch session only (backend includes events in session detail)
         const session = await AdkSessionService.getSession(userId, sessionId);

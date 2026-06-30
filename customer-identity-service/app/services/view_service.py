@@ -74,7 +74,14 @@ class ViewService:
             },
             "transactions_v": {
                 "source_table": "transactions",
-                "query": f"SELECT * FROM `{self.source_dataset}.transactions` WHERE account_number IN (SELECT account_number FROM `{self.source_dataset}.accounts` WHERE customer_id = {customer_id})"
+                "query": (
+                    f"SELECT * FROM `{self.source_dataset}.transactions` WHERE account_number IN ("
+                    f"SELECT account_number FROM `{self.source_dataset}.accounts` WHERE customer_id = {customer_id} UNION DISTINCT "
+                    f"SELECT card_account_number FROM `{self.source_dataset}.credit_cards` WHERE customer_id = {customer_id} UNION DISTINCT "
+                    f"SELECT loan_account_number FROM `{self.source_dataset}.loans` WHERE customer_id = {customer_id} UNION DISTINCT "
+                    f"SELECT fd_account_number FROM `{self.source_dataset}.fixed_deposits` WHERE customer_id = {customer_id}"
+                    f")"
+                )
             },
             "credit_cards_v": {
                 "source_table": "credit_cards",

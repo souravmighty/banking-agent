@@ -128,14 +128,11 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
   // Wrapper for registration
   const register = async (email: string, password: string) => {
-    setLoading(true);
     try {
       await authService.register(email, password);
     } catch (error) {
       toast.error((error as Error).message || "Registration failed");
       throw error;
-    } finally {
-      setLoading(false);
     }
   };
 

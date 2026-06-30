@@ -231,6 +231,36 @@ export default function LoginPage() {
             </button>
           </div>
 
+          {/* Permanent Verification Info Section */}
+          {statusMessage && statusMessage.includes("Verification email") && (
+            <div className="bg-gradient-to-r from-amber-500/10 via-orange-500/10 to-yellow-500/10 border border-amber-200/50 rounded-3xl p-6 shadow-xl shadow-amber-900/5 backdrop-blur-md animate-fade-in-up duration-500">
+              <div className="flex gap-4 items-start">
+                <div className="w-12 h-12 rounded-2xl bg-amber-500 text-white flex items-center justify-center shadow-lg shadow-amber-500/20 shrink-0">
+                  <Mail className="h-6 w-6 animate-pulse" />
+                </div>
+                <div className="space-y-1.5 min-w-0 flex-1">
+                  <h4 className="text-base font-extrabold text-amber-900 tracking-tight flex items-center gap-2">
+                    Verify Your Email Address
+                  </h4>
+                  <p className="text-sm text-amber-800/95 font-semibold leading-relaxed">
+                    A secure verification link has been sent to your email. Please open the link in your inbox to verify your account.
+                  </p>
+                  <div className="flex flex-wrap items-center gap-2 mt-3 pt-3 border-t border-amber-200/30">
+                    <span className="text-xs text-amber-900 font-bold bg-amber-500/20 px-2.5 py-1 rounded-lg">
+                      1. Check Inbox & Spam
+                    </span>
+                    <span className="text-xs text-[#1a1f71] font-bold bg-blue-100/50 px-2.5 py-1 rounded-lg">
+                      2. Click Verify Link
+                    </span>
+                    <span className="text-xs text-emerald-800 font-bold bg-emerald-100/50 px-2.5 py-1 rounded-lg">
+                      3. Sign In Below
+                    </span>
+                  </div>
+                </div>
+              </div>
+            </div>
+          )}
+
           <Card className="border-none shadow-2xl shadow-slate-200/50 bg-white rounded-3xl overflow-hidden">
             <CardContent className="p-8 sm:p-10 space-y-8">
               <div className="flex flex-col items-center gap-6">

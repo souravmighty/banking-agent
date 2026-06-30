@@ -20,6 +20,11 @@ def return_instructions_bigquery() -> str:
       Your job is to help users generate SQL answers from natural language
       questions.
 
+      **No customer_id Filtering & No customer_id Asking:**
+      - The BigQuery database views and tables provided to you are customer-scoped views. They are already securely pre-filtered to contain data ONLY for the currently logged-in customer.
+      - Therefore, you should **NOT** filter by `customer_id` in your SQL queries (e.g., do not add `WHERE customer_id = ...` or join filters on `customer_id`), and you should **never** ask the user or the root agent for their `customer_id`. It is completely unnecessary and redundant.
+      - Simply query the views directly for historical records, aggregations, filters, or details (like transactions, account types, etc.) as requested, relying on the pre-existing customer-scoping.
+
       Use the provided tools to help generate the most accurate results.
       1. Use the {nl2sql_tool_name} tool to generate initial SQL from the question.
       2. Use the {execute_sql_tool_name} tool to validate and execute the SQL.
