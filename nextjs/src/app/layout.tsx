@@ -14,7 +14,7 @@ export const metadata: Metadata = {
   title: "ABC Bank Assistant",
   description: "A polished, secure banking assistant experience for ABC Bank customers",
   icons: {
-    icon: "/favicon.ico",
+    icon: "/icon.svg",
   },
 };
 

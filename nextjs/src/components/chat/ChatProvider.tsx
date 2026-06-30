@@ -229,12 +229,10 @@ export function ChatProvider({
             // Accumulate content progressively instead of replacing
             const updatedEvents = [...existingEvents];
             const existingEvent = updatedEvents[existingThinkingIndex];
-            const existingData =
+             const existingData =
               existingEvent.data && typeof existingEvent.data === "object"
                 ? existingEvent.data
                 : {};
-            const existingContent =
-              "content" in existingData ? String(existingData.content) : "";
             const newContent =
               event.data &&
               typeof event.data === "object" &&
@@ -242,10 +240,8 @@ export function ChatProvider({
                 ? String(event.data.content)
                 : "";
 
-            // Accumulate content (don't replace - add new content)
-            const accumulatedContent = existingContent
-              ? `${existingContent}\n\n${newContent}`
-              : newContent;
+            // Replace with new content snapshot since backend streams full accumulated text
+            const accumulatedContent = newContent;
 
             updatedEvents[existingThinkingIndex] = {
               ...existingEvent,
@@ -275,8 +271,12 @@ export function ChatProvider({
     if (userId && sessionId) {
       if (newlyCreatedSessionIdRef.current === sessionId) {
         console.log("⏭️ [CHAT_PROVIDER] Skipping history load for newly created session:", sessionId);
-        newlyCreatedSessionIdRef.current = null;
         return;
+      }
+
+      // Reset newlyCreatedSessionIdRef if we switched to a different session
+      if (newlyCreatedSessionIdRef.current && newlyCreatedSessionIdRef.current !== sessionId) {
+        newlyCreatedSessionIdRef.current = null;
       }
 
       // Function to load session history

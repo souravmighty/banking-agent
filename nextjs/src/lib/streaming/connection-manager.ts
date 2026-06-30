@@ -56,12 +56,13 @@ export class StreamingConnectionManager {
     setCurrentAgent: (agent: string) => void,
     setIsLoading: (loading: boolean) => void,
     aiMessageId: string
-  ): Promise<void> {
+  ): Promise<{ hasToolExecution: boolean }> {
     this.connectionState = "connecting";
     setIsLoading(true);
     accumulatedTextRef.current = "";
     currentAgentRef.current = "";
     this.abortController = new AbortController();
+    let hasToolExecution = false;
 
     try {
       createDebugLog(
@@ -99,7 +100,7 @@ export class StreamingConnectionManager {
       this.connectionState = "connected";
 
       // Handle SSE streaming with proper event processing
-      await this.handleSSEStream(
+      const sseResult = await this.handleSSEStream(
         response,
         aiMessageId,
         callbacks,
@@ -108,8 +109,11 @@ export class StreamingConnectionManager {
         setCurrentAgent
       );
 
+      hasToolExecution = sseResult.hasToolExecution;
+
       this.connectionState = "idle";
       setIsLoading(false);
+      return { hasToolExecution };
     } catch (error) {
       if ((error as Error).name === "AbortError") {
         this.connectionState = "closed";
@@ -122,6 +126,7 @@ export class StreamingConnectionManager {
       // Don't create fake error messages - let the UI handle error states
       // The error will be propagated up to the calling code
       setIsLoading(false);
+      throw error;
     } finally {
       this.abortController = null;
     }
@@ -171,7 +176,7 @@ export class StreamingConnectionManager {
     accumulatedTextRef: RefObject<string>,
     currentAgentRef: RefObject<string>,
     setCurrentAgent: (agent: string) => void
-  ): Promise<void> {
+  ): Promise<{ hasToolExecution: boolean }> {
     const contentType = response.headers.get("content-type") || "";
 
     createDebugLog(
@@ -191,6 +196,7 @@ export class StreamingConnectionManager {
     const decoder = new TextDecoder();
     let lineBuffer = "";
     let eventDataBuffer = "";
+    let hasToolExecution = false;
 
     createDebugLog("SSE START", "Beginning to process streaming response");
 
@@ -236,7 +242,7 @@ export class StreamingConnectionManager {
 
             // Process the event immediately for real-time updates
             try {
-              await processSseEventData(
+              const res = await processSseEventData(
                 jsonDataToParse,
                 aiMessageId,
                 callbacks,
@@ -244,6 +250,10 @@ export class StreamingConnectionManager {
                 currentAgentRef,
                 setCurrentAgent
               );
+
+              if (res?.hasToolExecution) {
+                hasToolExecution = true;
+              }
 
               // 🔑 CRITICAL: Force immediate UI update by yielding to event loop
               // This prevents React from batching updates and ensures real-time streaming
@@ -287,7 +297,7 @@ export class StreamingConnectionManager {
           );
 
           try {
-            await processSseEventData(
+            const res = await processSseEventData(
               jsonDataToParse,
               aiMessageId,
               callbacks,
@@ -295,6 +305,10 @@ export class StreamingConnectionManager {
               currentAgentRef,
               setCurrentAgent
             );
+
+            if (res?.hasToolExecution) {
+              hasToolExecution = true;
+            }
 
             // 🔑 CRITICAL: Force immediate UI update by yielding to event loop
             // This prevents React from batching updates and ensures real-time streaming
@@ -322,6 +336,7 @@ export class StreamingConnectionManager {
 
     try {
       await pump();
+      return { hasToolExecution };
     } catch (error) {
       createDebugLog("SSE ERROR", "Error reading stream", error);
       throw error;

@@ -39,7 +39,7 @@ export async function processSseEventData(
   accumulatedTextRef: { current: string },
   currentAgentRef: { current: string },
   setCurrentAgent: (agent: string) => void
-): Promise<void> {
+): Promise<{ hasToolExecution: boolean }> {
   const { textParts, thoughtParts, agent, functionCall, functionResponse, error } =
     extractDataFromSSE(jsonData);
 
@@ -65,7 +65,7 @@ export async function processSseEventData(
     });
     // Log gracefully in console without throwing a crash-inducing error stack trace
     console.warn("⚠️ [STREAM PROCESSOR] Handled backend connection/network error:", error);
-    return;
+    return { hasToolExecution: false };
   }
 
   // Update current agent if changed
@@ -107,7 +107,8 @@ export async function processSseEventData(
       agent,
       actualMessageId,
       callbacks.onEventUpdate,
-      callbacks.onMessageUpdate // Create AI message so timeline has somewhere to attach
+      callbacks.onMessageUpdate, // Create AI message so timeline has somewhere to attach
+      accumulatedTextRef
     );
   } else {
     console.log("⚠️ [STREAM PROCESSOR] No thoughts to process");
@@ -123,6 +124,10 @@ export async function processSseEventData(
       callbacks.onMessageUpdate
     );
   }
+
+  return {
+    hasToolExecution: !!(functionCall || functionResponse),
+  };
 }
 
 /**
@@ -248,7 +253,8 @@ function processThoughts(
   agent: string,
   aiMessageId: string,
   onEventUpdate: (messageId: string, event: ProcessedEvent) => void,
-  onMessageUpdate?: (message: Message) => void
+  onMessageUpdate?: (message: Message) => void,
+  accumulatedTextRef?: { current: string }
 ): void {
   createDebugLog(
     "SSE HANDLER",
@@ -272,7 +278,7 @@ function processThoughts(
     flushSync(() => {
       onMessageUpdate({
         type: "ai",
-        content: "", // Empty initially - will be updated by text processing
+        content: accumulatedTextRef?.current || "", // Preserve any text that has already been streamed and accumulated
         id: aiMessageId,
         timestamp: new Date(),
       });
@@ -326,52 +332,52 @@ async function processTextContent(
   accumulatedTextRef: { current: string },
   onMessageUpdate: (message: Message) => void
 ): Promise<void> {
-  // Process each text chunk using OFFICIAL ADK TERMINATION SIGNAL PATTERN
-  for (const text of textParts) {
-    const currentAccumulated = accumulatedTextRef.current;
+  // Reconstruct the full text by joining all parts.
+  // This handles multiple parts correctly (e.g. pre-tool parts + post-tool parts).
+  const newFullText = textParts.join("");
+  const currentAccumulated = accumulatedTextRef.current;
 
-    // 🎯 OFFICIAL ADK TERMINATION SIGNAL PATTERN (matches Angular implementation):
-    // if (newChunk == this.streamingTextMessage.text) { return; }
-    if (text === currentAccumulated && currentAccumulated.length > 0) {
-      // Official ADK pattern: this is the termination signal
-      // But we still need to ensure the final message state is preserved
-      createDebugLog(
-        "STREAM PROCESSOR",
-        "Received termination signal, ensuring final message state",
-        {
-          finalContentLength: currentAccumulated.length,
-        }
-      );
+  // 🎯 OFFICIAL ADK TERMINATION SIGNAL PATTERN (matches Angular implementation):
+  // if (newChunk == this.streamingTextMessage.text) { return; }
+  if (newFullText === currentAccumulated && currentAccumulated.length > 0) {
+    // Official ADK pattern: this is the termination signal
+    // But we still need to ensure the final message state is preserved
+    createDebugLog(
+      "STREAM PROCESSOR",
+      "Received termination signal, ensuring final message state",
+      {
+        finalContentLength: currentAccumulated.length,
+      }
+    );
 
-      // Make sure the final message is properly set in the UI
-      const finalMessage: Message = {
-        type: "ai",
-        content: currentAccumulated.trim(),
-        id: aiMessageId,
-        timestamp: new Date(),
-      };
-
-      flushSync(() => {
-        onMessageUpdate(finalMessage);
-      });
-
-      return;
-    }
-
-    // This is a streaming chunk - add it to accumulated text and display
-    // Official ADK pattern: direct concatenation (no spaces between chunks)
-    accumulatedTextRef.current += text; // Direct concatenation like official ADK
-
-    const updatedMessage: Message = {
+    // Make sure the final message is properly set in the UI
+    const finalMessage: Message = {
       type: "ai",
-      content: accumulatedTextRef.current.trim(),
+      content: currentAccumulated.trim(),
       id: aiMessageId,
       timestamp: new Date(),
     };
 
-    // Force immediate update to prevent React batching
     flushSync(() => {
-      onMessageUpdate(updatedMessage);
+      onMessageUpdate(finalMessage);
     });
+
+    return;
   }
+
+  // Update the accumulated text to the new full text (no manual concatenation or += loop is needed,
+  // since each SSE event provides the complete content of all parts up to the current stream state)
+  accumulatedTextRef.current = newFullText;
+
+  const updatedMessage: Message = {
+    type: "ai",
+    content: accumulatedTextRef.current.trim(),
+    id: aiMessageId,
+    timestamp: new Date(),
+  };
+
+  // Force immediate update to prevent React batching
+  flushSync(() => {
+    onMessageUpdate(updatedMessage);
+  });
 }

@@ -57,8 +57,14 @@ async def get_current_user(
         token = auth_creds.credentials
         
     import os
+    from dotenv import load_dotenv
+    # Load env files to ensure any newly set variables like MOCK_AUTH_BYPASS are loaded immediately
+    load_dotenv()
+    load_dotenv("../.env")
+    
     # Check for local developer mode bypass
     mock_auth_bypass = os.getenv("MOCK_AUTH_BYPASS", "false").lower() == "true"
+
     
     if not token or token == "mock-token" or token == "":
         if mock_auth_bypass:
@@ -132,6 +138,16 @@ async def get_current_user(
                     return payload
         except Exception as fallback_err:
             pass
+        if mock_auth_bypass:
+            email = os.getenv("CUSTOMER_EMAIL_ID", "souravmaiti1997@gmail.com")
+            identity = identity_repo.get_by_email(email)
+            if not identity:
+                raise UnauthorizedException(detail="Local mock user identity not found in database")
+            return {
+                "uid": identity["firebase_uid"] or f"mock-uid-{identity['customer_id']}",
+                "email": identity["email_id"]
+            }
         raise e
+
 
 

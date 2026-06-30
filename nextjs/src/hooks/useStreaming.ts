@@ -67,6 +67,15 @@ export function useStreaming(
       // Generate AI message ID (frontend generates ID for streaming correlation)
       const aiMessageId = uuidv4();
 
+      // 🔑 CRITICAL: Initialize the empty AI message in the UI state immediately
+      // to dismiss the first-query ContextLoader screen and render the AI Activity Timeline from the start.
+      onMessageUpdate({
+        type: "ai",
+        content: "",
+        id: aiMessageId,
+        timestamp: new Date(),
+      });
+
       // Create callbacks object for the connection manager
       const callbacks: StreamProcessingCallbacks = {
         onMessageUpdate,
@@ -82,7 +91,7 @@ export function useStreaming(
       };
 
       // Delegate to connection manager
-      await connectionManager.current.submitMessage(
+      const result = await connectionManager.current.submitMessage(
         streamingPayload,
         callbacks,
         accumulatedTextRef,
@@ -91,6 +100,32 @@ export function useStreaming(
         setIsLoading,
         aiMessageId
       );
+
+      // 🔑 CRITICAL: If the stream finished and a tool was executed, automatically trigger
+      // a secondary connection with the same sessionId and aiMessageId to synthesize the final markdown response.
+      // This displays the final synthesized text right under the AI Activity Timeline inside the initial bubble.
+      if (result?.hasToolExecution) {
+        console.log("🤖 [useStreaming] Tool execution detected. Auto-triggering secondary synthesis connection.");
+        
+        // Wait 300ms before starting the secondary turn to allow backend to finalize the tool state
+        await new Promise((resolve) => setTimeout(resolve, 300));
+
+        const synthesizePayload: StreamingAPIPayload = {
+          message: "Please proceed to provide the final synthesized response based on the tool results.",
+          userId: apiPayload.userId,
+          sessionId: apiPayload.sessionId,
+        };
+
+        await connectionManager.current.submitMessage(
+          synthesizePayload,
+          callbacks,
+          accumulatedTextRef,
+          currentAgentRef,
+          setCurrentAgent,
+          setIsLoading,
+          aiMessageId
+        );
+      }
     },
     []
   );

@@ -126,9 +126,9 @@ export function MessageItem({
     messageEvents.has(message.id) &&
     messageEvents.get(message.id)!.length > 0;
 
-  // AI message loading with timeline events - show thinking indicator
-  // Show this when loading AND we have timeline events (even if content started arriving)
-  if (isLoading && hasTimelineEvents) {
+  // AI message loading - show thinking indicator
+  // Show this when loading (with timeline events or content if they exist)
+  if (isLoading) {
     return (
       <div className="flex items-start gap-3 w-full max-w-[95%] sm:max-w-[90%] min-w-0">
         <div className="flex-shrink-0 w-8 h-8 rounded-full bg-[#f0a500] text-[#1a1f71] flex items-center justify-center shadow-sm border border-[#f0a500]">
