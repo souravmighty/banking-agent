@@ -2,6 +2,26 @@ import base64
 import json
 import logging
 import os
+import google.genai
+import logging
+
+_logger = logging.getLogger("banking_agent_patch")
+
+# Monkey-patch google.genai.Client to force GEMINI_API_LOCATION if set
+_original_client_init = google.genai.Client.__init__
+
+def _patched_client_init(self, *args, **kwargs):
+    api_location = os.environ.get("GEMINI_API_LOCATION")
+    if api_location:
+        _logger.info(f"Patched Client.__init__: forcing location to {api_location}")
+        kwargs["location"] = api_location
+        if "vertexai" not in kwargs and os.environ.get("GOOGLE_GENAI_USE_VERTEXAI", "TRUE") == "TRUE":
+            kwargs["vertexai"] = True
+    _original_client_init(self, *args, **kwargs)
+
+google.genai.Client.__init__ = _patched_client_init
+
+os.environ["GOOGLE_CLOUD_LOCATION"] = "global"
 from datetime import date
 from dotenv import load_dotenv
 
@@ -37,6 +57,14 @@ import httpx
 from fastapi import FastAPI, Request
 from starlette.middleware.base import BaseHTTPMiddleware
 from typing import Optional
+from google import genai
+
+client = genai.Client(
+    vertexai=True,
+    project=os.getenv("GOOGLE_CLOUD_PROJECT"),
+    location=os.getenv("GEMINI_API_LOCATION", "us") # Must be 'us' or 'eu' for multi-region model routing
+)
+
 
 firebase_jwt_var = contextvars.ContextVar("firebase_jwt", default="")
 _session_tokens = {}  # Global mapping from user/session to token
@@ -322,6 +350,13 @@ def get_customer_details_for_instructions(callback_context: CallbackContext) -> 
 
 
 def get_firebase_jwt_token(callback_context: Optional[CallbackContext] = None) -> str:
+    # 0. Prioritize mock-token if user_id is a known test user or if mock auth bypass is enabled
+    if callback_context and getattr(callback_context, "session", None) and getattr(callback_context.session, "user_id", None):
+        user_id = callback_context.session.user_id
+        if user_id == "WbSlp0UAymRQ3AULz6bfuyX0A6l2" or user_id.startswith("mock-") or os.getenv("MOCK_AUTH_BYPASS", "false").lower() == "true":
+            _logger.info("Test/Mock user_id detected (%s). Prioritizing mock-token.", user_id)
+            return f"mock-token:{user_id}"
+
     # 1. Try global session dictionary first
     if callback_context:
         try:

@@ -21,6 +21,7 @@ from .prompts import return_instructions_bigquery
 from dotenv import load_dotenv
 from pathlib import Path
 from google.oauth2 import service_account
+from google import genai
 
 # Load Service Account credentials
 script_dir = Path(__file__).resolve().parent
@@ -37,6 +38,12 @@ logger = logging.getLogger(__name__)
 NL2SQL_METHOD = os.getenv("NL2SQL_METHOD", "BASELINE")
 
 USER_AGENT = "bq-agent"
+
+client = genai.Client(
+    vertexai=True,
+    project=os.getenv("GOOGLE_CLOUD_PROJECT"),
+    location=os.getenv("GEMINI_API_LOCATION", "us") # Must be 'us' or 'eu' for multi-region model routing
+)
 
 
 

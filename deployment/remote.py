@@ -68,12 +68,13 @@ def create() -> None:
         extra_packages=["./app"],
         service_account = os.getenv("GOOGLE_CLOUD_SERVICE_ACCOUNT"),  # Make sure this service account has the necessary permissions
         env_vars={
-            "GOOGLE_CLOUD_LOCATION": "global",
+            "GEMINI_API_LOCATION": "global",
             "ROOT_AGENT_MODEL": "gemini-3.5-flash",
             "TRANSACTION_AGENT_MODEL": "gemini-3.5-flash",
             "BQ_PROJECT_ID": "banking-agent-rag-mcp", 
             "BQ_DATASET_ID": "banking_data",
             "BIGQUERY_AGENT_MODEL": "gemini-3.5-flash",
+            "BASELINE_NL2SQL_MODEL": "gemini-2.5-pro",
             "IDENTITY_SERVICE_URL": "https://customer-identity-service-569817520730.us-central1.run.app"
         }
     )
@@ -116,7 +117,10 @@ def list_sessions(resource_id: str, user_id: str) -> None:
     sessions = remote_app.list_sessions(user_id=user_id)
     print(f"Sessions for user '{user_id}':")
     for session in sessions:
-        print(f"- Session ID: {session['id']}")
+        if isinstance(session, dict):
+            print(f"- Session ID: {session.get('id', session)}")
+        else:
+            print(f"- Session ID: {session}")
 
 
 def get_session(resource_id: str, user_id: str, session_id: str) -> None:
@@ -153,13 +157,15 @@ def main(argv=None):
     else:
         argv = flags.FLAGS(argv)
 
-    load_dotenv()
+    load_dotenv(override=True)
 
     # Now we can safely access the flags
     project_id = (
         FLAGS.project_id if FLAGS.project_id else os.getenv("GOOGLE_CLOUD_PROJECT")
     )
     location = FLAGS.location if FLAGS.location else os.getenv("GOOGLE_CLOUD_LOCATION")
+    if location == "global":
+        location = "us-central1"
     bucket = FLAGS.bucket if FLAGS.bucket else os.getenv("GOOGLE_CLOUD_STAGING_BUCKET")
     user_id = FLAGS.user_id
 

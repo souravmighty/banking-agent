@@ -40,14 +40,7 @@ dataset_id = os.getenv("BQ_DATASET_ID")
 data_project = os.getenv("BQ_PROJECT_ID")
 compute_project = os.getenv("GOOGLE_CLOUD_PROJECT")
 vertex_project = os.getenv("GOOGLE_CLOUD_PROJECT")
-location = os.getenv("GOOGLE_CLOUD_LOCATION", "global")
-http_options = HttpOptions(headers={"user-agent": USER_AGENT})
-llm_client = Client(
-    vertexai=True,
-    project=vertex_project,
-    location=location,
-    http_options=http_options,
-)
+llm_client = None
 
 MAX_NUM_ROWS = 10000
 
@@ -417,6 +410,18 @@ best practices outlined above to generate the correct BigQuery SQL.
     prompt = prompt_template.format(
         MAX_NUM_ROWS=MAX_NUM_ROWS, SCHEMA=schema, QUESTION=question
     )
+
+    global llm_client
+    if llm_client is None:
+        run_location = os.getenv("GEMINI_API_LOCATION", "global")
+        vertex_project_run = os.getenv("GOOGLE_CLOUD_PROJECT", "banking-agent-rag-mcp")
+        logger.info(f"Lazily initializing GenAI Client with project={vertex_project_run}, location={run_location}")
+        llm_client = Client(
+            vertexai=True,
+            project=vertex_project_run,
+            location=run_location,
+            http_options=HttpOptions(headers={"user-agent": USER_AGENT}),
+        )
 
     response = llm_client.models.generate_content(
         model=os.getenv("BASELINE_NL2SQL_MODEL", "gemini-2.5-pro"),
