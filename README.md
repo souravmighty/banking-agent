@@ -14,6 +14,11 @@ Production-inspired AI Banking Platform featuring Google ADK, Vertex AI Agent En
 
 BankPilot separates client-side interactions, identity resolution, and analytical databases. The diagram below illustrates the system interaction and data boundaries:
 
+![BankPilot Architecture Diagram](docs/images/architecture.svg)
+
+<details>
+<summary>📷 View Mermaid Source Diagram</summary>
+
 ```mermaid
 graph TD
     User(["👤 User Client"]) <-->|HTTPS / gRPC| NextJS["<img src='https://www.vectorlogo.zone/logos/nextjs/nextjs-icon.svg' width='16' height='16' /> Next.js Client UI"]
@@ -38,6 +43,8 @@ graph TD
     class ADK,BQA,TxA agent;
     class BQ,MCP,NextJS,CIS infra;
 ```
+</details>
+
 
 ---
 
