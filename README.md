@@ -12,9 +12,16 @@ Production-inspired AI Banking Platform featuring Google ADK, Vertex AI Agent En
 
 ## 🏗️ Architecture Overview
 
-BankPilot separates client-side interactions, identity resolution, and analytical databases. The diagram below illustrates the system interaction and data boundaries:
+[![BankPilot Architecture Diagram](docs/images/architecture.svg)](docs/images/architecture.svg)
 
-![BankPilot Architecture Diagram](docs/images/architecture.svg)
+<p align="center">
+  <a href="https://excalidraw.com/#room=c61e5b758ff4c20ed57a,R27Xn1go5kftEX3jIWyaww" target="_blank">
+    <img src="https://img.shields.io/badge/Open%20in-Excalidraw-6965db?style=for-the-badge&logo=excalidraw&logoColor=white" alt="Open and Edit in Excalidraw" />
+  </a>
+  <a href="docs/images/architecture.svg" target="_blank">
+    <img src="https://img.shields.io/badge/Interactive-SVG_Version-4285F4?style=for-the-badge&logo=google-cloud&logoColor=white" alt="Interactive SVG Version" />
+  </a>
+</p>
 
 <details>
 <summary>📷 View Mermaid Source Diagram</summary>
