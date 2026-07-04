@@ -12,10 +12,10 @@ Production-inspired AI Banking Platform featuring Google ADK, Vertex AI Agent En
 
 ## 🏗️ Architecture Overview
 
-[![BankPilot Architecture Diagram](docs/images/architecture.svg)](docs/images/architecture.svg)
+[![BankPilot Architecture Diagram](docs/images/bankpilot_architecture.svg)](docs/images/bankpilot_architecture.svg)
 
 <p align="center">
-  <a href="https://excalidraw.com/#json=oo3NfRfAXFln3xjw5w2r1,73VgyBcMmlFeL6tHNhvaLA" target="_blank">
+  <a href="https://excalidraw.com/#json=eZIWgNNUOV1mDtU2t8ALq,8XUUWwxHR46GjnWKyI_8Gw" target="_blank">
     <img src="https://img.shields.io/badge/Open%20in-Excalidraw-6965db?style=for-the-badge&logo=excalidraw&logoColor=white" alt="Open and Edit in Excalidraw" />
   </a>
   <a href="docs/images/architecture.svg" target="_blank">

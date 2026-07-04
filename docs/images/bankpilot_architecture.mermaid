@@ -1,0 +1,232 @@
+flowchart TB
+    %% Styling and Custom Themes
+    classDef default fill:#fafafa,stroke:#d1d5db,stroke-width:1px,color:#374151,font-family:'Inter',sans-serif
+    classDef frontend fill:#e0f2fe,stroke:#0284c7,stroke-width:2px,color:#0369a1
+    classDef agent fill:#f0fdf4,stroke:#16a34a,stroke-width:2px,color:#15803d
+    classDef mcp fill:#fff5f5,stroke:#dc2626,stroke-width:2px,color:#991b1b
+    classDef identity fill:#faf5ff,stroke:#7c3aed,stroke-width:2px,color:#6d28d9
+    classDef db fill:#fef9c3,stroke:#ca8a04,stroke-width:2px,color:#854d0e
+    classDef decision fill:#fffbeb,stroke:#d97706,stroke-width:2px,color:#b45309
+    classDef actor fill:#f3f4f6,stroke:#4b5563,stroke-width:2px,color:#1f2937
+    classDef teal fill:#f0fdfa,stroke:#0d9488,stroke-width:2px,color:#0f766e
+
+    %% Subgraphs & Architectural Clusters
+
+    subgraph Frontend_Firebase ["📱 Frontend & Authentication (Firebase)"]
+        Next_UI["Next.js UI<br/>(Client Portal)"]:::frontend
+        Firebase_Auth["Firebase Authentication"]:::frontend
+        Auth_Success_Check{"Auth Success?"}:::decision
+        Firebase_JWT["Firebase ID Token (JWT)"]:::frontend
+        Chat_Interface["Chat Interface"]:::frontend
+        OTP_Dialog["OTP Verification Dialog"]:::frontend
+        Retry_MCP["Retry MCP Transaction"]:::frontend
+        Stream_AI["Stream AI Response"]:::frontend
+        Display_Auth_Error["Display Authentication Error"]:::frontend
+    end
+
+    subgraph RAG_Pipeline ["📂 RAG Ingestion & Retrieval Pipeline"]
+        Upload_Portal["Upload Portal"]:::teal
+        Doc_Parser["Document Parser"]:::teal
+        Format_Check{"Supported Format?"}:::decision
+        PDF_Parser["PDF Parser"]:::teal
+        HTML_Parser["HTML Parser"]:::teal
+        DOCX_Parser["DOCX Parser"]:::teal
+        Chunking["Chunking Layer"]:::teal
+        Embedding_Model["Embedding Model"]:::teal
+        Vector_Search["Vertex AI Vector Search"]:::teal
+        Doc_Metadata["Document Metadata"]:::teal
+        Doc_Catalog["Document Catalog"]:::teal
+    end
+
+    subgraph Agent_Platform ["🤖 GCP Agent Platform (Vertex AI - Google ADK)"]
+        Root_Agent["Root Agent (Orchestrator)<br/>✨ Gemini 3.5 Flash"]:::agent
+        
+        subgraph RAG_Agent ["RAG Sub-Agent"]
+            Semantic_Search["Semantic Search"]:::agent
+            Grounded_Prompt["Build Grounded Prompt"]:::agent
+            Gemini_Flash_RAG["✨ Gemini 3.5 Flash"]:::agent
+            Answer_Citations["Answer + Citations"]:::agent
+        end
+        
+        subgraph BQ_Agent ["BigQuery Sub-Agent"]
+            NL2SQL["NL2SQL<br/>✨ Gemini 2.5 Pro<br/>(NL to SQL)"]:::agent
+            BQ_Toolset["BigQuery Toolset<br/>(Execute SQL)"]:::agent
+        end
+        
+        subgraph Transaction_Agent ["Transaction Sub-Agent"]
+            Tx_Agent_Main["Transaction Agent Core<br/>✨ Gemini 3.5 Flash"]:::agent
+            Tx_Agent_Tools["MCP Tools:<br/>- Transfer Money<br/>- Credit Card Payment"]:::agent
+        end
+    end
+
+    subgraph Identity_Service ["🔐 Customer Identity FastAPI Microservice (Cloud Run)"]
+        ADK_Context["ADK Context API"]:::identity
+        Schema_Metadata["Schema Metadata Service"]:::identity
+        JWT_Verif_SDK["JWT Verification<br/>(Firebase Admin SDK)"]:::identity
+        Auth_Service["Authentication Service"]:::identity
+        Existing_Customer_Check{"Existing Bank<br/>Customer?"}:::decision
+        Firebase_UID_Linked{"firebase_uid<br/>Linked?"}:::decision
+        Link_User["Link User"]:::identity
+        Auth_Success["Authentication Successful"]:::identity
+        Reject_Reg["Reject Registration"]:::identity
+        Create_Cust_Views["Create Customer Views"]:::identity
+        Customer_Identity_Metadata["Customer ID, Profile, Accounts,<br/>Views Schema Metadata"]:::identity
+    end
+
+    subgraph FastMCP_Server_Group ["⚡ FastMCP Server (GCP Cloud Run)"]
+        FastMCP["FastMCP Server"]:::mcp
+        JWT_Middleware["JWT Verification Middleware"]:::mcp
+        MCP_Context["MCP Context API"]:::mcp
+        Authorized_Cust{"Authorized Customer?"}:::decision
+        Provide_Auth_Details["Provide Customer ID, Authorized Accounts,<br/>& Beneficiary Account Details"]:::mcp
+        Tool_Router["Tool Router"]:::mcp
+        Requested_Tool{"Requested Tool"}:::decision
+        
+        subgraph Banking_Services_Tools ["Core Banking Services"]
+            Transfer_Service["Transfer Service"]:::mcp
+            CC_Payment_Service["Credit Card Payment Service"]:::mcp
+            Other_Services["Other Banking Services"]:::mcp
+        end
+        
+        Validate_Ownership["Validate Account Ownership,<br/>Balance, & Beneficiary"]:::mcp
+        OTP_Required_Check{"OTP Required?"}:::decision
+        CC_Validation["Validate Credit Card<br/>Outstanding & Account Balance"]:::mcp
+        
+        Return_OTP["Return OTP_REQUIRED"]:::mcp
+        Return_Auth_Error["Return Authorization Error"]:::mcp
+        Execute_Tx["Execute Transaction"]:::mcp
+        Banking_DB["Banking Database"]:::db
+        Audit_Log["Audit & Transaction Log"]:::mcp
+        Tool_Response["Tool Response"]:::mcp
+    end
+
+    subgraph BigQuery_DW ["📊 BigQuery Data Warehouse (Terraform-managed)"]
+        Cust_Identity_Map["Customer Identity Mapping Table"]:::db
+        RLS_Views["Row-Level Security (RLS)<br/>Authorized Views"]:::db
+        
+        subgraph BQ_Tables ["BigQuery Dataset Tables"]
+            Cust_Facing_Tables["<b>Customer Facing Tables</b><br/>- Customers<br/>- Accounts<br/>- Credit cards<br/>- Loans"]:::db
+            Cust_Repo_Tables["<b>Customer Repository</b><br/>- Fixed deposits<br/>- Transactions<br/>- Beneficiaries<br/>- Credit Scores"]:::db
+        end
+    end
+
+    %% External Actors & Resources
+    User_Actor["👤 Bank Customer"]:::actor
+    Staff_Actor["👤 Bank Staff"]:::actor
+    Cloud_Storage["☁️ Google Cloud Storage"]:::db
+
+    %% Connections & Dynamic Interaction Flows
+
+    %% Flow 1: Authentication & Onboarding
+    User_Actor -- "Register / Login" --> Next_UI
+    Next_UI --> Firebase_Auth
+    Firebase_Auth --> Auth_Success_Check
+    Auth_Success_Check -- "No" --> Display_Auth_Error
+    Auth_Success_Check -- "Yes" --> Firebase_JWT
+    Firebase_JWT -- "POST /auth/register<br/>POST /auth/login" --> Auth_Service
+    Auth_Service --> Existing_Customer_Check
+    Existing_Customer_Check -- "No" --> Reject_Reg
+    Existing_Customer_Check -- "Yes" --> Firebase_UID_Linked
+    Firebase_UID_Linked -- "No" --> Link_User
+    Firebase_UID_Linked -- "Yes" --> Auth_Success
+    
+    Link_User --> Cust_Identity_Map
+    Link_User --> Create_Cust_Views
+    Link_User --> Auth_Success
+    Create_Cust_Views --> RLS_Views
+    Auth_Success --> Chat_Interface
+
+    %% Flow 2: User Chat & ADK Orchestration
+    User_Actor -- "Ask Question" --> Chat_Interface
+    Chat_Interface -- "POST /run_sse (Bearer JWT)" --> Root_Agent
+    
+    %% Root Agent Context Fetching
+    Root_Agent -- "GET /adk/context" --> ADK_Context
+    ADK_Context --> JWT_Verif_SDK
+    JWT_Verif_SDK --> Auth_Service
+    ADK_Context --> Schema_Metadata
+    Schema_Metadata --> Customer_Identity_Metadata
+    Customer_Identity_Metadata --> Root_Agent
+    
+    %% Root Agent Routing
+    Root_Agent -- "Intent: Product/Policy Queries" --> RAG_Agent
+    Root_Agent -- "Intent: Customer Data Query/Analytics" --> BQ_Agent
+    Root_Agent -- "Intent: Banking Transaction" --> Transaction_Agent
+
+    %% Flow 3: RAG Sub-Agent Flow
+    RAG_Agent --> Semantic_Search
+    Semantic_Search --> Vector_Search
+    Semantic_Search --> Doc_Metadata
+    Semantic_Search --> Grounded_Prompt
+    Grounded_Prompt --> Gemini_Flash_RAG
+    Gemini_Flash_RAG --> Answer_Citations
+    Answer_Citations --> Root_Agent
+
+    %% Flow 4: BigQuery Sub-Agent Flow
+    BQ_Agent --> NL2SQL
+    NL2SQL --> BQ_Toolset
+    BQ_Toolset --> RLS_Views
+
+    %% Flow 5: Transaction Sub-Agent & FastMCP Server Flow
+    Transaction_Agent --> Tx_Agent_Main
+    Tx_Agent_Main --> Tx_Agent_Tools
+    Tx_Agent_Tools -- "MCP Tool Call (Bearer JWT)" --> FastMCP
+    FastMCP --> JWT_Middleware
+    JWT_Middleware -- "GET /mcp/context" --> MCP_Context
+    MCP_Context --> JWT_Verif_SDK
+    MCP_Context --> Authorized_Cust
+    
+    Authorized_Cust -- "No" --> Return_Auth_Error
+    Authorized_Cust -- "Yes" --> Provide_Auth_Details
+    Provide_Auth_Details --> Tool_Router
+    
+    Tool_Router --> Requested_Tool
+    Requested_Tool -- "transfer_money" --> Transfer_Service
+    Requested_Tool -- "pay_credit_card" --> CC_Payment_Service
+    Requested_Tool -- "Future" --> Other_Services
+    
+    Transfer_Service --> Validate_Ownership
+    Validate_Ownership --> OTP_Required_Check
+    OTP_Required_Check -- "Yes" --> Return_OTP
+    OTP_Required_Check -- "No" --> Execute_Tx
+    
+    CC_Payment_Service --> CC_Validation
+    CC_Validation --> Execute_Tx
+    
+    Other_Services --> Execute_Tx
+    
+    Execute_Tx --> Banking_DB
+    Banking_DB --> Audit_Log
+    Audit_Log --> Tool_Response
+    Return_OTP --> Tool_Response
+    Return_Auth_Error --> Tool_Response
+    Tool_Response --> Tx_Agent_Main
+    Tx_Agent_Main --> Root_Agent
+    
+    Root_Agent --> Stream_AI
+    Stream_AI --> Chat_Interface
+
+    %% Flow 6: OTP Flow for Sensitive Transactions
+    Chat_Interface --> Sensitive_Check{"Sensitive<br/>Transaction?"}:::decision
+    Sensitive_Check -- "Yes" --> OTP_Dialog
+    OTP_Dialog --> Firebase_Auth
+    OTP_Dialog --> Retry_MCP
+    Retry_MCP --> Chat_Interface
+
+    %% Flow 7: RAG Ingestion Pipeline
+    Staff_Actor --> Upload_Portal
+    Upload_Portal --> Cloud_Storage
+    Cloud_Storage --> Doc_Parser
+    Doc_Parser --> Format_Check
+    Format_Check -- "PDF" --> PDF_Parser
+    Format_Check -- "HTML" --> HTML_Parser
+    Format_Check -- "DOCX" --> DOCX_Parser
+    
+    PDF_Parser --> Chunking
+    HTML_Parser --> Chunking
+    DOCX_Parser --> Chunking
+    
+    Chunking --> Embedding_Model
+    Chunking --> Doc_Metadata
+    Embedding_Model --> Vector_Search
+    Doc_Metadata --> Doc_Catalog
