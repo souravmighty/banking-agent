@@ -19,11 +19,6 @@ Production-inspired AI Banking Platform featuring Google ADK, Vertex AI Agent En
     <img src="https://img.shields.io/badge/Open%20in-Excalidraw-6965db?style=for-the-badge&logo=excalidraw&logoColor=white" alt="Open and Edit in Excalidraw" />
   </a>
 </p>
-<p align="center">
-<a href="docs/images/bankpilot_architecture.svg">
-  <img src="docs/images/bankpilot_architecture.svg" width="600" alt="Architecture Diagram - click to zoom">
-</a>
-</p>
 
 <details>
 <summary>📷 View Mermaid Source Diagram</summary>
