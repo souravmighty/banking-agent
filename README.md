@@ -20,8 +20,8 @@ Production-inspired AI Banking Platform featuring Google ADK, Vertex AI Agent En
   </a>
 </p>
 <p align="center">
-<a href="docs/architecture.svg">
-  <img src="docs/architecture.svg" width="600" alt="Architecture Diagram - click to zoom">
+<a href="docs/images/bankpilot_architecture.svg">
+  <img src="docs/images/bankpilot_architecture.svg" width="600" alt="Architecture Diagram - click to zoom">
 </a>
 </p>
 
