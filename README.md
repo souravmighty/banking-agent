@@ -18,10 +18,11 @@ Production-inspired AI Banking Platform featuring Google ADK, Vertex AI Agent En
   <a href="https://excalidraw.com/#json=eZIWgNNUOV1mDtU2t8ALq,8XUUWwxHR46GjnWKyI_8Gw" target="_blank">
     <img src="https://img.shields.io/badge/Open%20in-Excalidraw-6965db?style=for-the-badge&logo=excalidraw&logoColor=white" alt="Open and Edit in Excalidraw" />
   </a>
-  <a href="docs/images/architecture.svg" target="_blank">
-    <img src="https://img.shields.io/badge/Interactive-SVG_Version-4285F4?style=for-the-badge&logo=google-cloud&logoColor=white" alt="Interactive SVG Version" />
-  </a>
 </p>
+
+<a href="docs/architecture.svg">
+  <img src="docs/architecture.svg" width="600" alt="Architecture Diagram - click to zoom">
+</a>
 
 <details>
 <summary>📷 View Mermaid Source Diagram</summary>
