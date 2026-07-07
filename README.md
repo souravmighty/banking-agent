@@ -15,7 +15,7 @@ Production-inspired AI Banking Platform featuring Google ADK, Vertex AI Agent En
 [![BankPilot Architecture Diagram](docs/images/bankpilot_architecture.svg)](docs/images/bankpilot_architecture.svg)
 
 <p align="center">
-  <a href="https://excalidraw.com/#json=eZIWgNNUOV1mDtU2t8ALq,8XUUWwxHR46GjnWKyI_8Gw" target="_blank">
+  <a href="https://excalidraw.com/#json=tiuLVFxKRiD07hCjuK-Zu,zdv4vl9gnJyq2ibLmrY_-w" target="_blank">
     <img src="https://img.shields.io/badge/Open%20in-Excalidraw-6965db?style=for-the-badge&logo=excalidraw&logoColor=white" alt="Open and Edit in Excalidraw" />
   </a>
 </p>
@@ -52,22 +52,6 @@ graph TD
 
 ---
 
-## 📊 System Statistics
-
-The following statistics represent the current, actual implementation of the BankPilot repository:
-
-| Metric / Component | Verified Repository Value |
-| :--- | :--- |
-| **Application Services** | **4 Services** (Next.js Web UI, FastAPI Identity Service, FastMCP Server, Google ADK Root Agent) |
-| **BigQuery Datasets** | **1 Dataset** (`banking_data`) |
-| **Database Tables** | **9 Relational Tables** (Customers, Identity Mapping, Accounts, Beneficiaries, Transactions, Cards, Loans, Deposits, Credit Scores) |
-| **Synthetic Customers** | **1,300 profiles** with verified demographics and segmentation (Retail, Wealth) |
-| **Synthetic Transactions** | **453,145 records** comprising a multi-year historical double-entry ledger (~56MB) |
-| **Cloud Infrastructure** | **Google Cloud Platform** (Vertex AI Agent Engine, Cloud Run, BigQuery, Firebase Auth, Secret Manager, Cloud Logging) |
-| **Programming Languages** | **Python 3.10+** (Backend microservices, ADK agents, MCP tools) & **TypeScript / React** (Next.js web portal) |
-| **Infrastructure-as-Code** | **HashiCorp Terraform** (automates regional dataset, schema generation, and column-level semantic documentation) |
-
----
 
 ## 📖 Project Overview
 
@@ -227,6 +211,23 @@ All REST routes are hosted under `/api/v1` of the `customer-identity-service`:
 2.  **API Microservice**: The FastAPI `customer-identity-service` is containerized and deployed on **Google Cloud Run**, autoscaling from 0 to 10 instances.
 3.  **Agent Orchestration**: Deployed directly on **Vertex AI Agent Engine** as a managed `AdkApp`, ensuring secure execution and native tracing.
 4.  **Database & Storage**: Maintained on **Google Cloud BigQuery** regional clusters, using clustered partitioning on `transaction_timestamp` to optimize query costs.
+
+---
+
+## 📊 System Statistics
+
+The following statistics represent the current, actual implementation of the BankPilot repository:
+
+| Metric / Component | Verified Repository Value |
+| :--- | :--- |
+| **Application Services** | **4 Services** (Next.js Web UI, FastAPI Identity Service, FastMCP Server, Google ADK Root Agent) |
+| **BigQuery Datasets** | **1 Dataset** (`banking_data`) |
+| **Database Tables** | **9 Relational Tables** (Customers, Identity Mapping, Accounts, Beneficiaries, Transactions, Cards, Loans, Deposits, Credit Scores) |
+| **Synthetic Customers** | **1,300 profiles** with verified demographics and segmentation (Retail, Wealth) |
+| **Synthetic Transactions** | **453,145 records** comprising a multi-year historical double-entry ledger (~56MB) |
+| **Cloud Infrastructure** | **Google Cloud Platform** (Vertex AI Agent Engine, Cloud Run, BigQuery, Firebase Auth, Secret Manager, Cloud Logging) |
+| **Programming Languages** | **Python 3.10+** (Backend microservices, ADK agents, MCP tools) & **TypeScript / React** (Next.js web portal) |
+| **Infrastructure-as-Code** | **HashiCorp Terraform** (automates regional dataset, schema generation, and column-level semantic documentation) |
 
 ---
 
