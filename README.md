@@ -244,25 +244,14 @@ The following statistics represent the current, actual implementation of the Ban
 
 ### Phase 2 (In Progress)
 *   ⬜ **MCP Transaction Service**
-*   ⬜ **OTP Verification**
+*   ⬜ **RAG ingestion and retrieval pipeline for answering policy/product related queries**
+*   ⬜ **OTP Verification for high amount transactions**
 *   ⬜ **CI/CD**
 *   ⬜ **Observability**
 *   ⬜ **Analytics Copilot**
 
 ---
 
-## 🚧 Current Limitations & Roadmap
-
-To demonstrate engineering maturity, the following list outlines known technical limitations of the current implementation:
-
-1.  **Single-Region Deployment**: Resources are hosted in a single GCP region (`us-central1`); there is no active-active multi-region database replication.
-2.  **Direct BigQuery Resolution**: The system lacks an intermediate caching layer (e.g., Redis). The `customer-identity-service` creates views and retrieves profile context directly from BigQuery on every session bootstrap, introducing network latency.
-3.  **No Distributed Tracing**: Microservice boundaries lack unified distributed tracing (such as OpenTelemetry or Jaeger) to track request propagation from Next.js to the BigQuery engine.
-4.  **No Rate Limiting**: REST and gRPC endpoints currently lack concurrency limits or DDoS protection rules.
-5.  **Audit Log Persistence**: Service logs are streamed to Google Cloud Logging, but there is no tamper-proof, dedicated write-once-read-many (WORM) audit database for transaction histories.
-6.  **OTP Flow Mocked**: The registration sequence defines OTP structures, but the physical verification layer is bypassed and auto-approved in the mock context.
-
----
 
 ## 💡 Engineering Decisions & Lessons Learned
 
@@ -283,31 +272,6 @@ To demonstrate engineering maturity, the following list outlines known technical
 *   **Decision**: Enforced rigid native layout scroll boundaries and decoupled streaming timelines from the central chat thread.
 *   **Trade-off**: Slightly increases frontend CSS layout complexity.
 *   **Outcome**: Perfect rendering performance on small screen devices (Pixel 7 / iPhone SE) with zero layout shifting during live stream rendering.
-
----
-
-## 📷 Interface Placeholders
-
-### 🔑 Login Portal
-> [!NOTE]
-> **Interface Placeholder: Login Portal**
-> *   **URL / Route**: `/login`
-> *   **Primary Flow**: Client credential authentication utilizing Firebase OAuth2.
-> *   **Visual Elements**: Secure input fields for customer email/password, integration with Firebase Client SDK, JWT token generation, and secure redirect to dashboard.
-
-### 💬 Conversational Analytics Portal
-> [!NOTE]
-> **Interface Placeholder: Conversational Analytics Portal**
-> *   **URL / Route**: `/dashboard/chat`
-> *   **Primary Flow**: Interactive conversational interface utilizing Google ADK and Vertex AI Agent Engine.
-> *   **Visual Elements**: Real-time streaming response window, interactive thought/reasoning timeline, expandable step-by-step execution details, and live transaction/spend analytics charts.
-
-### 📊 Sandboxed SQL Views
-> [!NOTE]
-> **Interface Placeholder: BigQuery Authorized Views**
-> *   **Location**: Google Cloud Console -> BigQuery
-> *   **Primary Flow**: Physically isolating account records via customer-scoped views dynamically compiled at session startup.
-> *   **Visual Elements**: Dynamic view schema `v_transactions_<customer_id>` mapped with column-level descriptions, executing isolation logic without direct table exposure to LLMs.
 
 ---
 
