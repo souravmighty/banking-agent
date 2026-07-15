@@ -4,7 +4,7 @@ install:
 	uv pip install -r customer-identity-service/requirements.txt
 
 dev:
-	make dev-backend & make dev-frontend & make identity-service
+	make dev-backend & make dev-frontend & make identity-service & make customer-data-service
 
 dev-backend:
 	uv run adk api_server . --allow_origins="*"
@@ -14,6 +14,9 @@ dev-frontend:
 
 identity-service:
 	cd customer-identity-service && uv run uvicorn app.main:app --host 0.0.0.0 --port 8080 --reload
+
+customer-data-service:
+	cd customer-data-service && uv run uvicorn app.main:app --host 0.0.0.0 --port 8081 --reload
 
 adk-web:
 	uv run adk web --port 8501

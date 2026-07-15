@@ -30,7 +30,7 @@ import { toast } from "sonner";
 import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
 
-export default function DemoRequestsDashboard({ params }: { params?: { requestId?: string } }) {
+export default function DemoRequestsDashboard({ requestId }: { requestId?: string }) {
   const { user, logout } = useAuth();
   const router = useRouter();
   const searchParams = useSearchParams();
@@ -50,7 +50,7 @@ export default function DemoRequestsDashboard({ params }: { params?: { requestId
   const [isDrawerOpen, setIsDrawerOpen] = useState(false);
   const [rejectRemarks, setRejectRemarks] = useState("");
   const [isRejectModalOpen, setIsRejectModalOpen] = useState(false);
-
+ 
   // Load dashboard data
   const loadDashboardData = useCallback(async () => {
     if (!user) return;
@@ -65,9 +65,9 @@ export default function DemoRequestsDashboard({ params }: { params?: { requestId
       
       setRequests(reqList);
       setDemoSummary(summaryData);
-
+ 
       // Handle deep-link request ID parameter if provided in path params or query params
-      const deepLinkId = params?.requestId || searchParams.get("requestId");
+      const deepLinkId = requestId || searchParams.get("requestId");
       if (deepLinkId) {
         const matched = reqList.find(r => r.request_id === deepLinkId);
         if (matched) {
@@ -92,7 +92,7 @@ export default function DemoRequestsDashboard({ params }: { params?: { requestId
     } finally {
       setLoading(false);
     }
-  }, [user, params, searchParams]);
+  }, [user, requestId, searchParams]);
 
   useEffect(() => {
     loadDashboardData();
