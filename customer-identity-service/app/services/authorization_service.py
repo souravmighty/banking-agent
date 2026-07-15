@@ -41,6 +41,26 @@ class AuthorizationService:
         linked_at = datetime.now().isoformat()
         self.identity_repo.update_firebase_uid(mapping["customer_id"], uid, "REGISTERED", linked_at)
 
+        # Check and handle demo customer state transition to ACTIVE on Google login
+        try:
+            from app.repositories.demo_repository import DemoRepository
+            demo_repo = DemoRepository(self.identity_repo.bq)
+            demo_cust = demo_repo.get_by_demo_email(email)
+            if demo_cust and demo_cust["status"] == "APPROVED":
+                demo_repo.update_status_to_active(demo_cust["customer_id"], uid)
+                demo_repo.log_audit(
+                    action="Google Login",
+                    customer_id=demo_cust["customer_id"],
+                    demo_email=email,
+                    firebase_uid=uid,
+                    performed_by=email,
+                    remarks="Demo customer completed Google Sign-In and linked account successfully."
+                )
+        except Exception as e:
+            # Prevent failures in demo lookup from breaking core login flows
+            import logging
+            logging.getLogger(__name__).error(f"Error handling demo customer login state: {e}")
+
         # Create views
         self.view_service.create_authorized_views(mapping["customer_id"])
 
@@ -49,3 +69,4 @@ class AuthorizationService:
             "firebase_uid": uid,
             "registration_completed": True
         }
+

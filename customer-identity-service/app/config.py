@@ -17,6 +17,23 @@ class Settings(BaseSettings):
     # Logging
     LOG_LEVEL: str = "INFO"
     
+    # Admin Emails for Demo Operations (comma-separated)
+    ADMIN_EMAILS: str = "souravmaiti1997@gmail.com"
+    ADMIN_EMAIL: Optional[str] = None
+    
+    # Resend Configuration
+    RESEND_API_KEY: Optional[str] = None
+    EMAIL_FROM: str = "BankPilot <onboarding@resend.dev>"
+    
+    # Optional SMTP Configuration for email notifications
+    SMTP_HOST: Optional[str] = None
+    SMTP_PORT: int = 587
+    SMTP_USER: Optional[str] = None
+    SMTP_PASSWORD: Optional[str] = None
+    SMTP_FROM_EMAIL: Optional[str] = None
+    SMTP_FROM_NAME: str = "BankPilot"
+    
     model_config = SettingsConfigDict(env_file=".env", case_sensitive=True, extra="ignore")
 
 settings = Settings()
+

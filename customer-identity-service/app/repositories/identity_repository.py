@@ -9,7 +9,7 @@ class IdentityRepository:
         self.table = f"{settings.GOOGLE_CLOUD_PROJECT}.{settings.BIGQUERY_DATASET}.customer_identity_mapping"
 
     def get_by_email(self, email: str) -> Optional[Dict[str, Any]]:
-        query = f"SELECT customer_id, email_id, firebase_uid FROM `{self.table}` WHERE email_id = @email"
+        query = f"SELECT customer_id, email_id, firebase_uid FROM `{self.table}` WHERE LOWER(email_id) = LOWER(@email)"
         job_config = bigquery.QueryJobConfig(
             query_parameters=[bigquery.ScalarQueryParameter("email", "STRING", email)]
         )

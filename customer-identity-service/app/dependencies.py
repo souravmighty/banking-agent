@@ -5,11 +5,11 @@ from app.services.firebase_service import FirebaseService
 from app.services.view_service import ViewService
 from app.services.customer_service import CustomerService
 from app.services.authorization_service import AuthorizationService
+from app.services.demo_service import DemoService
 from app.repositories.customer_repository import CustomerRepository
 from app.repositories.identity_repository import IdentityRepository
+from app.repositories.demo_repository import DemoRepository
 from app.utils.exceptions import UnauthorizedException
-from typing import Dict, Any
-
 from typing import Dict, Any, Optional
 
 # Singleton services (managed by DI)
@@ -43,6 +43,16 @@ def get_authorization_service(
     view_service: ViewService = Depends(get_view_service)
 ) -> AuthorizationService:
     return AuthorizationService(identity_repo, view_service)
+
+def get_demo_repository(bq: BigQueryService = Depends(get_bq_service)) -> DemoRepository:
+    return DemoRepository(bq)
+
+def get_demo_service(
+    demo_repo: DemoRepository = Depends(get_demo_repository),
+    view_service: ViewService = Depends(get_view_service)
+) -> DemoService:
+    return DemoService(demo_repo, view_service)
+
 
 async def get_current_user(
     auth_creds: Optional[HTTPAuthorizationCredentials] = Depends(security),

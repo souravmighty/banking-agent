@@ -28,3 +28,9 @@ variable "dataset_id" {
   type        = string
   default     = "banking_data"
 }
+
+variable "customer_identity_dataset_id" {
+  description = "BigQuery dataset ID for customer identity and demo tracking"
+  type        = string
+  default     = "customer_identity"
+}

@@ -1,11 +1,12 @@
 import time
 from fastapi import FastAPI, Request
 from fastapi.middleware.cors import CORSMiddleware
-from app.routers import registration, auth, adk, mcp
+from app.routers import registration, auth, adk, mcp, demo
 from app.config import settings
 from app.utils.logger import logger
 from app.utils.exceptions import CustomerIdentityException
 import uuid
+
 
 app = FastAPI(
     title=settings.PROJECT_NAME,
@@ -56,6 +57,8 @@ app.include_router(registration.router, prefix=settings.API_V1_STR)
 app.include_router(auth.router, prefix=settings.API_V1_STR)
 app.include_router(adk.router, prefix=settings.API_V1_STR)
 app.include_router(mcp.router, prefix=settings.API_V1_STR)
+app.include_router(demo.router, prefix=settings.API_V1_STR)
+
 
 @app.get("/health")
 async def health_check():

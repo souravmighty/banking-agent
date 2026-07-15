@@ -21,7 +21,15 @@ interface AuthContextType {
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
-const publicRoutes = ["/login"];
+const publicRoutes = ["/login", "/demo", "/staff/login"];
+
+const isStaffEmail = (email: string): boolean => {
+  const adminEmails = ["souravmaiti1997@gmail.com", "souravmaiti1997@googlemail.com"];
+  const lowerEmail = email.toLowerCase();
+  return lowerEmail.endsWith("@bankpilot.dev") || 
+         lowerEmail.endsWith("@bankpilot.com") || 
+         adminEmails.includes(lowerEmail);
+};
 
 export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [user, setUser] = useState<User | null>(null);
@@ -32,6 +40,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
   // Helper to fetch/refresh customer profile context
   const fetchCustomerContext = async (currentUser: User) => {
+    // Note: Staff might login with accounts that are pre-verified or manually created,
+    // but we support emailVerified as standard.
     if (!currentUser.emailVerified) {
       setCustomerContext(null);
       return;
@@ -40,6 +50,18 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       const email = currentUser.email;
       if (!email) {
         throw new Error("No email associated with this account.");
+      }
+
+      // Check if they are a staff user first
+      if (isStaffEmail(email)) {
+        setCustomerContext({
+          customer_id: 0,
+          name: currentUser.displayName || "Bank Staff",
+          email: email,
+          kyc_status: "VERIFIED",
+          customer_segment: "STAFF"
+        });
+        return;
       }
 
       // Check if they are an existing bank customer
@@ -86,9 +108,19 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
           setLoading(true);
           await fetchCustomerContext(currentUser);
           
-          // Redirect from login page to dashboard/home if authenticated & verified
+          // Redirect logic after auth
           if (publicRoutes.includes(pathname)) {
-            router.push("/");
+            // Check redirect parameter in URL
+            const params = new URLSearchParams(window.location.search);
+            const redirectUrl = params.get("redirect");
+            
+            if (redirectUrl) {
+              router.push(redirectUrl);
+            } else if (isStaffEmail(currentUser.email || "")) {
+              router.push("/staff/demo-requests");
+            } else {
+              router.push("/");
+            }
           }
         } else {
           // Force logout/unauthenticated state if not verified
@@ -101,7 +133,11 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         setCustomerContext(null);
         // Redirect to login if on protected page
         if (!publicRoutes.includes(pathname)) {
-          router.push("/login");
+          if (pathname.startsWith("/staff/")) {
+            router.push(`/staff/login?redirect=${encodeURIComponent(window.location.pathname + window.location.search)}`);
+          } else {
+            router.push("/login");
+          }
         }
       }
       setLoading(false);

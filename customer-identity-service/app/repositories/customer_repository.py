@@ -14,7 +14,7 @@ class CustomerRepository:
         self.beneficiaries_table = f"{settings.GOOGLE_CLOUD_PROJECT}.{settings.BIGQUERY_DATASET}.beneficiaries"
 
     def get_by_id(self, customer_id: int) -> Optional[Dict[str, Any]]:
-        query = f"SELECT * FROM `{self.customers_table}` WHERE customer_id = @customer_id"
+        query = f"SELECT * FROM `{self.customers_table}` WHERE customer_id = @customer_id AND is_current = TRUE"
         job_config = bigquery.QueryJobConfig(
             query_parameters=[bigquery.ScalarQueryParameter("customer_id", "INTEGER", customer_id)]
         )

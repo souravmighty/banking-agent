@@ -20,7 +20,15 @@ output "tables" {
     fixed_deposits            = google_bigquery_table.fixed_deposits.table_id
     beneficiaries             = google_bigquery_table.beneficiaries.table_id
     customer_identity_mapping = google_bigquery_table.customer_identity_mapping.table_id
+    demo_customers            = google_bigquery_table.demo_customers.table_id
+    demo_requests             = google_bigquery_table.demo_requests.table_id
+    demo_customer_audit       = google_bigquery_table.demo_customer_audit.table_id
   }
+}
+
+output "customer_identity_dataset_id" {
+  description = "BigQuery customer identity dataset ID"
+  value       = google_bigquery_dataset.customer_identity.dataset_id
 }
 
 output "bigquery_console_url" {

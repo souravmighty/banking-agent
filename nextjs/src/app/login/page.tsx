@@ -15,7 +15,9 @@ import {
   Briefcase, 
   CheckCircle2, 
   ShieldCheck, 
-  AlertCircle 
+  AlertCircle,
+  Github,
+  Linkedin
 } from "lucide-react";
 import { toast } from "sonner";
 import { signInWithPopup } from "firebase/auth";
@@ -64,8 +66,8 @@ export default function LoginPage() {
     setStatusMessage(null);
     setErrorMessage(null);
 
-    if (role === "staff") {
-      toast.info("Bank Staff login is coming soon!");
+    if (role === "staff" && isSignUp) {
+      toast.error("Staff self-enrollment is restricted. Please contact operations administrator.");
       return;
     }
 
@@ -145,6 +147,17 @@ export default function LoginPage() {
           <p className="text-lg text-blue-100/80 max-w-md leading-relaxed">
             Experience secure, intelligent, and seamless banking powered by our advanced AI assistant. Your financial goals, simplified.
           </p>
+          <div className="mt-8">
+            <a
+              href="https://github.com/souravmighty/banking-agent"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="inline-flex items-center gap-2.5 bg-white/10 hover:bg-white/20 active:scale-[0.98] border border-white/20 text-white font-bold text-sm px-5 py-3 rounded-xl transition-all duration-200 shadow-md"
+            >
+              <Github className="w-4.5 h-4.5" />
+              View Source on GitHub
+            </a>
+          </div>
         </div>
 
         <div className="relative z-10 flex gap-4 items-center">
@@ -388,6 +401,25 @@ export default function LoginPage() {
               </form>
             </CardContent>
           </Card>
+          
+          {/* Recruiter / Guest Demo Access Callout Banner */}
+          <div className="bg-gradient-to-r from-blue-50 to-indigo-50 border border-blue-100/50 rounded-2xl p-5 flex flex-col sm:flex-row items-center justify-between gap-4 shadow-sm shadow-indigo-100/20 backdrop-blur-sm">
+            <div className="flex items-center gap-3.5 text-center sm:text-left">
+              <div>
+                <p className="text-sm font-extrabold text-[#1a1f71]">Recruiter or Guest?</p>
+                <p className="text-xs text-[#64748b] font-medium leading-relaxed">Request an instant 7-day sandbox demo account to explore our platform.</p>
+              </div>
+            </div>
+            <Button
+              variant="outline"
+              size="sm"
+              className="border-[#1a1f71] text-[#1a1f71] hover:bg-[#1a1f71] hover:text-white font-extrabold transition-all rounded-xl text-xs gap-1.5 shrink-0 px-4 py-2"
+              onClick={() => router.push("/demo")}
+            >
+              Request Demo
+              <ArrowRight className="h-3.5 w-3.5" />
+            </Button>
+          </div>
 
           <div className="text-center space-y-4">
             <p className="text-sm text-[#64748b] font-medium">
@@ -414,6 +446,36 @@ export default function LoginPage() {
               <ShieldCheck className="h-4 w-4" />
               Secure 256-bit SSL encrypted connection
             </div>
+          </div>
+
+          {/* Footer inside login form column */}
+          <div className="border-t border-slate-200/60 pt-6 mt-8 w-full max-w-md text-center text-xs text-slate-500 space-y-3 mx-auto">
+            <div className="flex flex-col sm:flex-row items-center justify-center gap-x-4 gap-y-1.5">
+              <span className="font-medium text-slate-600">Built with ❤️ by <strong className="font-extrabold text-slate-700">Sourav Maiti</strong></span>
+              <span className="hidden sm:inline text-slate-300">&bull;</span>
+              <div className="flex items-center gap-3">
+                <a
+                  href="https://github.com/souravmighty/banking-agent"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="hover:text-[#1a1f71] flex items-center gap-1 font-bold transition-colors"
+                >
+                  <Github className="w-3.5 h-3.5" />
+                  GitHub
+                </a>
+                <span className="text-slate-300">&bull;</span>
+                <a
+                  href="https://www.linkedin.com/in/souravmaiti/"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="hover:text-[#0077b5] flex items-center gap-1 font-bold transition-colors"
+                >
+                  <Linkedin className="w-3.5 h-3.5" />
+                  LinkedIn
+                </a>
+              </div>
+            </div>
+            <p className="text-[10px] text-slate-400 font-medium">© 2026 ABC Bank Systems. Simulated sandbox environment. All rights reserved.</p>
           </div>
         </div>
       </div>

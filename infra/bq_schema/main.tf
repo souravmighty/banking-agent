@@ -709,3 +709,258 @@ resource "google_bigquery_table" "credit_scores" {
     }
   ])
 }
+
+# Create Customer Identity dataset
+resource "google_bigquery_dataset" "customer_identity" {
+  dataset_id                 = var.customer_identity_dataset_id
+  friendly_name              = "Customer Identity"
+  description                = "Dataset for tracking demo requests, allocations, and audits"
+  location                   = var.location
+  delete_contents_on_destroy = true
+}
+
+# Demo Customers table
+resource "google_bigquery_table" "demo_customers" {
+  dataset_id          = google_bigquery_dataset.customer_identity.dataset_id
+  table_id            = "demo_customers"
+  deletion_protection = false
+
+  description = "Stores details of pooled customers allocated for product demonstrations. Associates temporary recruiter/guest credentials (demo_name, demo_email) with base customer profiles and tracks active session status."
+
+  schema = jsonencode([
+    {
+      name        = "demo_customer_id"
+      type        = "STRING"
+      mode        = "REQUIRED"
+      description = "Unique randomized demo customer session identifier."
+    },
+    {
+      name        = "customer_id"
+      type        = "STRING"
+      mode        = "REQUIRED"
+      description = "Internal customer ID mapped to the main customer database. Mapped to string format for demo flexibility."
+    },
+    {
+      name        = "original_name"
+      type        = "STRING"
+      mode        = "REQUIRED"
+      description = "The original name of the base customer record."
+    },
+    {
+      name        = "original_email"
+      type        = "STRING"
+      mode        = "REQUIRED"
+      description = "The original email of the base customer record."
+    },
+    {
+      name        = "demo_name"
+      type        = "STRING"
+      mode        = "NULLABLE"
+      description = "The assigned name of the guest user accessing this demo slot."
+    },
+    {
+      name        = "demo_email"
+      type        = "STRING"
+      mode        = "NULLABLE"
+      description = "The guest user email authorized to log in via SSO."
+    },
+    {
+      name        = "firebase_uid"
+      type        = "STRING"
+      mode        = "NULLABLE"
+      description = "Firebase authenticated user ID registered upon first login."
+    },
+    {
+      name        = "status"
+      type        = "STRING"
+      mode        = "REQUIRED"
+      description = "Session allocation state. Allowed values: AVAILABLE, APPROVED, ACTIVE, EXPIRED."
+    },
+    {
+      name        = "allocated_at"
+      type        = "TIMESTAMP"
+      mode        = "NULLABLE"
+      description = "Timestamp when the demo customer slot was approved/allocated."
+    },
+    {
+      name        = "expires_at"
+      type        = "TIMESTAMP"
+      mode        = "NULLABLE"
+      description = "Timestamp when guest access expires."
+    },
+    {
+      name        = "released_at"
+      type        = "TIMESTAMP"
+      mode        = "NULLABLE"
+      description = "Timestamp when the demo slot was returned back to the pool."
+    },
+    {
+      name        = "allocated_by"
+      type        = "STRING"
+      mode        = "NULLABLE"
+      description = "The identity/admin who approved the demo allocation."
+    },
+    {
+      name        = "remarks"
+      type        = "STRING"
+      mode        = "NULLABLE"
+      description = "Operational comments or remarks regarding the allocation."
+    }
+  ])
+}
+
+# Demo Requests table
+resource "google_bigquery_table" "demo_requests" {
+  dataset_id          = google_bigquery_dataset.customer_identity.dataset_id
+  table_id            = "demo_requests"
+  deletion_protection = false
+
+  description = "Stores public requests submitted by guest users/recruiters seeking access to the sandbox demo bank environment."
+
+  schema = jsonencode([
+    {
+      name        = "request_id"
+      type        = "STRING"
+      mode        = "REQUIRED"
+      description = "Unique identifier for the demo access request."
+    },
+    {
+      name        = "name"
+      type        = "STRING"
+      mode        = "REQUIRED"
+      description = "Name of the requested applicant."
+    },
+    {
+      name        = "email"
+      type        = "STRING"
+      mode        = "REQUIRED"
+      description = "Email address of the applicant."
+    },
+    {
+      name        = "company"
+      type        = "STRING"
+      mode        = "NULLABLE"
+      description = "Applicant's company/employer name."
+    },
+    {
+      name        = "role"
+      type        = "STRING"
+      mode        = "NULLABLE"
+      description = "Applicant's title or job role."
+    },
+    {
+      name        = "linkedin"
+      type        = "STRING"
+      mode        = "NULLABLE"
+      description = "LinkedIn profile URL of the requester."
+    },
+    {
+      name        = "purpose"
+      type        = "STRING"
+      mode        = "NULLABLE"
+      description = "The stated purpose of requesting access."
+    },
+    {
+      name        = "status"
+      type        = "STRING"
+      mode        = "REQUIRED"
+      description = "Request lifecycle status. Allowed values: PENDING, APPROVED, ALLOCATED, REJECTED, EXPIRED."
+    },
+    {
+      name        = "created_at"
+      type        = "TIMESTAMP"
+      mode        = "REQUIRED"
+      description = "Submission timestamp of the request."
+    },
+    {
+      name        = "updated_at"
+      type        = "TIMESTAMP"
+      mode        = "NULLABLE"
+      description = "Last update timestamp."
+    },
+    {
+      name        = "approved_by"
+      type        = "STRING"
+      mode        = "NULLABLE"
+      description = "The admin who processed the request."
+    },
+    {
+      name        = "remarks"
+      type        = "STRING"
+      mode        = "NULLABLE"
+      description = "Audit log notes or rejection reasons."
+    },
+    {
+      name        = "customer_id"
+      type        = "STRING"
+      mode        = "NULLABLE"
+      description = "The mapped customer ID allocated to the user if approved."
+    },
+    {
+      name        = "expires_at"
+      type        = "TIMESTAMP"
+      mode        = "NULLABLE"
+      description = "Expiration timestamp of the generated demo credentials."
+    }
+  ])
+}
+
+# Demo Customer Audit table
+resource "google_bigquery_table" "demo_customer_audit" {
+  dataset_id          = google_bigquery_dataset.customer_identity.dataset_id
+  table_id            = "demo_customer_audit"
+  deletion_protection = false
+
+  description = "Audit trail logging changes to demo customer state and logins."
+
+  schema = jsonencode([
+    {
+      name        = "timestamp"
+      type        = "TIMESTAMP"
+      mode        = "REQUIRED"
+      description = "Event occurrence timestamp."
+    },
+    {
+      name        = "action"
+      type        = "STRING"
+      mode        = "REQUIRED"
+      description = "Audit event category (e.g. Allocation, Login, Release)."
+    },
+    {
+      name        = "customer_id"
+      type        = "STRING"
+      mode        = "NULLABLE"
+      description = "The impacted demo customer identifier."
+    },
+    {
+      name        = "demo_email"
+      type        = "STRING"
+      mode        = "NULLABLE"
+      description = "The demo email target of the action."
+    },
+    {
+      name        = "firebase_uid"
+      type        = "STRING"
+      mode        = "NULLABLE"
+      description = "The Firebase UID of the linked user."
+    },
+    {
+      name        = "performed_by"
+      type        = "STRING"
+      mode        = "NULLABLE"
+      description = "Operator or initiator email / system context."
+    },
+    {
+      name        = "remarks"
+      type        = "STRING"
+      mode        = "NULLABLE"
+      description = "Descriptive summary or details."
+    },
+    {
+      name        = "request_id"
+      type        = "STRING"
+      mode        = "NULLABLE"
+      description = "The associated request ID from demo_requests if applicable."
+    }
+  ])
+}

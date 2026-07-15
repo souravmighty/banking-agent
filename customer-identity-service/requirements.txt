@@ -10,4 +10,4 @@ pytest
 pytest-asyncio
 mock
 email-validator
-
+resend

@@ -195,3 +195,17 @@ class ViewService:
             })
             
         return views_metadata
+
+    def delete_authorized_views(self, customer_id: int) -> List[str]:
+        """
+        Deletes all BigQuery views associated with a specific customer_id.
+        """
+        tables = self.bq.client.list_tables(self.target_dataset)
+        prefix = f"customer_{customer_id}_"
+        deleted = []
+        for table in tables:
+            if table.table_id.startswith(prefix):
+                self.bq.client.delete_table(table.reference, not_found_ok=True)
+                deleted.append(table.table_id)
+        return deleted
+
