@@ -47,14 +47,22 @@ graph TD
     *   **Scaling Limit**: Auto-scales from 0 to 10 instances based on concurrent HTTP requests.
     *   **Authentication Boundary**: Public HTTP endpoint, utilizing in-memory Firebase Admin SDK key verification.
 
-### 3. Agent Orchestrator: Vertex AI Agent Engine (`reasoning_engines.AdkApp`)
+### 3. Customer Data Aggregator: Cloud Run (`customer-data-service`)
+*   **Purpose**: Containerized FastAPI microservice.
+*   **Configuration**:
+    *   **Port**: `8080` (mapped to `8081` in local dev)
+    *   **Memory**: 512MB RAM, 1 vCPU
+    *   **Scaling Limit**: Auto-scales from 0 to 10 instances based on concurrent HTTP requests.
+    *   **Authentication Boundary**: Public HTTP endpoint, utilizing in-memory Firebase Admin SDK key verification.
+
+### 4. Agent Orchestrator: Vertex AI Agent Engine (`reasoning_engines.AdkApp`)
 *   **Purpose**: Runs the stateful Google ADK multi-agent pipeline inside a managed, secure container sandbox on Google Vertex AI.
 *   **Configuration**:
     *   **Runtime Environment**: Python-based Vertex AI reasoning engine instance.
     *   **Tracing**: Enabled natively, forwarding thought cycles, intermediate outputs, and tools execution paths directly to Vertex AI Console Observability.
     *   **Access Control**: Decoupled from public internet; reachable via authenticated Google Cloud Vertex AI API sessions.
 
-### 4. Database & SQL Execution: BigQuery
+### 5. Database & SQL Execution: BigQuery
 *   **Purpose**: Enterprise analytical database holding the financial profiles and transactional ledgers.
 *   **Strategy**: Uses partitioned and clustered tables. RLS views are dynamically created and updated in place.
 
@@ -96,3 +104,12 @@ gcloud builds submit --config cloudbuild.yaml .
 ```
 
 The cloud build script compiles the Docker container, pushes it to Google Container Registry (GCR), and runs an in-place green-blue release on Google Cloud Run.
+
+### Deploying customer-data-service:
+```bash
+cd customer-data-service
+gcloud builds submit --config cloudbuild.yaml .
+```
+
+The cloud build script compiles the Docker container, pushes it to Google Container Registry (GCR), and runs an in-place green-blue release on Google Cloud Run.
+

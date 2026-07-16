@@ -1,0 +1,31 @@
+steps:
+  # Build the container image
+  - name: 'gcr.io/cloud-builders/docker'
+    args: ['build', '-t', 'gcr.io/$PROJECT_ID/customer-data-service', '.']
+  
+  # Push the container image to Container Registry
+  - name: 'gcr.io/cloud-builders/docker'
+    args: ['push', 'gcr.io/$PROJECT_ID/customer-data-service']
+  
+  # Deploy container image to Cloud Run
+  - name: 'gcr.io/google.com/cloudsdktool/cloud-sdk'
+    entrypoint: 'bash'
+    args:
+      - '-c'
+      - |
+        SERVICE_ACCOUNT=$$(grep -E '^DEPLOY_SERVICE_ACCOUNT=' .env | cut -d'=' -f2)
+        if [ -z "$$SERVICE_ACCOUNT" ]; then
+          SERVICE_ACCOUNT="customer-data-service@$PROJECT_ID.iam.gserviceaccount.com"
+        fi
+        echo "Deploying to Cloud Run with Service Account: $$SERVICE_ACCOUNT"
+        gcloud run deploy customer-data-service \
+          --image gcr.io/$PROJECT_ID/customer-data-service \
+          --region us-central1 \
+          --platform managed \
+          --allow-unauthenticated \
+          --service-account "$$SERVICE_ACCOUNT" \
+          --set-env-vars GOOGLE_CLOUD_PROJECT=banking-agent-rag-mcp,BIGQUERY_DATASET=banking_data,BIGQUERY_VIEWS_DATASET=customer_views,FIREBASE_SERVICE_ACCOUNT_PATH=
+
+
+images:
+  - 'gcr.io/$PROJECT_ID/customer-data-service'
