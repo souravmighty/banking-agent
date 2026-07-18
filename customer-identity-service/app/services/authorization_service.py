@@ -15,11 +15,38 @@ class AuthorizationService:
     def check_email_availability(self, email: str) -> Dict[str, Any]:
         mapping = self.identity_repo.get_by_email(email)
         if not mapping:
+            staff = self.identity_repo.get_staff_by_email(email)
+            if staff:
+                return {
+                    "customer_exists": True,
+                    "is_staff": True,
+                    "already_registered": staff.get("firebase_uid") is not None
+                }
             return {"customer_exists": False}
         
         return {
             "customer_exists": True,
             "already_registered": mapping.get("firebase_uid") is not None
+        }
+
+    def link_staff_user(self, decoded_token: Dict[str, Any]) -> Dict[str, Any]:
+        uid = decoded_token["uid"]
+        email = decoded_token["email"]
+
+        staff = self.identity_repo.get_staff_by_email(email)
+        if not staff:
+            raise CustomerNotFoundException(detail="Email not found in our pre-authorized bank staff list")
+
+        if staff.get("firebase_uid") and staff["firebase_uid"] != uid:
+             raise CustomerAlreadyRegisteredException()
+
+        # Update dynamic bank staff table
+        self.identity_repo.link_staff_uid(email, uid)
+
+        return {
+            "email": email,
+            "firebase_uid": uid,
+            "registration_completed": True
         }
 
     def link_firebase_user(self, decoded_token: Dict[str, Any]) -> Dict[str, Any]:

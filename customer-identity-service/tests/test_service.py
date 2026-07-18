@@ -5,7 +5,9 @@ from app.utils.exceptions import EmailNotVerifiedException, CustomerNotFoundExce
 
 @pytest.fixture
 def mock_identity_repo():
-    return MagicMock()
+    mock = MagicMock()
+    mock.get_staff_by_email.return_value = None
+    return mock
 
 @pytest.fixture
 def mock_view_service():

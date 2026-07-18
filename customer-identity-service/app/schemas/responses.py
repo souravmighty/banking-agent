@@ -4,9 +4,15 @@ from typing import List, Optional, Dict, Any
 class EmailCheckResponse(BaseModel):
     customer_exists: bool
     already_registered: Optional[bool] = None
+    is_staff: Optional[bool] = None
 
 class LinkUserResponse(BaseModel):
     customer_id: int
+    firebase_uid: str
+    registration_completed: bool
+
+class LinkStaffResponse(BaseModel):
+    email: str
     firebase_uid: str
     registration_completed: bool
 

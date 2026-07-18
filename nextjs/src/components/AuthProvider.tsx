@@ -21,14 +21,12 @@ interface AuthContextType {
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
-const publicRoutes = ["/login", "/demo", "/staff/login"];
+const publicRoutes = ["/login", "/demo", "/staff/login", "/staff/setup-password"];
 
 const isStaffEmail = (email: string): boolean => {
   const adminEmails = ["souravmaiti1997@gmail.com", "souravmaiti1997@googlemail.com"];
   const lowerEmail = email.toLowerCase();
-  return lowerEmail.endsWith("@bankpilot.dev") || 
-         lowerEmail.endsWith("@bankpilot.com") || 
-         adminEmails.includes(lowerEmail);
+  return adminEmails.includes(lowerEmail);
 };
 
 export function AuthProvider({ children }: { children: React.ReactNode }) {
@@ -39,12 +37,12 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
 
   // Helper to fetch/refresh customer profile context
-  const fetchCustomerContext = async (currentUser: User) => {
+  const fetchCustomerContext = async (currentUser: User): Promise<boolean> => {
     // Note: Staff might login with accounts that are pre-verified or manually created,
     // but we support emailVerified as standard.
     if (!currentUser.emailVerified) {
       setCustomerContext(null);
-      return;
+      return false;
     }
     try {
       const email = currentUser.email;
@@ -52,7 +50,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         throw new Error("No email associated with this account.");
       }
 
-      // Check if they are a staff user first
+      // Check if they are a staff user first (via static/quick list)
       if (isStaffEmail(email)) {
         setCustomerContext({
           customer_id: 0,
@@ -61,16 +59,28 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
           kyc_status: "VERIFIED",
           customer_segment: "STAFF"
         });
-        return;
+        return true;
       }
 
-      // Check if they are an existing bank customer
+      // Check if they are an existing bank customer or dynamic staff fallback
       const checkRes = await customerIdentityService.checkEmail(email);
+      
+      if (checkRes.is_staff) {
+        setCustomerContext({
+          customer_id: 0,
+          name: currentUser.displayName || "Bank Staff",
+          email: email,
+          kyc_status: "VERIFIED",
+          customer_segment: "STAFF"
+        });
+        return true;
+      }
+
       if (!checkRes.customer_exists) {
         toast.error("Not a valid bank customer. Please contact your bank.");
         await authService.logout();
         setCustomerContext(null);
-        return;
+        return false;
       }
 
       const token = await currentUser.getIdToken();
@@ -84,17 +94,19 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
           toast.error("Failed to link customer identity context.");
           await authService.logout();
           setCustomerContext(null);
-          return;
+          return false;
         }
       }
 
       // Fetch the customer context
       const context = await customerIdentityService.getMe(token);
       setCustomerContext(context);
+      return false;
     } catch (error) {
       console.error("Failed to fetch customer identity context on load:", error);
       toast.error("Identity Service Unavailable. Please contact support.");
       setCustomerContext(null);
+      return false;
     }
   };
 
@@ -106,7 +118,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       if (currentUser) {
         if (currentUser.emailVerified) {
           setLoading(true);
-          await fetchCustomerContext(currentUser);
+          const isStaffUser = await fetchCustomerContext(currentUser);
           
           // Redirect logic after auth
           if (publicRoutes.includes(pathname)) {
@@ -116,7 +128,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
             
             if (redirectUrl) {
               router.push(redirectUrl);
-            } else if (isStaffEmail(currentUser.email || "")) {
+            } else if (isStaffUser) {
               router.push("/staff/demo-requests");
             } else {
               router.push("/");

@@ -80,7 +80,7 @@ def verify_admin_user(decoded_token: Dict[str, Any], bq_service: Optional[Any] =
     user_email = decoded_token.get("email", "").lower()
     
     # 1. Quick static lookup (Fast, no DB call)
-    is_admin = user_email in admin_emails or user_email.endswith("@bankpilot.dev") or user_email.endswith("@bankpilot.com")
+    is_admin = user_email in admin_emails
     
     # 2. Dynamic BigQuery table lookup fallback
     if not is_admin:
@@ -89,9 +89,12 @@ def verify_admin_user(decoded_token: Dict[str, Any], bq_service: Optional[Any] =
             from google.cloud import bigquery
             bq = bq_service or BigQueryService()
             table_ref = f"{settings.GOOGLE_CLOUD_PROJECT}.customer_identity.bank_staff"
-            query = f"SELECT 1 FROM `{table_ref}` WHERE LOWER(email) = @email"
+            query = f"SELECT 1 FROM `{table_ref}` WHERE LOWER(email) = @email AND firebase_uid = @uid"
             job_config = bigquery.QueryJobConfig(
-                query_parameters=[bigquery.ScalarQueryParameter("email", "STRING", user_email)]
+                query_parameters=[
+                    bigquery.ScalarQueryParameter("email", "STRING", user_email),
+                    bigquery.ScalarQueryParameter("uid", "STRING", decoded_token.get("uid", ""))
+                ]
             )
             results = bq.execute_query(query, job_config=job_config)
             if results:

@@ -60,6 +60,14 @@ MERCHANTS = list(MERCHANT_CATEGORY_MAP.keys())
 def random_date(start, end):
     return start + timedelta(days=random.randint(0, (end - start).days))
 
+def random_timestamp(start, end):
+    delta = end - start
+    delta_seconds = int(delta.total_seconds())
+    if delta_seconds <= 0:
+        return start
+    random_seconds = random.randint(0, delta_seconds)
+    return start + timedelta(seconds=random_seconds)
+
 def generate_account_number(prefix=""):
     return f"{prefix}{random.randint(10**11, 10**12 - 1)}"
 
@@ -309,7 +317,7 @@ def generate_transactions(accounts_df, cards_df=None):
             ref_id = f"REF_{random.randint(10**9, 10**10-1)}"
             tx_type = random.choice(TX_TYPES)
             amount = round(random.uniform(10, 5000), 2)
-            ts = random_date(datetime(2024, 1, 1), datetime(2024, 6, 17))
+            ts = random_timestamp(datetime.now() - timedelta(days=365), datetime.now())
             
             if tx_type == 'TRANSFER':
                 # Double Entry
@@ -414,7 +422,7 @@ def generate_transactions(accounts_df, cards_df=None):
             
             for _ in range(num_tx):
                 ref_id = f"REF_{random.randint(10**9, 10**10-1)}"
-                ts = random_date(datetime(2024, 1, 1), datetime(2024, 6, 17))
+                ts = random_timestamp(datetime.now() - timedelta(days=365), datetime.now())
                 
                 # 85% card spend (DEBIT), 15% payment of card bill (CREDIT)
                 if random.random() < 0.85:

@@ -24,6 +24,18 @@ export default function DashboardPage() {
   const [dashboardData, setDashboardData] = useState<DashboardResponse | null>(null);
   const [loading, setLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
+  const [greeting, setGreeting] = useState<string>("Good morning");
+
+  useEffect(() => {
+    const hr = new Date().getHours();
+    if (hr < 12) {
+      setGreeting("Good morning");
+    } else if (hr < 17) {
+      setGreeting("Good afternoon");
+    } else {
+      setGreeting("Good evening");
+    }
+  }, []);
 
   useEffect(() => {
     async function loadDashboard() {
@@ -97,7 +109,7 @@ export default function DashboardPage() {
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
           <div>
             <h2 className="text-2xl md:text-3xl font-extrabold text-[#1a1f71] tracking-tight">
-              Good morning, {firstName}
+              {greeting}, {firstName}
             </h2>
           </div>
           <div className="text-xs sm:text-sm font-semibold text-slate-400">
@@ -314,7 +326,7 @@ export default function DashboardPage() {
                           <div>
                             <p className="font-bold text-slate-700 text-sm leading-snug">{tx.description}</p>
                             <p className="text-xs text-slate-400 capitalize">
-                              {tx.category ? tx.category.toLowerCase() : tx.transaction_type.toLowerCase().replace("_", " ")} &bull; {tx.transaction_timestamp ? new Date(tx.transaction_timestamp).toLocaleDateString("en-IN", { day: "numeric", month: "short" }) : "Today"}
+                              {tx.category ? tx.category.toLowerCase() : tx.transaction_type.toLowerCase().replace("_", " ")} &bull; {tx.transaction_timestamp ? new Date(tx.transaction_timestamp).toLocaleString("en-IN", { day: "numeric", month: "short", year: "numeric", hour: "2-digit", minute: "2-digit" }) : "Today"}
                             </p>
                           </div>
                         </div>

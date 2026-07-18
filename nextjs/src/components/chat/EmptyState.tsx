@@ -53,15 +53,15 @@ export function EmptyState(): React.JSX.Element {
                 {
                   title: 'Account & transactions', 
                   icon: WalletCards, 
-                  items: ['Check account balance', 'View recent transactions', 'Dispute a charge', 'Download statements']
+                  items: ['Check account balance', 'View recent transactions', 'Financial planning and advisory', 'Other queries related to accounts']
                 },
                 {
-                  title: 'Payments & transfers', 
+                  title: 'Payments & transfers (Coming soon)', 
                   icon: ArrowRightLeft, 
                   items: ['Transfer between accounts', 'Pay credit card bill', 'Schedule a payment', 'Track payment status']
                 },
                 {
-                  title: 'Products & FAQs', 
+                  title: 'Products & FAQs (Coming soon)', 
                   icon: BadgeHelp, 
                   items: ['Compare savings accounts', 'Credit card benefits', 'Loan eligibility info', 'Interest rates & fees']
                 },

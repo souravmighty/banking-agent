@@ -2,6 +2,7 @@
 export interface CheckEmailResponse {
   customer_exists: boolean;
   already_registered?: boolean;
+  is_staff?: boolean;
 }
 
 export interface LinkUserResponse {
@@ -111,6 +112,31 @@ class CustomerIdentityService {
       return await response.json();
     } catch (error) {
       console.error("Error in linkUser:", error);
+      throw error;
+    }
+  }
+
+  /**
+   * Links a verified Firebase user to their pre-authorized bank staff mapping in BigQuery.
+   */
+  async linkStaff(idToken: string): Promise<{ email: string; firebase_uid: string; registration_completed: boolean }> {
+    try {
+      const response = await fetch(`${this.getBaseUrl()}/api/v1/registration/link-staff`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${idToken}`,
+        },
+      });
+
+      if (!response.ok) {
+        const errorData = await response.json().catch(() => ({}));
+        throw new Error(errorData.detail || "Failed to link Firebase account with bank staff.");
+      }
+
+      return await response.json();
+    } catch (error) {
+      console.error("Error in linkStaff:", error);
       throw error;
     }
   }

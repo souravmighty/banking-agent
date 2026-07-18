@@ -39,6 +39,16 @@ class CustomerService:
         """
         identity = self.identity_repo.get_by_uid(uid)
         if not identity:
+            # Fallback to check if this is a registered bank staff
+            staff = self.identity_repo.get_staff_by_uid(uid)
+            if staff:
+                return {
+                    "customer_id": 0,
+                    "name": staff.get("name") or "Bank Staff",
+                    "email": staff.get("email"),
+                    "kyc_status": "VERIFIED",
+                    "customer_segment": "STAFF"
+                }
             raise CustomerNotFoundException(detail="Identity mapping not found for this UID")
         
         customer = self.customer_repo.get_by_id(identity['customer_id'])

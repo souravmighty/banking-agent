@@ -1,6 +1,6 @@
 from fastapi import APIRouter, Depends
 from app.schemas.requests import EmailCheckRequest
-from app.schemas.responses import EmailCheckResponse, LinkUserResponse
+from app.schemas.responses import EmailCheckResponse, LinkUserResponse, LinkStaffResponse
 from app.services.authorization_service import AuthorizationService
 from app.dependencies import get_authorization_service, get_current_user
 from typing import Dict, Any
@@ -20,3 +20,10 @@ async def link_user(
     auth_service: AuthorizationService = Depends(get_authorization_service)
 ):
     return auth_service.link_firebase_user(decoded_token)
+
+@router.post("/link-staff", response_model=LinkStaffResponse)
+async def link_staff(
+    decoded_token: Dict[str, Any] = Depends(get_current_user),
+    auth_service: AuthorizationService = Depends(get_authorization_service)
+):
+    return auth_service.link_staff_user(decoded_token)

@@ -53,3 +53,49 @@ class IdentityRepository:
             ]
         )
         self.bq.execute_query(query, job_config=job_config)
+
+    def get_staff_by_email(self, email: str) -> Optional[Dict[str, Any]]:
+        try:
+            table_ref = f"{settings.GOOGLE_CLOUD_PROJECT}.customer_identity.bank_staff"
+            query = f"SELECT email, firebase_uid, name, role FROM `{table_ref}` WHERE LOWER(email) = @email"
+            job_config = bigquery.QueryJobConfig(
+                query_parameters=[bigquery.ScalarQueryParameter("email", "STRING", email.lower())]
+            )
+            results = self.bq.execute_query(query, job_config=job_config)
+            return results[0] if results else None
+        except Exception:
+            return None
+
+    def link_staff_uid(self, email: str, uid: str) -> None:
+        table_ref = f"{settings.GOOGLE_CLOUD_PROJECT}.customer_identity.bank_staff"
+        query = f"""
+            UPDATE `{table_ref}`
+            SET firebase_uid = @uid
+            WHERE LOWER(email) = @email
+        """
+        job_config = bigquery.QueryJobConfig(
+            query_parameters=[
+                bigquery.ScalarQueryParameter("uid", "STRING", uid),
+                bigquery.ScalarQueryParameter("email", "STRING", email.lower())
+            ]
+        )
+        self.bq.execute_query(query, job_config=job_config)
+
+    def get_staff_by_uid(self, uid: str) -> Optional[Dict[str, Any]]:
+        try:
+            table_ref = f"{settings.GOOGLE_CLOUD_PROJECT}.customer_identity.bank_staff"
+            query = f"SELECT email, firebase_uid, name, role FROM `{table_ref}` WHERE firebase_uid = @uid"
+            job_config = bigquery.QueryJobConfig(
+                query_parameters=[bigquery.ScalarQueryParameter("uid", "STRING", uid)]
+            )
+            results = self.bq.execute_query(query, job_config=job_config)
+            return results[0] if results else None
+        except Exception:
+            return None
+
+    def is_staff_email(self, email: str) -> bool:
+        admin_emails = [e.strip().lower() for e in settings.ADMIN_EMAILS.split(",") if e.strip()]
+        if email.lower() in admin_emails:
+            return True
+        staff = self.get_staff_by_email(email)
+        return staff is not None

@@ -20,6 +20,7 @@ def setup_bank_staff():
         bigquery.SchemaField("name", "STRING", mode="NULLABLE"),
         bigquery.SchemaField("role", "STRING", mode="NULLABLE"),
         bigquery.SchemaField("added_at", "TIMESTAMP", mode="REQUIRED"),
+        bigquery.SchemaField("firebase_uid", "STRING", mode="NULLABLE"),
     ]
     
     table = bigquery.Table(table_ref, schema=schema)
@@ -27,7 +28,14 @@ def setup_bank_staff():
     # 1. Create Table
     try:
         client.get_table(table_ref)
-        print("Table bank_staff already exists.")
+        print("Table bank_staff already exists. Performing column migration if necessary...")
+        try:
+            # Dynamically run ALTER TABLE query to add firebase_uid if it doesn't exist
+            alter_query = f"ALTER TABLE `{table_ref}` ADD COLUMN IF NOT EXISTS firebase_uid STRING"
+            client.query(alter_query).result()
+            print("Successfully checked/added firebase_uid column in bank_staff table.")
+        except Exception as migration_err:
+            print(f"Migration warning (may be resolved): {migration_err}")
     except Exception:
         table = client.create_table(table)
         print("Table bank_staff created successfully in BigQuery.")
