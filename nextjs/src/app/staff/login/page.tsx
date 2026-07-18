@@ -65,10 +65,11 @@ export default function StaffLoginPage() {
       } else {
         router.push("/staff/demo-requests");
       }
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.error("Staff Google login error:", error);
-      if (error.code !== "auth/popup-closed-by-user") {
-        setErrorMessage(error.message || "Failed to sign in with Google.");
+      const err = error as { code?: string; message?: string };
+      if (err.code !== "auth/popup-closed-by-user") {
+        setErrorMessage(err.message || "Failed to sign in with Google.");
       }
     } finally {
       setIsGoogleLoading(false);

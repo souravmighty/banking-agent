@@ -73,11 +73,12 @@ export default function LoginPage() {
         toast.success("Successfully signed in with Google!");
         router.push("/");
       }
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.error("Google Auth error:", error);
-      if (error.code !== "auth/popup-closed-by-user") {
-        setErrorMessage(error.message || "Failed to sign in with Google.");
-        toast.error(error.message || "Failed to sign in with Google.");
+      const err = error as { code?: string; message?: string };
+      if (err.code !== "auth/popup-closed-by-user") {
+        setErrorMessage(err.message || "Failed to sign in with Google.");
+        toast.error(err.message || "Failed to sign in with Google.");
       }
     } finally {
       setIsGoogleLoading(false);

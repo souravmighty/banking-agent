@@ -68,14 +68,15 @@ export default function StaffSetupPasswordPage() {
       try {
         const userCredential = await createUserWithEmailAndPassword(auth, email, password);
         user = userCredential.user;
-      } catch (fbError: any) {
-        if (fbError.code === "auth/email-already-in-use") {
+      } catch (fbError: unknown) {
+        const err = fbError as { code?: string };
+        if (err.code === "auth/email-already-in-use") {
           try {
             // The email already exists in Firebase, try logging in with the entered password to link it!
             const userCredential = await signInWithEmailAndPassword(auth, email, password);
             user = userCredential.user;
             toast.info("Existing account recognized. Syncing and linking credentials...");
-          } catch (loginError: any) {
+          } catch {
             throw new Error("This email is already in use in Firebase, but the password entered does not match. If you have forgotten your password, please request an administrator to reset your credentials.");
           }
         } else {
@@ -138,7 +139,7 @@ export default function StaffSetupPasswordPage() {
                 <div className="text-xs">
                   <h3 className="font-bold text-slate-200">Verify Your Identity</h3>
                   <p className="text-slate-400 mt-1 leading-normal">
-                    We've dispatched an verification link to <span className="text-indigo-400 font-semibold">{email}</span>. Click the link to authorize your profile.
+                    We&apos;ve dispatched an verification link to <span className="text-indigo-400 font-semibold">{email}</span>. Click the link to authorize your profile.
                   </p>
                 </div>
               </div>
