@@ -10,12 +10,10 @@ Production-inspired AI Banking Platform featuring Google ADK, Vertex AI Agent En
 
 ---
 
-## 🎥 Playable Demo Video
+## 🎥 Playable Demo
 
 <p align="center">
-  <video src="docs/videos/BankPilot_Demo.mp4" controls="controls" width="100%" style="max-width: 800px;">
-    Your browser does not support the video tag.
-  </video>
+  <img src="docs/images/BankPilot_Demo.gif" alt="BankPilot Demo" width="100%" style="max-width: 800px;" />
 </p>
 
 ---
