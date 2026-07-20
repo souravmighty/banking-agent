@@ -10,7 +10,7 @@ Production-inspired AI Banking Platform featuring Google ADK, Vertex AI Agent En
 
 ---
 
-## 🎥 Playable Demo
+## 🎬 Demo
 
 <p align="center">
   <img src="docs/images/BankPilot_Demo.gif" alt="BankPilot Demo" width="100%" style="max-width: 800px;" />
@@ -28,34 +28,7 @@ Production-inspired AI Banking Platform featuring Google ADK, Vertex AI Agent En
   </a>
 </p>
 
-<details>
-<summary>📷 View Mermaid Source Diagram</summary>
 
-```mermaid
-graph TD
-    User(["👤 User Client"]) <-->|HTTPS / gRPC| NextJS["<img src='https://www.vectorlogo.zone/logos/nextjs/nextjs-icon.svg' width='16' height='16' /> Next.js Client UI"]
-    NextJS <-->|JWT Bearer Token| CIS["<img src='https://www.vectorlogo.zone/logos/fastapi/fastapi-icon.svg' width='16' height='16' /> customer-identity-service (FastAPI)"]
-    NextJS <-->|Session Initialization| ADK["<img src='https://www.vectorlogo.zone/logos/google/google-icon.svg' width='16' height='16' /> Google ADK (Root Orchestrator)"]
-
-    CIS -->|1. Generate Authorized Views| BQ[("<img src='https://www.vectorlogo.zone/logos/google_bigquery/google_bigquery-icon.svg' width='16' height='16' /> Google Cloud BigQuery")]
-    CIS -->|2. Inject Profile & View Context| ADK
-    CIS -->|3. Authorize Transaction Limits| MCP["🔌 Model Context Protocol Server (FastMCP)"]
-
-    subgraph Multi-Agent Boundary [Multi-Agent Boundary]
-        ADK <-->|Analytical Tasks| BQA["🔍 BigQuery Sub-Agent (NL2SQL)"]
-        ADK <-->|Transactional Tasks| TxA["💳 Transaction Sub-Agent"]
-    end
-
-    BQA <-->|Query Filtered Views Only| BQ
-    TxA <-->|Execute Tools| MCP
-    MCP <-->|Commit Balanced Ledger Records| BQ
-
-    classDef agent fill:#0A2540,stroke:#639FAB,stroke-width:2px,color:#fff;
-    classDef infra fill:#f4f6f8,stroke:#333,stroke-width:1px;
-    class ADK,BQA,TxA agent;
-    class BQ,MCP,NextJS,CIS infra;
-```
-</details>
 
 
 ---
@@ -281,43 +254,6 @@ The following statistics represent the current, actual implementation of the Ban
 *   **Trade-off**: Slightly increases frontend CSS layout complexity.
 *   **Outcome**: Perfect rendering performance on small screen devices (Pixel 7 / iPhone SE) with zero layout shifting during live stream rendering.
 
----
-
-## 🎬 Live Session Demonstration
-
-Below is a simulated walk-through of an interactive user session:
-
-```text
-[Customer Logs In with secure email] -> Next.js resolves Firebase JWT Token
-[Next.js initializes Session Context] -> customer-identity-service dynamic view compiled
-
-Customer: "What was my highest expense last month?"
-
-AI Agent Thought Timeline:
-  ├── 🔍 Route Classified: Analytical Query -> Delegating to BigQuery Agent
-  ├── 📁 Fetching sandbox schema: v_transactions_1113959832841516
-  ├── 🧠 Prompting Gemini 2.5 Pro with view schema & semantic metadata
-  ├── 💻 Executing compiled SQL:
-  │    SELECT category, SUM(amount) AS total 
-  │    FROM `banking_data.v_transactions_1113959832841516`
-  │    WHERE transaction_timestamp >= '2026-05-01'
-  │    GROUP BY category ORDER BY total DESC LIMIT 1
-  └── 📊 Database returned: "FOOD", Total: ₹12,500
-
-AI Response:
-"Your highest expense category last month was **FOOD** (totaling ₹12,500), primarily driven by transactions at Swiggy and Zomato."
-
-Customer: "Transfer ₹1,500 to Raj"
-
-AI Agent Thought Timeline:
-  ├── 🔍 Route Classified: Transactional Action -> Delegating to Transaction Agent
-  ├── 🔌 Activating FastMCP tool: get_beneficiary(name="Raj")
-  ├── 👤 Beneficiary verified: Raj (Savings Account ending in *5678)
-  └── 🛡️ Enforcing confirmation guardrail: Prompting customer for verification
-
-AI Response:
-"I have verified Raj's savings account ending in **5678**. Please confirm: do you want to transfer ₹1,500?"
-```
 
 ---
 
