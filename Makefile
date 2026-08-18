@@ -1,13 +1,14 @@
-.PHONY: install dev dev-backend dev-frontend identity-service customer-data-service bq-setup generate-data upload-data data-setup lint deploy-adk deploy-identity-service deploy-data-service
+.PHONY: install dev dev-backend dev-frontend identity-service customer-data-service analytics-metadata-service test-metadata-service bq-setup generate-data upload-data data-setup lint deploy-adk deploy-identity-service deploy-data-service
 
 install:
 	@command -v uv >/dev/null 2>&1 || { echo "uv is not installed. Installing uv..."; curl -LsSf https://astral.sh/uv/0.6.12/install.sh | sh; source $HOME/.local/bin/env; }
 	uv sync && npm --prefix nextjs install
 	uv pip install -r customer-identity-service/requirements.txt
 	uv pip install -r customer-data-service/requirements.txt
+	uv pip install -r analytics-metadata-service/requirements.txt
 
 dev:
-	make dev-backend & make dev-frontend & make identity-service & make customer-data-service
+	make dev-backend & make dev-frontend & make identity-service & make customer-data-service & make analytics-metadata-service
 
 dev-backend:
 	uv run adk api_server . --allow_origins="*"
@@ -20,6 +21,12 @@ identity-service:
 
 customer-data-service:
 	cd customer-data-service && uv run uvicorn app.main:app --host 0.0.0.0 --port 8081 --reload
+
+analytics-metadata-service:
+	cd analytics-metadata-service && uv run uvicorn app.main:app --host 0.0.0.0 --port 8003 --reload
+
+test-metadata-service:
+	cd analytics-metadata-service && PYTHONPATH=. uv run pytest tests/
 
 adk-web:
 	uv run adk web --port 8501

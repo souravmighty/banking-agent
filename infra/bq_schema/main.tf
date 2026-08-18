@@ -89,6 +89,84 @@ resource "google_bigquery_table" "customers" {
       description = "Business meaning: Know Your Customer identity verification status. Allowed values: VERIFIED, PENDING, REJECTED. Relationship information: None. Nullability: Never null."
     },
     {
+      name        = "date_of_birth"
+      type        = "DATE"
+      mode        = "NULLABLE"
+      description = "Business meaning: Customer date of birth for age calculation and eligibility checks. Nullability: Nullable."
+    },
+    {
+      name        = "gender"
+      type        = "STRING"
+      mode        = "NULLABLE"
+      description = "Business meaning: Customer gender. Allowed values: MALE, FEMALE, OTHER. Nullability: Nullable."
+    },
+    {
+      name        = "employment_status"
+      type        = "STRING"
+      mode        = "NULLABLE"
+      description = "Business meaning: Customer employment status. Allowed values: EMPLOYED, SELF_EMPLOYED, STUDENT, RETIRED, UNEMPLOYED. Nullability: Nullable."
+    },
+    {
+      name        = "occupation"
+      type        = "STRING"
+      mode        = "NULLABLE"
+      description = "Business meaning: Customer job title or profession. Nullability: Nullable."
+    },
+    {
+      name        = "industry"
+      type        = "STRING"
+      mode        = "NULLABLE"
+      description = "Business meaning: Industry domain of customer employment. Nullability: Nullable."
+    },
+    {
+      name        = "annual_income"
+      type        = "FLOAT"
+      mode        = "NULLABLE"
+      description = "Business meaning: Total estimated annual earnings or salary. Nullability: Nullable."
+    },
+    {
+      name        = "region"
+      type        = "STRING"
+      mode        = "NULLABLE"
+      description = "Business meaning: Geographic territory or zone. Allowed values: NORTH, SOUTH, EAST, WEST, CENTRAL. Nullability: Nullable."
+    },
+    {
+      name        = "state"
+      type        = "STRING"
+      mode        = "NULLABLE"
+      description = "Business meaning: State or province of residential location. Nullability: Nullable."
+    },
+    {
+      name        = "city"
+      type        = "STRING"
+      mode        = "NULLABLE"
+      description = "Business meaning: City or metro area of residence. Nullability: Nullable."
+    },
+    {
+      name        = "branch_id"
+      type        = "STRING"
+      mode        = "NULLABLE"
+      description = "Business meaning: Primary assigned branch identifier for servicing. Nullability: Nullable."
+    },
+    {
+      name        = "acquisition_channel"
+      type        = "STRING"
+      mode        = "NULLABLE"
+      description = "Business meaning: Marketing channel through which customer was onboarded. Allowed values: ORGANIC_DIGITAL, BRANCH, REFERRAL, PAID_SEARCH, PARTNER. Nullability: Nullable."
+    },
+    {
+      name        = "acquisition_source"
+      type        = "STRING"
+      mode        = "NULLABLE"
+      description = "Business meaning: Specific digital touchpoint or campaign source. Nullability: Nullable."
+    },
+    {
+      name        = "customer_tier"
+      type        = "STRING"
+      mode        = "NULLABLE"
+      description = "Business meaning: Commercial relationship tier. Allowed values: BRONZE, SILVER, GOLD, PLATINUM, DIAMOND. Nullability: Nullable."
+    },
+    {
       name        = "created_at"
       type        = "DATE"
       mode        = "REQUIRED"

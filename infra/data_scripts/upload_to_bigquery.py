@@ -1,26 +1,38 @@
+import io
+import os
+import sys
+import pandas as pd
 from google.cloud import bigquery
 from google.oauth2 import service_account
 from google.cloud.exceptions import NotFound
-import os
 from dotenv import load_dotenv
-import sys
 
-# Load the .env file
-load_dotenv()
+# Base directory
+BASE_DIR = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+load_dotenv(os.path.join(BASE_DIR, '.env'))
 
 # Data directory path
-DATA_DIR = '../../data'
+DATA_DIR = os.path.join(BASE_DIR, 'data')
+KEY_PATH = os.path.join(BASE_DIR, 'keys/tf-sa-key.json')
 
 def upload_csv_to_bigquery(project_id, dataset_id, table_id, csv_file):
-    """Upload CSV file to BigQuery table"""
-    
-    KEY_PATH = "../../keys/tf-sa-key.json"
-
+    """Upload CSV file to BigQuery table ensuring column order matches BigQuery schema"""
     # Create credentials from the file
     credentials = service_account.Credentials.from_service_account_file(KEY_PATH)
     client = bigquery.Client(project=project_id, credentials=credentials)
     
     table_ref = f"{project_id}.{dataset_id}.{table_id}"
+    table = client.get_table(table_ref)
+    
+    # Read CSV and align columns to BigQuery schema column order
+    df = pd.read_csv(csv_file)
+    bq_columns = [f.name for f in table.schema]
+    df_aligned = df.reindex(columns=bq_columns)
+    
+    # Convert to CSV bytes buffer with schema-aligned column order
+    csv_buffer = io.BytesIO()
+    df_aligned.to_csv(csv_buffer, index=False)
+    csv_buffer.seek(0)
     
     # Configure the load job
     job_config = bigquery.LoadJobConfig(
@@ -32,12 +44,11 @@ def upload_csv_to_bigquery(project_id, dataset_id, table_id, csv_file):
     
     print(f"Uploading {csv_file} to {table_ref}...")
     
-    with open(csv_file, "rb") as source_file:
-        load_job = client.load_table_from_file(
-            source_file,
-            table_ref,
-            job_config=job_config
-        )
+    load_job = client.load_table_from_file(
+        csv_buffer,
+        table_ref,
+        job_config=job_config
+    )
     
     # Wait for the job to complete
     load_job.result()
@@ -49,7 +60,7 @@ def upload_csv_to_bigquery(project_id, dataset_id, table_id, csv_file):
 def main():
     # Configuration
     project_id = os.getenv("GOOGLE_CLOUD_PROJECT")
-    dataset_id = os.getenv("DATASET_ID", "banking_data")
+    dataset_id = os.getenv("DATASET_ID") or os.getenv("BQ_DATASET_ID", "banking_data")
 
     if not project_id:
         print("Error: GOOGLE_CLOUD_PROJECT environment variable not set")

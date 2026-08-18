@@ -1,0 +1,2832 @@
+tables:
+  - table_name: customers
+    dataset_name: banking_data
+    project_id: banking-agent-rag-mcp
+    object_type: TABLE
+    description: "Master customer dimension table containing demographic, KYC, risk profile, and segment information."
+    business_domain: CUSTOMER
+    business_entity: Customer
+    business_purpose: "Stores customer profile, tier, and status for banking relationship management."
+    grain: "One row per customer version (SCD Type 2)."
+    scd_type: SCD_TYPE_2
+    natural_key:
+      - customer_id
+    primary_key:
+      - customer_id
+      - record_version
+    preferred_analytics_source: false
+    allowed_for_analytics: true
+    allowed_for_nl2sql: true
+    allowed_for_visualization: true
+    sensitivity_level: CONFIDENTIAL
+    data_owner: "Customer Data Governance Team"
+    effective_from_column: eff_start_ts
+    effective_to_column: eff_end_ts
+    current_flag_column: is_current
+    clustering_columns: []
+    tags:
+      - core
+      - customer
+      - master_data
+      - scd2
+    columns:
+      - column_name: customer_id
+        business_description: "Unique 16-digit customer identifier. Primary business key."
+        semantic_type: CUSTOMER_ID
+        is_primary_key: true
+        is_foreign_key: false
+        is_metric: false
+        is_dimension: true
+        is_filterable: true
+        is_groupable: true
+        is_sortable: true
+        is_time_dimension: false
+        is_sensitive: false
+        sensitivity_level: INTERNAL
+        tags: [key, id]
+      - column_name: name
+        business_description: "Full legal name of the customer."
+        semantic_type: NAME
+        is_primary_key: false
+        is_foreign_key: false
+        is_metric: false
+        is_dimension: true
+        is_filterable: true
+        is_groupable: false
+        is_sortable: true
+        is_time_dimension: false
+        is_sensitive: true
+        sensitivity_level: PII
+        tags: [pii, name]
+      - column_name: email
+        business_description: "Primary email address used for contact and identity matching."
+        semantic_type: EMAIL
+        is_primary_key: false
+        is_foreign_key: false
+        is_metric: false
+        is_dimension: false
+        is_filterable: true
+        is_groupable: false
+        is_sortable: false
+        is_time_dimension: false
+        is_sensitive: true
+        sensitivity_level: PII
+        tags: [pii, contact]
+      - column_name: phone
+        business_description: "Mobile contact phone number."
+        semantic_type: PHONE
+        is_primary_key: false
+        is_foreign_key: false
+        is_metric: false
+        is_dimension: false
+        is_filterable: false
+        is_groupable: false
+        is_sortable: false
+        is_time_dimension: false
+        is_sensitive: true
+        sensitivity_level: PII
+        tags: [pii, contact]
+      - column_name: address
+        business_description: "Current residential street and city address."
+        semantic_type: ADDRESS
+        is_primary_key: false
+        is_foreign_key: false
+        is_metric: false
+        is_dimension: false
+        is_filterable: false
+        is_groupable: false
+        is_sortable: false
+        is_time_dimension: false
+        is_sensitive: true
+        sensitivity_level: PII
+        tags: [pii, location]
+      - column_name: customer_status
+        business_description: "Operational status of customer account (ACTIVE, DORMANT, BLOCKED, CLOSED)."
+        semantic_type: STATUS
+        is_primary_key: false
+        is_foreign_key: false
+        is_metric: false
+        is_dimension: true
+        is_filterable: true
+        is_groupable: true
+        is_sortable: true
+        is_time_dimension: false
+        is_sensitive: false
+        sensitivity_level: INTERNAL
+        tags: [status, operational]
+      - column_name: customer_segment
+        business_description: "Customer value tier (RETAIL, PREMIUM, WEALTH, STUDENT, SENIOR_CITIZEN)."
+        semantic_type: SEGMENT
+        is_primary_key: false
+        is_foreign_key: false
+        is_metric: false
+        is_dimension: true
+        is_filterable: true
+        is_groupable: true
+        is_sortable: true
+        is_time_dimension: false
+        is_sensitive: false
+        sensitivity_level: INTERNAL
+        tags: [segmentation, marketing]
+      - column_name: risk_profile
+        business_description: "Internal compliance and credit risk classification (LOW, MEDIUM, HIGH)."
+        semantic_type: CATEGORY
+        is_primary_key: false
+        is_foreign_key: false
+        is_metric: false
+        is_dimension: true
+        is_filterable: true
+        is_groupable: true
+        is_sortable: true
+        is_time_dimension: false
+        is_sensitive: false
+        sensitivity_level: INTERNAL
+        tags: [risk, compliance]
+      - column_name: kyc_status
+        business_description: "Know Your Customer verification status (VERIFIED, PENDING, REJECTED)."
+        semantic_type: STATUS
+        is_primary_key: false
+        is_foreign_key: false
+        is_metric: false
+        is_dimension: true
+        is_filterable: true
+        is_groupable: true
+        is_sortable: true
+        is_time_dimension: false
+        is_sensitive: false
+        sensitivity_level: INTERNAL
+        tags: [kyc, compliance]
+      - column_name: created_at
+        business_description: "Customer initial onboarding date."
+        semantic_type: DATE
+        is_primary_key: false
+        is_foreign_key: false
+        is_metric: false
+        is_dimension: true
+        is_filterable: true
+        is_groupable: true
+        is_sortable: true
+        is_time_dimension: true
+        is_sensitive: false
+        sensitivity_level: INTERNAL
+        tags: [temporal, acquisition]
+      - column_name: eff_start_ts
+        business_description: "SCD Type 2 effective start timestamp for version validity."
+        semantic_type: TIMESTAMP
+        is_primary_key: false
+        is_foreign_key: false
+        is_metric: false
+        is_dimension: false
+        is_filterable: true
+        is_groupable: false
+        is_sortable: true
+        is_time_dimension: true
+        is_sensitive: false
+        sensitivity_level: INTERNAL
+        tags: [scd2, temporal]
+      - column_name: eff_end_ts
+        business_description: "SCD Type 2 effective end timestamp. NULL represents active current version."
+        semantic_type: TIMESTAMP
+        is_primary_key: false
+        is_foreign_key: false
+        is_metric: false
+        is_dimension: false
+        is_filterable: true
+        is_groupable: false
+        is_sortable: true
+        is_time_dimension: true
+        is_sensitive: false
+        sensitivity_level: INTERNAL
+        tags: [scd2, temporal]
+      - column_name: is_current
+        business_description: "SCD Type 2 current record indicator flag."
+        semantic_type: BOOLEAN
+        is_primary_key: false
+        is_foreign_key: false
+        is_metric: false
+        is_dimension: true
+        is_filterable: true
+        is_groupable: true
+        is_sortable: false
+        is_time_dimension: false
+        is_sensitive: false
+        sensitivity_level: INTERNAL
+        tags: [scd2, flag]
+      - column_name: record_version
+        business_description: "Sequential version number of the customer profile record."
+        semantic_type: COUNT
+        is_primary_key: true
+        is_foreign_key: false
+        is_metric: false
+        is_dimension: false
+        is_filterable: true
+        is_groupable: false
+        is_sortable: true
+        is_time_dimension: false
+        is_sensitive: false
+        sensitivity_level: INTERNAL
+        tags: [scd2, version]
+
+  - table_name: accounts
+    dataset_name: banking_data
+    project_id: banking-agent-rag-mcp
+    object_type: TABLE
+    description: "Deposit accounts table tracking balances, account types, branches, and statuses."
+    business_domain: ACCOUNTS
+    business_entity: Account
+    business_purpose: "Stores customer core banking deposit accounts (Savings, Current, Salary)."
+    grain: "One row per account version (SCD Type 2)."
+    scd_type: SCD_TYPE_2
+    natural_key:
+      - account_number
+    primary_key:
+      - account_number
+      - record_version
+    preferred_analytics_source: false
+    allowed_for_analytics: true
+    allowed_for_nl2sql: true
+    allowed_for_visualization: true
+    sensitivity_level: FINANCIAL
+    data_owner: "Retail Banking Operations"
+    effective_from_column: eff_start_ts
+    effective_to_column: eff_end_ts
+    current_flag_column: is_current
+    clustering_columns: []
+    tags:
+      - core
+      - deposits
+      - balances
+      - scd2
+    columns:
+      - column_name: account_number
+        business_description: "Unique bank account number."
+        semantic_type: ACCOUNT_ID
+        is_primary_key: true
+        is_foreign_key: false
+        is_metric: false
+        is_dimension: true
+        is_filterable: true
+        is_groupable: true
+        is_sortable: true
+        is_time_dimension: false
+        is_sensitive: true
+        sensitivity_level: FINANCIAL
+        tags: [key, id]
+      - column_name: customer_id
+        business_description: "Identifier of the customer owning this account."
+        semantic_type: CUSTOMER_ID
+        is_primary_key: false
+        is_foreign_key: true
+        references_table: customers
+        references_column: customer_id
+        is_metric: false
+        is_dimension: true
+        is_filterable: true
+        is_groupable: true
+        is_sortable: true
+        is_time_dimension: false
+        is_sensitive: false
+        sensitivity_level: INTERNAL
+        tags: [fk, customer]
+      - column_name: account_type
+        business_description: "Classification of deposit account (SAVINGS, CURRENT, SALARY)."
+        semantic_type: CATEGORY
+        is_primary_key: false
+        is_foreign_key: false
+        is_metric: false
+        is_dimension: true
+        is_filterable: true
+        is_groupable: true
+        is_sortable: true
+        is_time_dimension: false
+        is_sensitive: false
+        sensitivity_level: INTERNAL
+        tags: [product, deposits]
+      - column_name: account_status
+        business_description: "Operational status of account (ACTIVE, DORMANT, FROZEN, CLOSED)."
+        semantic_type: STATUS
+        is_primary_key: false
+        is_foreign_key: false
+        is_metric: false
+        is_dimension: true
+        is_filterable: true
+        is_groupable: true
+        is_sortable: true
+        is_time_dimension: false
+        is_sensitive: false
+        sensitivity_level: INTERNAL
+        tags: [status]
+      - column_name: balance
+        business_description: "Current ledger balance held in the account."
+        semantic_type: CURRENCY
+        is_primary_key: false
+        is_foreign_key: false
+        is_metric: true
+        is_dimension: false
+        is_filterable: true
+        is_groupable: false
+        is_sortable: true
+        is_time_dimension: false
+        is_sensitive: false
+        sensitivity_level: FINANCIAL
+        allowed_aggregations: [SUM, AVG, MIN, MAX]
+        default_aggregation: SUM
+        tags: [metric, financial, balance]
+      - column_name: currency
+        business_description: "Base currency code (INR, USD, EUR)."
+        semantic_type: ENUM
+        is_primary_key: false
+        is_foreign_key: false
+        is_metric: false
+        is_dimension: true
+        is_filterable: true
+        is_groupable: true
+        is_sortable: false
+        is_time_dimension: false
+        is_sensitive: false
+        sensitivity_level: INTERNAL
+        tags: [currency]
+      - column_name: ifsc_code
+        business_description: "Branch routing code."
+        semantic_type: ENUM
+        is_primary_key: false
+        is_foreign_key: false
+        is_metric: false
+        is_dimension: true
+        is_filterable: true
+        is_groupable: true
+        is_sortable: true
+        is_time_dimension: false
+        is_sensitive: false
+        sensitivity_level: INTERNAL
+        tags: [routing, branch]
+      - column_name: branch_name
+        business_description: "Name of the servicing branch location."
+        semantic_type: REGION
+        is_primary_key: false
+        is_foreign_key: false
+        is_metric: false
+        is_dimension: true
+        is_filterable: true
+        is_groupable: true
+        is_sortable: true
+        is_time_dimension: false
+        is_sensitive: false
+        sensitivity_level: INTERNAL
+        tags: [branch, location]
+      - column_name: created_at
+        business_description: "Date account was opened."
+        semantic_type: DATE
+        is_primary_key: false
+        is_foreign_key: false
+        is_metric: false
+        is_dimension: true
+        is_filterable: true
+        is_groupable: true
+        is_sortable: true
+        is_time_dimension: true
+        is_sensitive: false
+        sensitivity_level: INTERNAL
+        tags: [temporal]
+      - column_name: eff_start_ts
+        business_description: "SCD Type 2 version start timestamp."
+        semantic_type: TIMESTAMP
+        is_primary_key: false
+        is_foreign_key: false
+        is_metric: false
+        is_dimension: false
+        is_filterable: true
+        is_groupable: false
+        is_sortable: true
+        is_time_dimension: true
+        is_sensitive: false
+        sensitivity_level: INTERNAL
+        tags: [scd2]
+      - column_name: eff_end_ts
+        business_description: "SCD Type 2 version end timestamp."
+        semantic_type: TIMESTAMP
+        is_primary_key: false
+        is_foreign_key: false
+        is_metric: false
+        is_dimension: false
+        is_filterable: true
+        is_groupable: false
+        is_sortable: true
+        is_time_dimension: true
+        is_sensitive: false
+        sensitivity_level: INTERNAL
+        tags: [scd2]
+      - column_name: is_current
+        business_description: "Flag indicating whether this is the active account state."
+        semantic_type: BOOLEAN
+        is_primary_key: false
+        is_foreign_key: false
+        is_metric: false
+        is_dimension: true
+        is_filterable: true
+        is_groupable: true
+        is_sortable: false
+        is_time_dimension: false
+        is_sensitive: false
+        sensitivity_level: INTERNAL
+        tags: [scd2, flag]
+      - column_name: record_version
+        business_description: "SCD Type 2 record version number."
+        semantic_type: COUNT
+        is_primary_key: true
+        is_foreign_key: false
+        is_metric: false
+        is_dimension: false
+        is_filterable: true
+        is_groupable: false
+        is_sortable: true
+        is_time_dimension: false
+        is_sensitive: false
+        sensitivity_level: INTERNAL
+        tags: [scd2]
+
+  - table_name: transactions
+    dataset_name: banking_data
+    project_id: banking-agent-rag-mcp
+    object_type: TABLE
+    description: "Granular financial transaction ledger recording all inflows and outflows across accounts."
+    business_domain: TRANSACTIONS
+    business_entity: Transaction
+    business_purpose: "Records debits, credits, transfers, UPI, ATM, and card payment ledger events."
+    grain: "One row per transaction ledger entry."
+    scd_type: NONE
+    natural_key:
+      - transaction_id
+    primary_key:
+      - transaction_id
+    preferred_analytics_source: false
+    allowed_for_analytics: true
+    allowed_for_nl2sql: true
+    allowed_for_visualization: true
+    sensitivity_level: FINANCIAL
+    data_owner: "Payment Services & Ledger Systems"
+    partitioning:
+      type: DAY
+      field: transaction_timestamp
+    clustering_columns:
+      - transaction_type
+      - direction
+    tags:
+      - ledger
+      - transactions
+      - payments
+      - partitioned
+    columns:
+      - column_name: transaction_id
+        business_description: "Unique transaction identifier."
+        semantic_type: TRANSACTION_ID
+        is_primary_key: true
+        is_foreign_key: false
+        is_metric: false
+        is_dimension: true
+        is_filterable: true
+        is_groupable: false
+        is_sortable: true
+        is_time_dimension: false
+        is_sensitive: false
+        sensitivity_level: INTERNAL
+        tags: [key, id]
+      - column_name: reference_id
+        business_description: "Transfer pairing reference linking debit and credit legs."
+        semantic_type: TRANSACTION_ID
+        is_primary_key: false
+        is_foreign_key: false
+        is_metric: false
+        is_dimension: true
+        is_filterable: true
+        is_groupable: true
+        is_sortable: false
+        is_time_dimension: false
+        is_sensitive: false
+        sensitivity_level: INTERNAL
+        tags: [reference, correlation]
+      - column_name: account_number
+        business_description: "Account on which the transaction occurred."
+        semantic_type: ACCOUNT_ID
+        is_primary_key: false
+        is_foreign_key: true
+        references_table: accounts
+        references_column: account_number
+        is_metric: false
+        is_dimension: true
+        is_filterable: true
+        is_groupable: true
+        is_sortable: true
+        is_time_dimension: false
+        is_sensitive: true
+        sensitivity_level: FINANCIAL
+        tags: [fk, account]
+      - column_name: counterparty_account_number
+        business_description: "Target/source account number for transfers."
+        semantic_type: ACCOUNT_ID
+        is_primary_key: false
+        is_foreign_key: false
+        is_metric: false
+        is_dimension: false
+        is_filterable: true
+        is_groupable: false
+        is_sortable: false
+        is_time_dimension: false
+        is_sensitive: true
+        sensitivity_level: FINANCIAL
+        tags: [counterparty]
+      - column_name: transaction_type
+        business_description: "Payment rail/type (TRANSFER, UPI, CARD_PAYMENT, ATM_WITHDRAWAL, SALARY_CREDIT, etc.)."
+        semantic_type: CATEGORY
+        is_primary_key: false
+        is_foreign_key: false
+        is_metric: false
+        is_dimension: true
+        is_filterable: true
+        is_groupable: true
+        is_sortable: true
+        is_time_dimension: false
+        is_sensitive: false
+        sensitivity_level: INTERNAL
+        tags: [channel, type]
+      - column_name: currency
+        business_description: "Transaction currency."
+        semantic_type: ENUM
+        is_primary_key: false
+        is_foreign_key: false
+        is_metric: false
+        is_dimension: true
+        is_filterable: true
+        is_groupable: true
+        is_sortable: false
+        is_time_dimension: false
+        is_sensitive: false
+        sensitivity_level: INTERNAL
+        tags: [currency]
+      - column_name: direction
+        business_description: "Cash flow direction (DEBIT for spend/outflow, CREDIT for deposit/inflow)."
+        semantic_type: ENUM
+        is_primary_key: false
+        is_foreign_key: false
+        is_metric: false
+        is_dimension: true
+        is_filterable: true
+        is_groupable: true
+        is_sortable: false
+        is_time_dimension: false
+        is_sensitive: false
+        sensitivity_level: INTERNAL
+        tags: [flow, direction]
+      - column_name: amount
+        business_description: "Absolute transaction amount."
+        semantic_type: CURRENCY
+        is_primary_key: false
+        is_foreign_key: false
+        is_metric: true
+        is_dimension: false
+        is_filterable: true
+        is_groupable: false
+        is_sortable: true
+        is_time_dimension: false
+        is_sensitive: false
+        sensitivity_level: FINANCIAL
+        allowed_aggregations: [SUM, AVG, MIN, MAX, COUNT]
+        default_aggregation: SUM
+        tags: [metric, amount, financial]
+      - column_name: merchant_name
+        business_description: "Name of the merchant or counterparty business."
+        semantic_type: NAME
+        is_primary_key: false
+        is_foreign_key: false
+        is_metric: false
+        is_dimension: true
+        is_filterable: true
+        is_groupable: true
+        is_sortable: true
+        is_time_dimension: false
+        is_sensitive: false
+        sensitivity_level: INTERNAL
+        tags: [merchant]
+      - column_name: category
+        business_description: "Merchant spending category (GROCERY, FOOD, TRAVEL, SHOPPING, UTILITIES, etc.)."
+        semantic_type: CATEGORY
+        is_primary_key: false
+        is_foreign_key: false
+        is_metric: false
+        is_dimension: true
+        is_filterable: true
+        is_groupable: true
+        is_sortable: true
+        is_time_dimension: false
+        is_sensitive: false
+        sensitivity_level: INTERNAL
+        tags: [spend_category, dimension]
+      - column_name: description
+        business_description: "Transaction narrative/narration text."
+        semantic_type: FREE_TEXT
+        is_primary_key: false
+        is_foreign_key: false
+        is_metric: false
+        is_dimension: false
+        is_filterable: true
+        is_groupable: false
+        is_sortable: false
+        is_time_dimension: false
+        is_sensitive: false
+        sensitivity_level: INTERNAL
+        tags: [narration]
+      - column_name: transaction_timestamp
+        business_description: "Exact timestamp of the transaction. Partitioning key."
+        semantic_type: TIMESTAMP
+        is_primary_key: false
+        is_foreign_key: false
+        is_metric: false
+        is_dimension: true
+        is_filterable: true
+        is_groupable: true
+        is_sortable: true
+        is_time_dimension: true
+        is_sensitive: false
+        sensitivity_level: INTERNAL
+        tags: [temporal, partition_key]
+
+  - table_name: credit_cards
+    dataset_name: banking_data
+    project_id: banking-agent-rag-mcp
+    object_type: TABLE
+    description: "Credit card products, credit limits, outstanding balances, utilization, and billing statement details."
+    business_domain: CARDS
+    business_entity: CreditCard
+    business_purpose: "Stores credit card accounts, credit lines, statement cycles, and utilization."
+    grain: "One row per credit card version (SCD Type 2)."
+    scd_type: SCD_TYPE_2
+    natural_key:
+      - card_account_number
+    primary_key:
+      - card_account_number
+      - record_version
+    preferred_analytics_source: false
+    allowed_for_analytics: true
+    allowed_for_nl2sql: true
+    allowed_for_visualization: true
+    sensitivity_level: FINANCIAL
+    data_owner: "Cards Product & Risk Team"
+    effective_from_column: eff_start_ts
+    effective_to_column: eff_end_ts
+    current_flag_column: is_current
+    clustering_columns: []
+    tags:
+      - cards
+      - credit
+      - lending
+      - scd2
+    columns:
+      - column_name: card_account_number
+        business_description: "Unique credit card account identifier."
+        semantic_type: CARD_ID
+        is_primary_key: true
+        is_foreign_key: false
+        is_metric: false
+        is_dimension: true
+        is_filterable: true
+        is_groupable: true
+        is_sortable: true
+        is_time_dimension: false
+        is_sensitive: true
+        sensitivity_level: FINANCIAL
+        tags: [key, id]
+      - column_name: customer_id
+        business_description: "Customer identifier of cardholder."
+        semantic_type: CUSTOMER_ID
+        is_primary_key: false
+        is_foreign_key: true
+        references_table: customers
+        references_column: customer_id
+        is_metric: false
+        is_dimension: true
+        is_filterable: true
+        is_groupable: true
+        is_sortable: true
+        is_time_dimension: false
+        is_sensitive: false
+        sensitivity_level: INTERNAL
+        tags: [fk, customer]
+      - column_name: card_number
+        business_description: "Masked card number for customer display."
+        semantic_type: CARD_ID
+        is_primary_key: false
+        is_foreign_key: false
+        is_metric: false
+        is_dimension: false
+        is_filterable: false
+        is_groupable: false
+        is_sortable: false
+        is_time_dimension: false
+        is_sensitive: true
+        sensitivity_level: RESTRICTED
+        tags: [restricted, pii]
+      - column_name: card_type
+        business_description: "Card network and tier (VISA, MASTERCARD, RUPAY)."
+        semantic_type: CATEGORY
+        is_primary_key: false
+        is_foreign_key: false
+        is_metric: false
+        is_dimension: true
+        is_filterable: true
+        is_groupable: true
+        is_sortable: true
+        is_time_dimension: false
+        is_sensitive: false
+        sensitivity_level: INTERNAL
+        tags: [product, tier]
+      - column_name: credit_limit
+        business_description: "Approved maximum credit limit."
+        semantic_type: CURRENCY
+        is_primary_key: false
+        is_foreign_key: false
+        is_metric: true
+        is_dimension: false
+        is_filterable: true
+        is_groupable: false
+        is_sortable: true
+        is_time_dimension: false
+        is_sensitive: false
+        sensitivity_level: FINANCIAL
+        allowed_aggregations: [SUM, AVG, MIN, MAX]
+        default_aggregation: SUM
+        tags: [metric, credit_limit]
+      - column_name: available_credit
+        business_description: "Remaining available credit limit."
+        semantic_type: CURRENCY
+        is_primary_key: false
+        is_foreign_key: false
+        is_metric: true
+        is_dimension: false
+        is_filterable: true
+        is_groupable: false
+        is_sortable: true
+        is_time_dimension: false
+        is_sensitive: false
+        sensitivity_level: FINANCIAL
+        allowed_aggregations: [SUM, AVG]
+        default_aggregation: SUM
+        tags: [metric]
+      - column_name: outstanding_balance
+        business_description: "Total unpaid balance on the credit card."
+        semantic_type: CURRENCY
+        is_primary_key: false
+        is_foreign_key: false
+        is_metric: true
+        is_dimension: false
+        is_filterable: true
+        is_groupable: false
+        is_sortable: true
+        is_time_dimension: false
+        is_sensitive: false
+        sensitivity_level: FINANCIAL
+        allowed_aggregations: [SUM, AVG, MIN, MAX]
+        default_aggregation: SUM
+        tags: [metric, balance, liability]
+      - column_name: statement_amount
+        business_description: "Last generated monthly billing statement balance."
+        semantic_type: CURRENCY
+        is_primary_key: false
+        is_foreign_key: false
+        is_metric: true
+        is_dimension: false
+        is_filterable: true
+        is_groupable: false
+        is_sortable: true
+        is_time_dimension: false
+        is_sensitive: false
+        sensitivity_level: FINANCIAL
+        allowed_aggregations: [SUM, AVG]
+        default_aggregation: SUM
+        tags: [metric]
+      - column_name: minimum_due_amount
+        business_description: "Minimum payment due to avoid delinquency penalties."
+        semantic_type: CURRENCY
+        is_primary_key: false
+        is_foreign_key: false
+        is_metric: true
+        is_dimension: false
+        is_filterable: true
+        is_groupable: false
+        is_sortable: true
+        is_time_dimension: false
+        is_sensitive: false
+        sensitivity_level: FINANCIAL
+        allowed_aggregations: [SUM, AVG]
+        default_aggregation: SUM
+        tags: [metric]
+      - column_name: payment_due_date
+        business_description: "Due date for statement payment."
+        semantic_type: DATE
+        is_primary_key: false
+        is_foreign_key: false
+        is_metric: false
+        is_dimension: true
+        is_filterable: true
+        is_groupable: true
+        is_sortable: true
+        is_time_dimension: true
+        is_sensitive: false
+        sensitivity_level: INTERNAL
+        tags: [due_date]
+      - column_name: statement_date
+        business_description: "Date statement was compiled."
+        semantic_type: DATE
+        is_primary_key: false
+        is_foreign_key: false
+        is_metric: false
+        is_dimension: true
+        is_filterable: true
+        is_groupable: true
+        is_sortable: true
+        is_time_dimension: true
+        is_sensitive: false
+        sensitivity_level: INTERNAL
+        tags: [statement_date]
+      - column_name: utilization_percentage
+        business_description: "Card utilization ratio (outstanding_balance / credit_limit * 100)."
+        semantic_type: PERCENTAGE
+        is_primary_key: false
+        is_foreign_key: false
+        is_metric: true
+        is_dimension: false
+        is_filterable: true
+        is_groupable: false
+        is_sortable: true
+        is_time_dimension: false
+        is_sensitive: false
+        sensitivity_level: FINANCIAL
+        allowed_aggregations: [AVG, MIN, MAX]
+        default_aggregation: AVG
+        tags: [metric, risk, utilization]
+      - column_name: status
+        business_description: "Status of card (ACTIVE, BLOCKED, CLOSED)."
+        semantic_type: STATUS
+        is_primary_key: false
+        is_foreign_key: false
+        is_metric: false
+        is_dimension: true
+        is_filterable: true
+        is_groupable: true
+        is_sortable: true
+        is_time_dimension: false
+        is_sensitive: false
+        sensitivity_level: INTERNAL
+        tags: [status]
+      - column_name: created_at
+        business_description: "Card issuance date."
+        semantic_type: DATE
+        is_primary_key: false
+        is_foreign_key: false
+        is_metric: false
+        is_dimension: true
+        is_filterable: true
+        is_groupable: true
+        is_sortable: true
+        is_time_dimension: true
+        is_sensitive: false
+        sensitivity_level: INTERNAL
+        tags: [issuance]
+      - column_name: eff_start_ts
+        business_description: "SCD Type 2 version start timestamp."
+        semantic_type: TIMESTAMP
+        is_primary_key: false
+        is_foreign_key: false
+        is_metric: false
+        is_dimension: false
+        is_filterable: true
+        is_groupable: false
+        is_sortable: true
+        is_time_dimension: true
+        is_sensitive: false
+        sensitivity_level: INTERNAL
+        tags: [scd2]
+      - column_name: eff_end_ts
+        business_description: "SCD Type 2 version end timestamp."
+        semantic_type: TIMESTAMP
+        is_primary_key: false
+        is_foreign_key: false
+        is_metric: false
+        is_dimension: false
+        is_filterable: true
+        is_groupable: false
+        is_sortable: true
+        is_time_dimension: true
+        is_sensitive: false
+        sensitivity_level: INTERNAL
+        tags: [scd2]
+      - column_name: is_current
+        business_description: "Flag indicating whether this is the active credit card configuration."
+        semantic_type: BOOLEAN
+        is_primary_key: false
+        is_foreign_key: false
+        is_metric: false
+        is_dimension: true
+        is_filterable: true
+        is_groupable: true
+        is_sortable: false
+        is_time_dimension: false
+        is_sensitive: false
+        sensitivity_level: INTERNAL
+        tags: [scd2, flag]
+      - column_name: record_version
+        business_description: "SCD Type 2 version counter."
+        semantic_type: COUNT
+        is_primary_key: true
+        is_foreign_key: false
+        is_metric: false
+        is_dimension: false
+        is_filterable: true
+        is_groupable: false
+        is_sortable: true
+        is_time_dimension: false
+        is_sensitive: false
+        sensitivity_level: INTERNAL
+        tags: [scd2]
+
+  - table_name: loans
+    dataset_name: banking_data
+    project_id: banking-agent-rag-mcp
+    object_type: TABLE
+    description: "Customer loan contracts, disbursed principal amounts, interest rates, EMIs, and repayment tenure."
+    business_domain: LENDING
+    business_entity: Loan
+    business_purpose: "Stores installment loan accounts (Personal, Home, Auto, Education)."
+    grain: "One row per loan account."
+    scd_type: NONE
+    natural_key:
+      - loan_account_number
+    primary_key:
+      - loan_account_number
+    preferred_analytics_source: false
+    allowed_for_analytics: true
+    allowed_for_nl2sql: true
+    allowed_for_visualization: true
+    sensitivity_level: FINANCIAL
+    data_owner: "Lending Portfolio Management"
+    clustering_columns: []
+    tags:
+      - loans
+      - credit
+      - lending
+      - assets
+    columns:
+      - column_name: loan_account_number
+        business_description: "Unique loan account identifier."
+        semantic_type: LOAN_ID
+        is_primary_key: true
+        is_foreign_key: false
+        is_metric: false
+        is_dimension: true
+        is_filterable: true
+        is_groupable: true
+        is_sortable: true
+        is_time_dimension: false
+        is_sensitive: true
+        sensitivity_level: FINANCIAL
+        tags: [key, id]
+      - column_name: customer_id
+        business_description: "Identifier of the borrower."
+        semantic_type: CUSTOMER_ID
+        is_primary_key: false
+        is_foreign_key: true
+        references_table: customers
+        references_column: customer_id
+        is_metric: false
+        is_dimension: true
+        is_filterable: true
+        is_groupable: true
+        is_sortable: true
+        is_time_dimension: false
+        is_sensitive: false
+        sensitivity_level: INTERNAL
+        tags: [fk, customer]
+      - column_name: loan_type
+        business_description: "Loan category (PERSONAL, HOME, AUTO, EDUCATION)."
+        semantic_type: CATEGORY
+        is_primary_key: false
+        is_foreign_key: false
+        is_metric: false
+        is_dimension: true
+        is_filterable: true
+        is_groupable: true
+        is_sortable: true
+        is_time_dimension: false
+        is_sensitive: false
+        sensitivity_level: INTERNAL
+        tags: [product, loan_type]
+      - column_name: loan_amount
+        business_description: "Total sanctioned principal disbursed."
+        semantic_type: CURRENCY
+        is_primary_key: false
+        is_foreign_key: false
+        is_metric: true
+        is_dimension: false
+        is_filterable: true
+        is_groupable: false
+        is_sortable: true
+        is_time_dimension: false
+        is_sensitive: false
+        sensitivity_level: FINANCIAL
+        allowed_aggregations: [SUM, AVG, MIN, MAX]
+        default_aggregation: SUM
+        tags: [metric, principal]
+      - column_name: outstanding_amount
+        business_description: "Remaining principal debt balance."
+        semantic_type: CURRENCY
+        is_primary_key: false
+        is_foreign_key: false
+        is_metric: true
+        is_dimension: false
+        is_filterable: true
+        is_groupable: false
+        is_sortable: true
+        is_time_dimension: false
+        is_sensitive: false
+        sensitivity_level: FINANCIAL
+        allowed_aggregations: [SUM, AVG, MIN, MAX]
+        default_aggregation: SUM
+        tags: [metric, outstanding, debt]
+      - column_name: interest_rate
+        business_description: "Annual interest percentage rate (APR)."
+        semantic_type: PERCENTAGE
+        is_primary_key: false
+        is_foreign_key: false
+        is_metric: true
+        is_dimension: false
+        is_filterable: true
+        is_groupable: false
+        is_sortable: true
+        is_time_dimension: false
+        is_sensitive: false
+        sensitivity_level: INTERNAL
+        allowed_aggregations: [AVG, MIN, MAX]
+        default_aggregation: AVG
+        tags: [metric, rate]
+      - column_name: emi_amount
+        business_description: "Equated Monthly Installment repayment amount."
+        semantic_type: CURRENCY
+        is_primary_key: false
+        is_foreign_key: false
+        is_metric: true
+        is_dimension: false
+        is_filterable: true
+        is_groupable: false
+        is_sortable: true
+        is_time_dimension: false
+        is_sensitive: false
+        sensitivity_level: FINANCIAL
+        allowed_aggregations: [SUM, AVG]
+        default_aggregation: SUM
+        tags: [metric, emi]
+      - column_name: remaining_tenure_months
+        business_description: "Months remaining until maturity."
+        semantic_type: COUNT
+        is_primary_key: false
+        is_foreign_key: false
+        is_metric: true
+        is_dimension: false
+        is_filterable: true
+        is_groupable: true
+        is_sortable: true
+        is_time_dimension: false
+        is_sensitive: false
+        sensitivity_level: INTERNAL
+        allowed_aggregations: [AVG, MIN, MAX]
+        default_aggregation: AVG
+        tags: [tenure]
+      - column_name: original_tenure_months
+        business_description: "Total scheduled tenure at origination."
+        semantic_type: COUNT
+        is_primary_key: false
+        is_foreign_key: false
+        is_metric: false
+        is_dimension: true
+        is_filterable: true
+        is_groupable: true
+        is_sortable: true
+        is_time_dimension: false
+        is_sensitive: false
+        sensitivity_level: INTERNAL
+        tags: [tenure]
+      - column_name: next_emi_date
+        business_description: "Next scheduled payment due date."
+        semantic_type: DATE
+        is_primary_key: false
+        is_foreign_key: false
+        is_metric: false
+        is_dimension: true
+        is_filterable: true
+        is_groupable: true
+        is_sortable: true
+        is_time_dimension: true
+        is_sensitive: false
+        sensitivity_level: INTERNAL
+        tags: [due_date]
+      - column_name: status
+        business_description: "Loan account status (ACTIVE, CLOSED)."
+        semantic_type: STATUS
+        is_primary_key: false
+        is_foreign_key: false
+        is_metric: false
+        is_dimension: true
+        is_filterable: true
+        is_groupable: true
+        is_sortable: true
+        is_time_dimension: false
+        is_sensitive: false
+        sensitivity_level: INTERNAL
+        tags: [status]
+      - column_name: start_date
+        business_description: "Loan disbursement date."
+        semantic_type: DATE
+        is_primary_key: false
+        is_foreign_key: false
+        is_metric: false
+        is_dimension: true
+        is_filterable: true
+        is_groupable: true
+        is_sortable: true
+        is_time_dimension: true
+        is_sensitive: false
+        sensitivity_level: INTERNAL
+        tags: [temporal, disbursement]
+
+  - table_name: fixed_deposits
+    dataset_name: banking_data
+    project_id: banking-agent-rag-mcp
+    object_type: TABLE
+    description: "Customer term deposit investments, principal, interest rates, compounding, and maturity dates."
+    business_domain: INVESTMENTS
+    business_entity: FixedDeposit
+    business_purpose: "Stores term deposit investments and maturity values."
+    grain: "One row per fixed deposit contract."
+    scd_type: NONE
+    natural_key:
+      - fd_account_number
+    primary_key:
+      - fd_account_number
+    preferred_analytics_source: false
+    allowed_for_analytics: true
+    allowed_for_nl2sql: true
+    allowed_for_visualization: true
+    sensitivity_level: FINANCIAL
+    data_owner: "Treasury and Retail Wealth"
+    clustering_columns: []
+    tags:
+      - investments
+      - deposits
+      - wealth
+    columns:
+      - column_name: fd_account_number
+        business_description: "Unique fixed deposit certificate/account number."
+        semantic_type: ACCOUNT_ID
+        is_primary_key: true
+        is_foreign_key: false
+        is_metric: false
+        is_dimension: true
+        is_filterable: true
+        is_groupable: true
+        is_sortable: true
+        is_time_dimension: false
+        is_sensitive: true
+        sensitivity_level: FINANCIAL
+        tags: [key, id]
+      - column_name: customer_id
+        business_description: "Customer identifier of deposit holder."
+        semantic_type: CUSTOMER_ID
+        is_primary_key: false
+        is_foreign_key: true
+        references_table: customers
+        references_column: customer_id
+        is_metric: false
+        is_dimension: true
+        is_filterable: true
+        is_groupable: true
+        is_sortable: true
+        is_time_dimension: false
+        is_sensitive: false
+        sensitivity_level: INTERNAL
+        tags: [fk, customer]
+      - column_name: principal_amount
+        business_description: "Initial invested principal amount."
+        semantic_type: CURRENCY
+        is_primary_key: false
+        is_foreign_key: false
+        is_metric: true
+        is_dimension: false
+        is_filterable: true
+        is_groupable: false
+        is_sortable: true
+        is_time_dimension: false
+        is_sensitive: false
+        sensitivity_level: FINANCIAL
+        allowed_aggregations: [SUM, AVG, MIN, MAX]
+        default_aggregation: SUM
+        tags: [metric, investment]
+      - column_name: current_value
+        business_description: "Current accrued value of deposit including interest."
+        semantic_type: CURRENCY
+        is_primary_key: false
+        is_foreign_key: false
+        is_metric: true
+        is_dimension: false
+        is_filterable: true
+        is_groupable: false
+        is_sortable: true
+        is_time_dimension: false
+        is_sensitive: false
+        sensitivity_level: FINANCIAL
+        allowed_aggregations: [SUM, AVG, MIN, MAX]
+        default_aggregation: SUM
+        tags: [metric, wealth]
+      - column_name: interest_rate
+        business_description: "Fixed annual interest rate."
+        semantic_type: PERCENTAGE
+        is_primary_key: false
+        is_foreign_key: false
+        is_metric: true
+        is_dimension: false
+        is_filterable: true
+        is_groupable: false
+        is_sortable: true
+        is_time_dimension: false
+        is_sensitive: false
+        sensitivity_level: INTERNAL
+        allowed_aggregations: [AVG, MIN, MAX]
+        default_aggregation: AVG
+        tags: [rate]
+      - column_name: start_date
+        business_description: "Deposit creation date."
+        semantic_type: DATE
+        is_primary_key: false
+        is_foreign_key: false
+        is_metric: false
+        is_dimension: true
+        is_filterable: true
+        is_groupable: true
+        is_sortable: true
+        is_time_dimension: true
+        is_sensitive: false
+        sensitivity_level: INTERNAL
+        tags: [temporal]
+      - column_name: maturity_date
+        business_description: "Date deposit reaches maturity."
+        semantic_type: DATE
+        is_primary_key: false
+        is_foreign_key: false
+        is_metric: false
+        is_dimension: true
+        is_filterable: true
+        is_groupable: true
+        is_sortable: true
+        is_time_dimension: true
+        is_sensitive: false
+        sensitivity_level: INTERNAL
+        tags: [maturity]
+      - column_name: tenure_months
+        business_description: "Term length in months."
+        semantic_type: COUNT
+        is_primary_key: false
+        is_foreign_key: false
+        is_metric: false
+        is_dimension: true
+        is_filterable: true
+        is_groupable: true
+        is_sortable: true
+        is_time_dimension: false
+        is_sensitive: false
+        sensitivity_level: INTERNAL
+        tags: [tenure]
+      - column_name: status
+        business_description: "Status of deposit (ACTIVE, MATURED)."
+        semantic_type: STATUS
+        is_primary_key: false
+        is_foreign_key: false
+        is_metric: false
+        is_dimension: true
+        is_filterable: true
+        is_groupable: true
+        is_sortable: true
+        is_time_dimension: false
+        is_sensitive: false
+        sensitivity_level: INTERNAL
+        tags: [status]
+
+  - table_name: credit_scores
+    dataset_name: banking_data
+    project_id: banking-agent-rag-mcp
+    object_type: TABLE
+    description: "Credit scores and credit bureau information for customers."
+    business_domain: RISK
+    business_entity: CreditScore
+    business_purpose: "Stores credit score snapshots from credit bureaus (Experian, CIBIL, Equifax, TransUnion)."
+    grain: "One row per customer credit score snapshot."
+    scd_type: NONE
+    natural_key:
+      - customer_id
+    primary_key:
+      - customer_id
+    preferred_analytics_source: false
+    allowed_for_analytics: true
+    allowed_for_nl2sql: true
+    allowed_for_visualization: true
+    sensitivity_level: CONFIDENTIAL
+    data_owner: "Credit Risk Analytics"
+    clustering_columns: []
+    tags:
+      - risk
+      - credit_score
+      - bureau
+    columns:
+      - column_name: customer_id
+        business_description: "Customer identifier."
+        semantic_type: CUSTOMER_ID
+        is_primary_key: true
+        is_foreign_key: true
+        references_table: customers
+        references_column: customer_id
+        is_metric: false
+        is_dimension: true
+        is_filterable: true
+        is_groupable: true
+        is_sortable: true
+        is_time_dimension: false
+        is_sensitive: false
+        sensitivity_level: INTERNAL
+        tags: [key, fk]
+      - column_name: score
+        business_description: "Numeric credit score between 300 and 850."
+        semantic_type: COUNT
+        is_primary_key: false
+        is_foreign_key: false
+        is_metric: true
+        is_dimension: false
+        is_filterable: true
+        is_groupable: false
+        is_sortable: true
+        is_time_dimension: false
+        is_sensitive: false
+        sensitivity_level: CONFIDENTIAL
+        allowed_aggregations: [AVG, MIN, MAX]
+        default_aggregation: AVG
+        tags: [score, metric, risk]
+      - column_name: last_updated
+        business_description: "Date credit score was refreshed from bureau."
+        semantic_type: DATE
+        is_primary_key: false
+        is_foreign_key: false
+        is_metric: false
+        is_dimension: true
+        is_filterable: true
+        is_groupable: true
+        is_sortable: true
+        is_time_dimension: true
+        is_sensitive: false
+        sensitivity_level: INTERNAL
+        tags: [temporal]
+      - column_name: bureau_source
+        business_description: "Name of credit bureau provider (EXPERIAN, EQUIFAX, TRANSUNION, CIBIL)."
+        semantic_type: ENUM
+        is_primary_key: false
+        is_foreign_key: false
+        is_metric: false
+        is_dimension: true
+        is_filterable: true
+        is_groupable: true
+        is_sortable: true
+        is_time_dimension: false
+        is_sensitive: false
+        sensitivity_level: INTERNAL
+        tags: [bureau]
+
+  - table_name: beneficiaries
+    dataset_name: banking_data
+    project_id: banking-agent-rag-mcp
+    object_type: TABLE
+    description: "Saved payees and transfer beneficiaries configured by customers."
+    business_domain: PAYMENTS
+    business_entity: Beneficiary
+    business_purpose: "Stores registered payee accounts for fund transfers."
+    grain: "One row per customer beneficiary link."
+    scd_type: NONE
+    natural_key:
+      - beneficiary_id
+    primary_key:
+      - beneficiary_id
+    preferred_analytics_source: false
+    allowed_for_analytics: true
+    allowed_for_nl2sql: true
+    allowed_for_visualization: false
+    sensitivity_level: CONFIDENTIAL
+    data_owner: "Payment Services"
+    clustering_columns: []
+    tags:
+      - beneficiaries
+      - payees
+    columns:
+      - column_name: beneficiary_id
+        business_description: "Unique identifier for saved payee contact."
+        semantic_type: COUNT
+        is_primary_key: true
+        is_foreign_key: false
+        is_metric: false
+        is_dimension: true
+        is_filterable: true
+        is_groupable: false
+        is_sortable: true
+        is_time_dimension: false
+        is_sensitive: false
+        sensitivity_level: INTERNAL
+        tags: [key, id]
+      - column_name: customer_id
+        business_description: "Customer who created the beneficiary."
+        semantic_type: CUSTOMER_ID
+        is_primary_key: false
+        is_foreign_key: true
+        references_table: customers
+        references_column: customer_id
+        is_metric: false
+        is_dimension: true
+        is_filterable: true
+        is_groupable: true
+        is_sortable: true
+        is_time_dimension: false
+        is_sensitive: false
+        sensitivity_level: INTERNAL
+        tags: [fk, customer]
+      - column_name: beneficiary_name
+        business_description: "Full name or nickname of payee."
+        semantic_type: NAME
+        is_primary_key: false
+        is_foreign_key: false
+        is_metric: false
+        is_dimension: true
+        is_filterable: true
+        is_groupable: false
+        is_sortable: true
+        is_time_dimension: false
+        is_sensitive: true
+        sensitivity_level: PII
+        tags: [pii]
+      - column_name: beneficiary_account_number
+        business_description: "Payee destination bank account number."
+        semantic_type: ACCOUNT_ID
+        is_primary_key: false
+        is_foreign_key: false
+        is_metric: false
+        is_dimension: false
+        is_filterable: false
+        is_groupable: false
+        is_sortable: false
+        is_time_dimension: false
+        is_sensitive: true
+        sensitivity_level: FINANCIAL
+        tags: [account, financial]
+      - column_name: bank_name
+        business_description: "Name of payee bank."
+        semantic_type: CATEGORY
+        is_primary_key: false
+        is_foreign_key: false
+        is_metric: false
+        is_dimension: true
+        is_filterable: true
+        is_groupable: true
+        is_sortable: true
+        is_time_dimension: false
+        is_sensitive: false
+        sensitivity_level: INTERNAL
+        tags: [bank]
+      - column_name: ifsc_code
+        business_description: "Payee branch routing code."
+        semantic_type: ENUM
+        is_primary_key: false
+        is_foreign_key: false
+        is_metric: false
+        is_dimension: true
+        is_filterable: true
+        is_groupable: true
+        is_sortable: true
+        is_time_dimension: false
+        is_sensitive: false
+        sensitivity_level: INTERNAL
+        tags: [routing]
+      - column_name: status
+        business_description: "Beneficiary status (ACTIVE, BLOCKED)."
+        semantic_type: STATUS
+        is_primary_key: false
+        is_foreign_key: false
+        is_metric: false
+        is_dimension: true
+        is_filterable: true
+        is_groupable: true
+        is_sortable: true
+        is_time_dimension: false
+        is_sensitive: false
+        sensitivity_level: INTERNAL
+        tags: [status]
+      - column_name: created_at
+        business_description: "Creation timestamp."
+        semantic_type: TIMESTAMP
+        is_primary_key: false
+        is_foreign_key: false
+        is_metric: false
+        is_dimension: true
+        is_filterable: true
+        is_groupable: true
+        is_sortable: true
+        is_time_dimension: true
+        is_sensitive: false
+        sensitivity_level: INTERNAL
+        tags: [temporal]
+
+  - table_name: customer_identity_mapping
+    dataset_name: banking_data
+    project_id: banking-agent-rag-mcp
+    object_type: TABLE
+    description: "Operational mapping between Firebase Auth UIDs, emails, and internal customer IDs. Sensitive operational table excluded from analytics copilot."
+    business_domain: IDENTITY
+    business_entity: IdentityMapping
+    business_purpose: "Authenticates users and maps digital credentials to core customer IDs."
+    grain: "One row per customer auth link."
+    scd_type: NONE
+    natural_key:
+      - customer_id
+    primary_key:
+      - customer_id
+    preferred_analytics_source: false
+    allowed_for_analytics: false
+    allowed_for_nl2sql: false
+    allowed_for_visualization: false
+    sensitivity_level: RESTRICTED
+    data_owner: "Identity & Security Engineering"
+    clustering_columns: []
+    tags:
+      - operational
+      - identity
+      - restricted
+    columns:
+      - column_name: customer_id
+        business_description: "Internal customer identifier."
+        semantic_type: CUSTOMER_ID
+        is_primary_key: true
+        is_foreign_key: true
+        references_table: customers
+        references_column: customer_id
+        is_metric: false
+        is_dimension: false
+        is_filterable: false
+        is_groupable: false
+        is_sortable: false
+        is_time_dimension: false
+        is_sensitive: true
+        sensitivity_level: RESTRICTED
+        tags: [identity, restricted]
+      - column_name: email_id
+        business_description: "Digital identity email address."
+        semantic_type: EMAIL
+        is_primary_key: false
+        is_foreign_key: false
+        is_metric: false
+        is_dimension: false
+        is_filterable: false
+        is_groupable: false
+        is_sortable: false
+        is_time_dimension: false
+        is_sensitive: true
+        sensitivity_level: PII
+        tags: [pii, restricted]
+      - column_name: firebase_uid
+        business_description: "Firebase auth token UID."
+        semantic_type: FREE_TEXT
+        is_primary_key: false
+        is_foreign_key: false
+        is_metric: false
+        is_dimension: false
+        is_filterable: false
+        is_groupable: false
+        is_sortable: false
+        is_time_dimension: false
+        is_sensitive: true
+        sensitivity_level: RESTRICTED
+        tags: [restricted]
+      - column_name: registration_status
+        business_description: "Registration status."
+        semantic_type: STATUS
+        is_primary_key: false
+        is_foreign_key: false
+        is_metric: false
+        is_dimension: false
+        is_filterable: false
+        is_groupable: false
+        is_sortable: false
+        is_time_dimension: false
+        is_sensitive: false
+        sensitivity_level: INTERNAL
+        tags: [status]
+      - column_name: linked_at
+        business_description: "Timestamp when linked."
+        semantic_type: TIMESTAMP
+        is_primary_key: false
+        is_foreign_key: false
+        is_metric: false
+        is_dimension: false
+        is_filterable: false
+        is_groupable: false
+        is_sortable: false
+        is_time_dimension: true
+        is_sensitive: false
+        sensitivity_level: INTERNAL
+        tags: [temporal]
+
+  - table_name: analytics_customer_360
+    dataset_name: analytics
+    project_id: banking-agent-rag-mcp
+    object_type: VIEW
+    description: "Curated 360-degree customer analytical view aggregating total balances, active product counts, credit score, and risk profile."
+    business_domain: CUSTOMER
+    business_entity: Customer360
+    business_purpose: "Single-pane analytical view for customer segmentation, lifetime value, and cross-sell analytics."
+    grain: "One row per customer."
+    scd_type: NONE
+    natural_key:
+      - customer_id
+    primary_key:
+      - customer_id
+    preferred_analytics_source: true
+    allowed_for_analytics: true
+    allowed_for_nl2sql: true
+    allowed_for_visualization: true
+    sensitivity_level: INTERNAL
+    data_owner: "Analytics Engineering"
+    clustering_columns:
+      - customer_segment
+      - region
+    tags:
+      - curated
+      - analytics_mart
+      - customer_360
+      - preferred
+    columns:
+      - column_name: customer_id
+        business_description: "Unique customer identifier."
+        semantic_type: CUSTOMER_ID
+        is_primary_key: true
+        is_foreign_key: false
+        is_metric: false
+        is_dimension: true
+        is_filterable: true
+        is_groupable: true
+        is_sortable: true
+        is_time_dimension: false
+        is_sensitive: false
+        sensitivity_level: INTERNAL
+        tags: [key, id]
+      - column_name: customer_status
+        business_description: "Operational status of customer (ACTIVE, DORMANT, BLOCKED, CLOSED)."
+        semantic_type: STATUS
+        is_primary_key: false
+        is_foreign_key: false
+        is_metric: false
+        is_dimension: true
+        is_filterable: true
+        is_groupable: true
+        is_sortable: true
+        is_time_dimension: false
+        is_sensitive: false
+        sensitivity_level: INTERNAL
+        tags: [status]
+      - column_name: customer_since_date
+        business_description: "Date customer originally opened first relationship with the bank."
+        semantic_type: DATE
+        is_primary_key: false
+        is_foreign_key: false
+        is_metric: false
+        is_dimension: true
+        is_filterable: true
+        is_groupable: true
+        is_sortable: true
+        is_time_dimension: true
+        is_sensitive: false
+        sensitivity_level: INTERNAL
+        tags: [temporal, tenure]
+      - column_name: age
+        business_description: "Calculated current age of the customer in years."
+        semantic_type: COUNT
+        is_primary_key: false
+        is_foreign_key: false
+        is_metric: true
+        is_dimension: true
+        is_filterable: true
+        is_groupable: true
+        is_sortable: true
+        is_time_dimension: false
+        is_sensitive: false
+        sensitivity_level: INTERNAL
+        allowed_aggregations: [AVG, MIN, MAX]
+        default_aggregation: AVG
+        tags: [demographics, age]
+      - column_name: age_band
+        business_description: "Customer age cohort (<25, 25-34, 35-49, 50-64, 65+)."
+        semantic_type: CATEGORY
+        is_primary_key: false
+        is_foreign_key: false
+        is_metric: false
+        is_dimension: true
+        is_filterable: true
+        is_groupable: true
+        is_sortable: true
+        is_time_dimension: false
+        is_sensitive: false
+        sensitivity_level: INTERNAL
+        tags: [demographics, age_band]
+      - column_name: gender
+        business_description: "Customer gender (MALE, FEMALE, OTHER)."
+        semantic_type: CATEGORY
+        is_primary_key: false
+        is_foreign_key: false
+        is_metric: false
+        is_dimension: true
+        is_filterable: true
+        is_groupable: true
+        is_sortable: true
+        is_time_dimension: false
+        is_sensitive: false
+        sensitivity_level: INTERNAL
+        tags: [demographics, gender]
+      - column_name: employment_status
+        business_description: "Customer employment state (EMPLOYED, SELF_EMPLOYED, STUDENT, RETIRED, UNEMPLOYED)."
+        semantic_type: CATEGORY
+        is_primary_key: false
+        is_foreign_key: false
+        is_metric: false
+        is_dimension: true
+        is_filterable: true
+        is_groupable: true
+        is_sortable: true
+        is_time_dimension: false
+        is_sensitive: false
+        sensitivity_level: INTERNAL
+        tags: [employment]
+      - column_name: occupation
+        business_description: "Customer profession or job title."
+        semantic_type: CATEGORY
+        is_primary_key: false
+        is_foreign_key: false
+        is_metric: false
+        is_dimension: true
+        is_filterable: true
+        is_groupable: true
+        is_sortable: true
+        is_time_dimension: false
+        is_sensitive: false
+        sensitivity_level: INTERNAL
+        tags: [occupation]
+      - column_name: industry
+        business_description: "Industry sector where customer is employed."
+        semantic_type: CATEGORY
+        is_primary_key: false
+        is_foreign_key: false
+        is_metric: false
+        is_dimension: true
+        is_filterable: true
+        is_groupable: true
+        is_sortable: true
+        is_time_dimension: false
+        is_sensitive: false
+        sensitivity_level: INTERNAL
+        tags: [industry]
+      - column_name: annual_income
+        business_description: "Estimated customer annual income."
+        semantic_type: CURRENCY
+        is_primary_key: false
+        is_foreign_key: false
+        is_metric: true
+        is_dimension: false
+        is_filterable: true
+        is_groupable: false
+        is_sortable: true
+        is_time_dimension: false
+        is_sensitive: false
+        sensitivity_level: FINANCIAL
+        allowed_aggregations: [SUM, AVG, MIN, MAX]
+        default_aggregation: AVG
+        tags: [income, metric]
+      - column_name: income_band
+        business_description: "Customer annual income tier (< 5L, 5L-15L, 15L-30L, 30L-50L, 50L+)."
+        semantic_type: CATEGORY
+        is_primary_key: false
+        is_foreign_key: false
+        is_metric: false
+        is_dimension: true
+        is_filterable: true
+        is_groupable: true
+        is_sortable: true
+        is_time_dimension: false
+        is_sensitive: false
+        sensitivity_level: INTERNAL
+        tags: [income_band]
+      - column_name: region
+        business_description: "Geographic macro region (North, South, East, West, Central)."
+        semantic_type: REGION
+        is_primary_key: false
+        is_foreign_key: false
+        is_metric: false
+        is_dimension: true
+        is_filterable: true
+        is_groupable: true
+        is_sortable: true
+        is_time_dimension: false
+        is_sensitive: false
+        sensitivity_level: INTERNAL
+        tags: [geography, region]
+      - column_name: state
+        business_description: "State or province of residence."
+        semantic_type: REGION
+        is_primary_key: false
+        is_foreign_key: false
+        is_metric: false
+        is_dimension: true
+        is_filterable: true
+        is_groupable: true
+        is_sortable: true
+        is_time_dimension: false
+        is_sensitive: false
+        sensitivity_level: INTERNAL
+        tags: [geography, state]
+      - column_name: city
+        business_description: "City of residence."
+        semantic_type: REGION
+        is_primary_key: false
+        is_foreign_key: false
+        is_metric: false
+        is_dimension: true
+        is_filterable: true
+        is_groupable: true
+        is_sortable: true
+        is_time_dimension: false
+        is_sensitive: false
+        sensitivity_level: INTERNAL
+        tags: [geography, city]
+      - column_name: branch_id
+        business_description: "Primary servicing bank branch code."
+        semantic_type: CATEGORY
+        is_primary_key: false
+        is_foreign_key: false
+        is_metric: false
+        is_dimension: true
+        is_filterable: true
+        is_groupable: true
+        is_sortable: true
+        is_time_dimension: false
+        is_sensitive: false
+        sensitivity_level: INTERNAL
+        tags: [branch]
+      - column_name: acquisition_date
+        business_description: "Date customer originally opened first account."
+        semantic_type: DATE
+        is_primary_key: false
+        is_foreign_key: false
+        is_metric: false
+        is_dimension: true
+        is_filterable: true
+        is_groupable: true
+        is_sortable: true
+        is_time_dimension: true
+        is_sensitive: false
+        sensitivity_level: INTERNAL
+        tags: [temporal]
+      - column_name: acquisition_channel
+        business_description: "Marketing acquisition channel (ORGANIC_DIGITAL, BRANCH, REFERRAL, PAID_SEARCH, PARTNER)."
+        semantic_type: CHANNEL
+        is_primary_key: false
+        is_foreign_key: false
+        is_metric: false
+        is_dimension: true
+        is_filterable: true
+        is_groupable: true
+        is_sortable: true
+        is_time_dimension: false
+        is_sensitive: false
+        sensitivity_level: INTERNAL
+        tags: [acquisition, channel]
+      - column_name: acquisition_source
+        business_description: "Granular acquisition touchpoint (e.g. Mobile App, Google Search Ads, Direct Website)."
+        semantic_type: CHANNEL
+        is_primary_key: false
+        is_foreign_key: false
+        is_metric: false
+        is_dimension: true
+        is_filterable: true
+        is_groupable: true
+        is_sortable: true
+        is_time_dimension: false
+        is_sensitive: false
+        sensitivity_level: INTERNAL
+        tags: [acquisition, source]
+      - column_name: customer_segment
+        business_description: "Customer segment (RETAIL, PREMIUM, WEALTH, STUDENT, SENIOR_CITIZEN)."
+        semantic_type: SEGMENT
+        is_primary_key: false
+        is_foreign_key: false
+        is_metric: false
+        is_dimension: true
+        is_filterable: true
+        is_groupable: true
+        is_sortable: true
+        is_time_dimension: false
+        is_sensitive: false
+        sensitivity_level: INTERNAL
+        tags: [segment]
+      - column_name: customer_tier
+        business_description: "Customer service and reward tier (BRONZE, SILVER, GOLD, PLATINUM, DIAMOND)."
+        semantic_type: SEGMENT
+        is_primary_key: false
+        is_foreign_key: false
+        is_metric: false
+        is_dimension: true
+        is_filterable: true
+        is_groupable: true
+        is_sortable: true
+        is_time_dimension: false
+        is_sensitive: false
+        sensitivity_level: INTERNAL
+        tags: [tier]
+      - column_name: value_segment
+        business_description: "Asset and relationship value tier (HIGH_VALUE, MEDIUM_VALUE, MASS_MARKET)."
+        semantic_type: SEGMENT
+        is_primary_key: false
+        is_foreign_key: false
+        is_metric: false
+        is_dimension: true
+        is_filterable: true
+        is_groupable: true
+        is_sortable: true
+        is_time_dimension: false
+        is_sensitive: false
+        sensitivity_level: INTERNAL
+        tags: [value_segment]
+      - column_name: risk_segment
+        business_description: "Credit risk profile segment (LOW_RISK, MEDIUM_RISK, HIGH_RISK)."
+        semantic_type: CATEGORY
+        is_primary_key: false
+        is_foreign_key: false
+        is_metric: false
+        is_dimension: true
+        is_filterable: true
+        is_groupable: true
+        is_sortable: true
+        is_time_dimension: false
+        is_sensitive: false
+        sensitivity_level: INTERNAL
+        tags: [risk_segment]
+      - column_name: risk_profile
+        business_description: "Risk rating (LOW, MEDIUM, HIGH)."
+        semantic_type: CATEGORY
+        is_primary_key: false
+        is_foreign_key: false
+        is_metric: false
+        is_dimension: true
+        is_filterable: true
+        is_groupable: true
+        is_sortable: true
+        is_time_dimension: false
+        is_sensitive: false
+        sensitivity_level: INTERNAL
+        tags: [risk]
+      - column_name: lifecycle_stage
+        business_description: "Customer lifecycle phase (ONBOARDING, GROWTH, MATURE, DORMANT)."
+        semantic_type: STATUS
+        is_primary_key: false
+        is_foreign_key: false
+        is_metric: false
+        is_dimension: true
+        is_filterable: true
+        is_groupable: true
+        is_sortable: true
+        is_time_dimension: false
+        is_sensitive: false
+        sensitivity_level: INTERNAL
+        tags: [lifecycle]
+      - column_name: has_credit_card
+        business_description: "Boolean flag indicating whether customer has an active credit card."
+        semantic_type: BOOLEAN
+        is_primary_key: false
+        is_foreign_key: false
+        is_metric: false
+        is_dimension: true
+        is_filterable: true
+        is_groupable: true
+        is_sortable: true
+        is_time_dimension: false
+        is_sensitive: false
+        sensitivity_level: INTERNAL
+        tags: [product_flag, credit_card]
+      - column_name: has_loan
+        business_description: "Boolean flag indicating whether customer has an active loan."
+        semantic_type: BOOLEAN
+        is_primary_key: false
+        is_foreign_key: false
+        is_metric: false
+        is_dimension: true
+        is_filterable: true
+        is_groupable: true
+        is_sortable: true
+        is_time_dimension: false
+        is_sensitive: false
+        sensitivity_level: INTERNAL
+        tags: [product_flag, loan]
+      - column_name: has_investment
+        business_description: "Boolean flag indicating whether customer has active fixed deposit / term investment."
+        semantic_type: BOOLEAN
+        is_primary_key: false
+        is_foreign_key: false
+        is_metric: false
+        is_dimension: true
+        is_filterable: true
+        is_groupable: true
+        is_sortable: true
+        is_time_dimension: false
+        is_sensitive: false
+        sensitivity_level: INTERNAL
+        tags: [product_flag, investment]
+      - column_name: product_count
+        business_description: "Total count of active financial products held by customer."
+        semantic_type: COUNT
+        is_primary_key: false
+        is_foreign_key: false
+        is_metric: true
+        is_dimension: true
+        is_filterable: true
+        is_groupable: true
+        is_sortable: true
+        is_time_dimension: false
+        is_sensitive: false
+        sensitivity_level: INTERNAL
+        allowed_aggregations: [SUM, AVG, MIN, MAX]
+        default_aggregation: AVG
+        tags: [metric, product_count]
+      - column_name: active_product_count
+        business_description: "Total distinct active financial products held by customer."
+        semantic_type: COUNT
+        is_primary_key: false
+        is_foreign_key: false
+        is_metric: true
+        is_dimension: false
+        is_filterable: true
+        is_groupable: true
+        is_sortable: true
+        is_time_dimension: false
+        is_sensitive: false
+        sensitivity_level: INTERNAL
+        allowed_aggregations: [SUM, AVG, MIN, MAX]
+        default_aggregation: AVG
+        tags: [metric, penetration]
+      - column_name: total_deposit_balance
+        business_description: "Aggregated balance across all savings and current accounts."
+        semantic_type: CURRENCY
+        is_primary_key: false
+        is_foreign_key: false
+        is_metric: true
+        is_dimension: false
+        is_filterable: true
+        is_groupable: false
+        is_sortable: true
+        is_time_dimension: false
+        is_sensitive: false
+        sensitivity_level: FINANCIAL
+        allowed_aggregations: [SUM, AVG, MIN, MAX]
+        default_aggregation: SUM
+        tags: [metric, deposits]
+      - column_name: total_fd_balance
+        business_description: "Total fixed deposit holdings."
+        semantic_type: CURRENCY
+        is_primary_key: false
+        is_foreign_key: false
+        is_metric: true
+        is_dimension: false
+        is_filterable: true
+        is_groupable: false
+        is_sortable: true
+        is_time_dimension: false
+        is_sensitive: false
+        sensitivity_level: FINANCIAL
+        allowed_aggregations: [SUM, AVG, MIN, MAX]
+        default_aggregation: SUM
+        tags: [metric, fd]
+      - column_name: total_loan_outstanding
+        business_description: "Total outstanding debt on active loans."
+        semantic_type: CURRENCY
+        is_primary_key: false
+        is_foreign_key: false
+        is_metric: true
+        is_dimension: false
+        is_filterable: true
+        is_groupable: false
+        is_sortable: true
+        is_time_dimension: false
+        is_sensitive: false
+        sensitivity_level: FINANCIAL
+        allowed_aggregations: [SUM, AVG, MIN, MAX]
+        default_aggregation: SUM
+        tags: [metric, loans]
+      - column_name: total_card_outstanding
+        business_description: "Total outstanding balance on all active credit cards."
+        semantic_type: CURRENCY
+        is_primary_key: false
+        is_foreign_key: false
+        is_metric: true
+        is_dimension: false
+        is_filterable: true
+        is_groupable: false
+        is_sortable: true
+        is_time_dimension: false
+        is_sensitive: false
+        sensitivity_level: FINANCIAL
+        allowed_aggregations: [SUM, AVG, MIN, MAX]
+        default_aggregation: SUM
+        tags: [metric, cards]
+      - column_name: credit_score
+        business_description: "Latest credit bureau score."
+        semantic_type: COUNT
+        is_primary_key: false
+        is_foreign_key: false
+        is_metric: true
+        is_dimension: false
+        is_filterable: true
+        is_groupable: false
+        is_sortable: true
+        is_time_dimension: false
+        is_sensitive: false
+        sensitivity_level: INTERNAL
+        allowed_aggregations: [AVG, MIN, MAX]
+        default_aggregation: AVG
+        tags: [credit_score]
+      - column_name: effective_from
+        business_description: "Timestamp when this customer dimension record version became effective."
+        semantic_type: TIMESTAMP
+        is_primary_key: false
+        is_foreign_key: false
+        is_metric: false
+        is_dimension: true
+        is_filterable: true
+        is_groupable: false
+        is_sortable: true
+        is_time_dimension: true
+        is_sensitive: false
+        sensitivity_level: INTERNAL
+        tags: [scd]
+      - column_name: effective_to
+        business_description: "Timestamp when this customer dimension version expired (NULL if currently active)."
+        semantic_type: TIMESTAMP
+        is_primary_key: false
+        is_foreign_key: false
+        is_metric: false
+        is_dimension: true
+        is_filterable: true
+        is_groupable: false
+        is_sortable: true
+        is_time_dimension: true
+        is_sensitive: false
+        sensitivity_level: INTERNAL
+        tags: [scd]
+      - column_name: is_current
+        business_description: "Flag indicating whether this is the latest active customer record version."
+        semantic_type: BOOLEAN
+        is_primary_key: false
+        is_foreign_key: false
+        is_metric: false
+        is_dimension: true
+        is_filterable: true
+        is_groupable: true
+        is_sortable: true
+        is_time_dimension: false
+        is_sensitive: false
+        sensitivity_level: INTERNAL
+        tags: [scd]
+
+
+  - table_name: analytics_customer_acquisition
+    dataset_name: analytics
+    project_id: banking-agent-rag-mcp
+    object_type: VIEW
+    description: "Curated customer acquisition and application funnel dataset tracking onboarding channels, campaigns, conversion rates, and acquisition dates."
+    business_domain: CUSTOMER_ACQUISITION
+    business_entity: Acquisition
+    business_purpose: "Analyzes customer acquisition velocity, channel performance, campaign conversion, and funnel attrition."
+    grain: "One row per customer acquisition or onboarding event."
+    scd_type: NONE
+    natural_key:
+      - acquisition_id
+    primary_key:
+      - acquisition_id
+    preferred_analytics_source: true
+    allowed_for_analytics: true
+    allowed_for_nl2sql: true
+    allowed_for_visualization: true
+    sensitivity_level: INTERNAL
+    data_owner: "Growth & Acquisition Analytics"
+    clustering_columns:
+      - acquisition_channel
+      - customer_segment
+    tags:
+      - curated
+      - analytics_mart
+      - acquisition
+      - funnel
+      - preferred
+    columns:
+      - column_name: acquisition_id
+        business_description: "Unique identifier for acquisition event."
+        semantic_type: TRANSACTION_ID
+        is_primary_key: true
+        is_foreign_key: false
+        is_metric: false
+        is_dimension: true
+        is_filterable: true
+        is_groupable: false
+        is_sortable: true
+        is_time_dimension: false
+        is_sensitive: false
+        sensitivity_level: INTERNAL
+        tags: [key, id]
+      - column_name: customer_id
+        business_description: "Acquired customer identifier."
+        semantic_type: CUSTOMER_ID
+        is_primary_key: false
+        is_foreign_key: true
+        references_table: analytics_customer_360
+        references_column: customer_id
+        is_metric: false
+        is_dimension: true
+        is_filterable: true
+        is_groupable: true
+        is_sortable: true
+        is_time_dimension: false
+        is_sensitive: false
+        sensitivity_level: INTERNAL
+        tags: [fk, customer]
+      - column_name: acquisition_channel
+        business_description: "Channel through which customer was acquired (ORGANIC_DIGITAL, BRANCH, REFERRAL, PARTNER, PAID_CAMPAIGN)."
+        semantic_type: CHANNEL
+        is_primary_key: false
+        is_foreign_key: false
+        is_metric: false
+        is_dimension: true
+        is_filterable: true
+        is_groupable: true
+        is_sortable: true
+        is_time_dimension: false
+        is_sensitive: false
+        sensitivity_level: INTERNAL
+        tags: [channel, marketing]
+      - column_name: customer_segment
+        business_description: "Assigned customer tier at onboarding."
+        semantic_type: SEGMENT
+        is_primary_key: false
+        is_foreign_key: false
+        is_metric: false
+        is_dimension: true
+        is_filterable: true
+        is_groupable: true
+        is_sortable: true
+        is_time_dimension: false
+        is_sensitive: false
+        sensitivity_level: INTERNAL
+        tags: [segment]
+      - column_name: region
+        business_description: "Geographic territory of customer onboarding."
+        semantic_type: REGION
+        is_primary_key: false
+        is_foreign_key: false
+        is_metric: false
+        is_dimension: true
+        is_filterable: true
+        is_groupable: true
+        is_sortable: true
+        is_time_dimension: false
+        is_sensitive: false
+        sensitivity_level: INTERNAL
+        tags: [region, geography]
+      - column_name: acquisition_date
+        business_description: "Date when customer onboarding completed."
+        semantic_type: DATE
+        is_primary_key: false
+        is_foreign_key: false
+        is_metric: false
+        is_dimension: true
+        is_filterable: true
+        is_groupable: true
+        is_sortable: true
+        is_time_dimension: true
+        is_sensitive: false
+        sensitivity_level: INTERNAL
+        tags: [temporal, date]
+      - column_name: application_status
+        business_description: "Application decision status (APPROVED, REJECTED, ABANDONED)."
+        semantic_type: STATUS
+        is_primary_key: false
+        is_foreign_key: false
+        is_metric: false
+        is_dimension: true
+        is_filterable: true
+        is_groupable: true
+        is_sortable: true
+        is_time_dimension: false
+        is_sensitive: false
+        sensitivity_level: INTERNAL
+        tags: [status]
+      - column_name: initial_deposit_amount
+        business_description: "Initial funding deposited during account opening."
+        semantic_type: CURRENCY
+        is_primary_key: false
+        is_foreign_key: false
+        is_metric: true
+        is_dimension: false
+        is_filterable: true
+        is_groupable: false
+        is_sortable: true
+        is_time_dimension: false
+        is_sensitive: false
+        sensitivity_level: FINANCIAL
+        allowed_aggregations: [SUM, AVG, MIN, MAX]
+        default_aggregation: SUM
+        tags: [metric, funding]
+      - column_name: acquisition_cost
+        business_description: "Marketing and processing cost incurred to acquire the customer."
+        semantic_type: CURRENCY
+        is_primary_key: false
+        is_foreign_key: false
+        is_metric: true
+        is_dimension: false
+        is_filterable: true
+        is_groupable: false
+        is_sortable: true
+        is_time_dimension: false
+        is_sensitive: false
+        sensitivity_level: FINANCIAL
+        allowed_aggregations: [SUM, AVG]
+        default_aggregation: SUM
+        tags: [metric, cac]
+
+  - table_name: analytics_transactions
+    dataset_name: analytics
+    project_id: banking-agent-rag-mcp
+    object_type: VIEW
+    description: "Curated analytical transaction mart enriched with customer demographics, merchant categories, and temporal dimensions."
+    business_domain: TRANSACTIONS
+    business_entity: EnrichedTransaction
+    business_purpose: "Serves spend trend analysis, customer merchant profiling, and monthly flow analysis."
+    grain: "One row per enriched transaction entry."
+    scd_type: NONE
+    natural_key:
+      - transaction_id
+    primary_key:
+      - transaction_id
+    preferred_analytics_source: true
+    allowed_for_analytics: true
+    allowed_for_nl2sql: true
+    allowed_for_visualization: true
+    sensitivity_level: FINANCIAL
+    data_owner: "Analytics Engineering"
+    partitioning:
+      type: DAY
+      field: transaction_timestamp
+    clustering_columns:
+      - merchant_category
+      - customer_segment
+      - direction
+    tags:
+      - curated
+      - analytics_mart
+      - transactions
+      - spend
+      - preferred
+    columns:
+      - column_name: transaction_id
+        business_description: "Unique transaction identifier."
+        semantic_type: TRANSACTION_ID
+        is_primary_key: true
+        is_foreign_key: false
+        is_metric: false
+        is_dimension: true
+        is_filterable: true
+        is_groupable: false
+        is_sortable: true
+        is_time_dimension: false
+        is_sensitive: false
+        sensitivity_level: INTERNAL
+        tags: [key, id]
+      - column_name: customer_id
+        business_description: "Transacting customer identifier."
+        semantic_type: CUSTOMER_ID
+        is_primary_key: false
+        is_foreign_key: true
+        references_table: analytics_customer_360
+        references_column: customer_id
+        is_metric: false
+        is_dimension: true
+        is_filterable: true
+        is_groupable: true
+        is_sortable: true
+        is_time_dimension: false
+        is_sensitive: false
+        sensitivity_level: INTERNAL
+        tags: [fk, customer]
+      - column_name: account_number
+        business_description: "Account number involved."
+        semantic_type: ACCOUNT_ID
+        is_primary_key: false
+        is_foreign_key: false
+        is_metric: false
+        is_dimension: true
+        is_filterable: true
+        is_groupable: true
+        is_sortable: true
+        is_time_dimension: false
+        is_sensitive: true
+        sensitivity_level: FINANCIAL
+        tags: [account]
+      - column_name: customer_segment
+        business_description: "Customer segment tier at time of transaction."
+        semantic_type: SEGMENT
+        is_primary_key: false
+        is_foreign_key: false
+        is_metric: false
+        is_dimension: true
+        is_filterable: true
+        is_groupable: true
+        is_sortable: true
+        is_time_dimension: false
+        is_sensitive: false
+        sensitivity_level: INTERNAL
+        tags: [segment]
+      - column_name: region
+        business_description: "Customer region."
+        semantic_type: REGION
+        is_primary_key: false
+        is_foreign_key: false
+        is_metric: false
+        is_dimension: true
+        is_filterable: true
+        is_groupable: true
+        is_sortable: true
+        is_time_dimension: false
+        is_sensitive: false
+        sensitivity_level: INTERNAL
+        tags: [region]
+      - column_name: merchant_category
+        business_description: "Enriched merchant spending category."
+        semantic_type: CATEGORY
+        is_primary_key: false
+        is_foreign_key: false
+        is_metric: false
+        is_dimension: true
+        is_filterable: true
+        is_groupable: true
+        is_sortable: true
+        is_time_dimension: false
+        is_sensitive: false
+        sensitivity_level: INTERNAL
+        tags: [category, spend]
+      - column_name: direction
+        business_description: "DEBIT or CREDIT."
+        semantic_type: ENUM
+        is_primary_key: false
+        is_foreign_key: false
+        is_metric: false
+        is_dimension: true
+        is_filterable: true
+        is_groupable: true
+        is_sortable: false
+        is_time_dimension: false
+        is_sensitive: false
+        sensitivity_level: INTERNAL
+        tags: [direction]
+      - column_name: amount
+        business_description: "Transaction amount."
+        semantic_type: CURRENCY
+        is_primary_key: false
+        is_foreign_key: false
+        is_metric: true
+        is_dimension: false
+        is_filterable: true
+        is_groupable: false
+        is_sortable: true
+        is_time_dimension: false
+        is_sensitive: false
+        sensitivity_level: FINANCIAL
+        allowed_aggregations: [SUM, AVG, MIN, MAX, COUNT]
+        default_aggregation: SUM
+        tags: [metric, amount]
+      - column_name: transaction_timestamp
+        business_description: "Transaction point-in-time."
+        semantic_type: TIMESTAMP
+        is_primary_key: false
+        is_foreign_key: false
+        is_metric: false
+        is_dimension: true
+        is_filterable: true
+        is_groupable: true
+        is_sortable: true
+        is_time_dimension: true
+        is_sensitive: false
+        sensitivity_level: INTERNAL
+        tags: [temporal]
+      - column_name: transaction_date
+        business_description: "Calendar date of transaction."
+        semantic_type: DATE
+        is_primary_key: false
+        is_foreign_key: false
+        is_metric: false
+        is_dimension: true
+        is_filterable: true
+        is_groupable: true
+        is_sortable: true
+        is_time_dimension: true
+        is_sensitive: false
+        sensitivity_level: INTERNAL
+        tags: [temporal, date]
+      - column_name: month
+        business_description: "Reporting month formatted as YYYY-MM."
+        semantic_type: DATE
+        is_primary_key: false
+        is_foreign_key: false
+        is_metric: false
+        is_dimension: true
+        is_filterable: true
+        is_groupable: true
+        is_sortable: true
+        is_time_dimension: true
+        is_sensitive: false
+        sensitivity_level: INTERNAL
+        tags: [temporal, month]
+
+  - table_name: analytics_products
+    dataset_name: analytics
+    project_id: banking-agent-rag-mcp
+    object_type: VIEW
+    description: "Curated product holdings mart tracking customer product adoption, product lines, and open dates."
+    business_domain: PRODUCTS
+    business_entity: ProductHolding
+    business_purpose: "Analyzes product penetration, cross-holding ratios, and product bundle performance."
+    grain: "One row per customer product holding."
+    scd_type: NONE
+    natural_key:
+      - holding_id
+    primary_key:
+      - holding_id
+    preferred_analytics_source: true
+    allowed_for_analytics: true
+    allowed_for_nl2sql: true
+    allowed_for_visualization: true
+    sensitivity_level: INTERNAL
+    data_owner: "Product Strategy"
+    clustering_columns:
+      - product_type
+      - customer_segment
+    tags:
+      - curated
+      - analytics_mart
+      - products
+      - preferred
+    columns:
+      - column_name: holding_id
+        business_description: "Unique product holding identifier."
+        semantic_type: TRANSACTION_ID
+        is_primary_key: true
+        is_foreign_key: false
+        is_metric: false
+        is_dimension: true
+        is_filterable: true
+        is_groupable: false
+        is_sortable: true
+        is_time_dimension: false
+        is_sensitive: false
+        sensitivity_level: INTERNAL
+        tags: [key, id]
+      - column_name: customer_id
+        business_description: "Holding customer identifier."
+        semantic_type: CUSTOMER_ID
+        is_primary_key: false
+        is_foreign_key: true
+        references_table: analytics_customer_360
+        references_column: customer_id
+        is_metric: false
+        is_dimension: true
+        is_filterable: true
+        is_groupable: true
+        is_sortable: true
+        is_time_dimension: false
+        is_sensitive: false
+        sensitivity_level: INTERNAL
+        tags: [fk, customer]
+      - column_name: product_type
+        business_description: "Product category (SAVINGS, CURRENT, CREDIT_CARD, LOAN, FIXED_DEPOSIT)."
+        semantic_type: CATEGORY
+        is_primary_key: false
+        is_foreign_key: false
+        is_metric: false
+        is_dimension: true
+        is_filterable: true
+        is_groupable: true
+        is_sortable: true
+        is_time_dimension: false
+        is_sensitive: false
+        sensitivity_level: INTERNAL
+        tags: [product, type]
+      - column_name: product_name
+        business_description: "Commercial brand or product tier name."
+        semantic_type: NAME
+        is_primary_key: false
+        is_foreign_key: false
+        is_metric: false
+        is_dimension: true
+        is_filterable: true
+        is_groupable: true
+        is_sortable: true
+        is_time_dimension: false
+        is_sensitive: false
+        sensitivity_level: INTERNAL
+        tags: [product]
+      - column_name: customer_segment
+        business_description: "Segment of holding customer."
+        semantic_type: SEGMENT
+        is_primary_key: false
+        is_foreign_key: false
+        is_metric: false
+        is_dimension: true
+        is_filterable: true
+        is_groupable: true
+        is_sortable: true
+        is_time_dimension: false
+        is_sensitive: false
+        sensitivity_level: INTERNAL
+        tags: [segment]
+      - column_name: is_active
+        business_description: "Flag indicating whether product holding is currently open and active."
+        semantic_type: BOOLEAN
+        is_primary_key: false
+        is_foreign_key: false
+        is_metric: false
+        is_dimension: true
+        is_filterable: true
+        is_groupable: true
+        is_sortable: false
+        is_time_dimension: false
+        is_sensitive: false
+        sensitivity_level: INTERNAL
+        tags: [status, flag]
+      - column_name: opened_date
+        business_description: "Date product was opened/subscribed."
+        semantic_type: DATE
+        is_primary_key: false
+        is_foreign_key: false
+        is_metric: false
+        is_dimension: true
+        is_filterable: true
+        is_groupable: true
+        is_sortable: true
+        is_time_dimension: true
+        is_sensitive: false
+        sensitivity_level: INTERNAL
+        tags: [temporal]
+
+  - table_name: analytics_balances
+    dataset_name: analytics
+    project_id: banking-agent-rag-mcp
+    object_type: VIEW
+    description: "Curated balance snapshot mart tracking daily customer account balances across asset and liability classes."
+    business_domain: BALANCES
+    business_entity: BalanceSnapshot
+    business_purpose: "Provides balance trending, average balance metrics, and liquidity analysis."
+    grain: "One row per customer account per snapshot date."
+    scd_type: NONE
+    natural_key:
+      - snapshot_id
+    primary_key:
+      - snapshot_id
+    preferred_analytics_source: true
+    allowed_for_analytics: true
+    allowed_for_nl2sql: true
+    allowed_for_visualization: true
+    sensitivity_level: FINANCIAL
+    data_owner: "Finance & Balance Sheet Management"
+    partitioning:
+      type: DAY
+      field: snapshot_date
+    clustering_columns:
+      - account_type
+      - customer_segment
+    tags:
+      - curated
+      - analytics_mart
+      - balances
+      - preferred
+    columns:
+      - column_name: snapshot_id
+        business_description: "Unique daily snapshot record identifier."
+        semantic_type: TRANSACTION_ID
+        is_primary_key: true
+        is_foreign_key: false
+        is_metric: false
+        is_dimension: true
+        is_filterable: true
+        is_groupable: false
+        is_sortable: true
+        is_time_dimension: false
+        is_sensitive: false
+        sensitivity_level: INTERNAL
+        tags: [key, id]
+      - column_name: customer_id
+        business_description: "Customer identifier."
+        semantic_type: CUSTOMER_ID
+        is_primary_key: false
+        is_foreign_key: true
+        references_table: analytics_customer_360
+        references_column: customer_id
+        is_metric: false
+        is_dimension: true
+        is_filterable: true
+        is_groupable: true
+        is_sortable: true
+        is_time_dimension: false
+        is_sensitive: false
+        sensitivity_level: INTERNAL
+        tags: [fk, customer]
+      - column_name: account_number
+        business_description: "Bank account number."
+        semantic_type: ACCOUNT_ID
+        is_primary_key: false
+        is_foreign_key: false
+        is_metric: false
+        is_dimension: true
+        is_filterable: true
+        is_groupable: true
+        is_sortable: true
+        is_time_dimension: false
+        is_sensitive: true
+        sensitivity_level: FINANCIAL
+        tags: [account]
+      - column_name: account_type
+        business_description: "Account classification (SAVINGS, CURRENT, SALARY, CREDIT_CARD, LOAN, FD)."
+        semantic_type: CATEGORY
+        is_primary_key: false
+        is_foreign_key: false
+        is_metric: false
+        is_dimension: true
+        is_filterable: true
+        is_groupable: true
+        is_sortable: true
+        is_time_dimension: false
+        is_sensitive: false
+        sensitivity_level: INTERNAL
+        tags: [product]
+      - column_name: customer_segment
+        business_description: "Customer segment."
+        semantic_type: SEGMENT
+        is_primary_key: false
+        is_foreign_key: false
+        is_metric: false
+        is_dimension: true
+        is_filterable: true
+        is_groupable: true
+        is_sortable: true
+        is_time_dimension: false
+        is_sensitive: false
+        sensitivity_level: INTERNAL
+        tags: [segment]
+      - column_name: closing_balance
+        business_description: "End of day ledger balance."
+        semantic_type: CURRENCY
+        is_primary_key: false
+        is_foreign_key: false
+        is_metric: true
+        is_dimension: false
+        is_filterable: true
+        is_groupable: false
+        is_sortable: true
+        is_time_dimension: false
+        is_sensitive: false
+        sensitivity_level: FINANCIAL
+        allowed_aggregations: [SUM, AVG, MIN, MAX]
+        default_aggregation: SUM
+        tags: [metric, balance]
+      - column_name: snapshot_date
+        business_description: "Balance calculation calendar date."
+        semantic_type: DATE
+        is_primary_key: false
+        is_foreign_key: false
+        is_metric: false
+        is_dimension: true
+        is_filterable: true
+        is_groupable: true
+        is_sortable: true
+        is_time_dimension: true
+        is_sensitive: false
+        sensitivity_level: INTERNAL
+        tags: [temporal, partition_key]

@@ -34,3 +34,9 @@ variable "customer_identity_dataset_id" {
   type        = string
   default     = "customer_identity"
 }
+
+variable "analytics_dataset_id" {
+  description = "BigQuery dataset ID for analytical mart views and metrics"
+  type        = string
+  default     = "analytics"
+}

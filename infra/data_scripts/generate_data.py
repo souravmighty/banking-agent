@@ -13,7 +13,8 @@ np.random.seed(42)
 
 # Configuration
 NUM_CUSTOMERS = 1000
-DATA_DIR = '../../data'
+BASE_DIR = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+DATA_DIR = os.path.join(BASE_DIR, 'data')
 os.makedirs(DATA_DIR, exist_ok=True)
 
 # Constants & Enums
@@ -82,6 +83,60 @@ def generate_scd_fields(version, start_ts, is_current=True):
 
 # --- DATA GENERATION FUNCTIONS ---
 
+GENDERS = ['MALE', 'FEMALE', 'OTHER']
+GENDER_DIST = [0.49, 0.49, 0.02]
+
+EMPLOYMENT_STATUSES = ['EMPLOYED', 'SELF_EMPLOYED', 'STUDENT', 'RETIRED', 'UNEMPLOYED']
+EMPLOYMENT_DIST = [0.65, 0.15, 0.10, 0.07, 0.03]
+
+OCCUPATIONS = [
+    'Software Engineer', 'Data Scientist', 'Product Manager', 'Financial Analyst',
+    'Doctor', 'Chartered Accountant', 'Teacher', 'Civil Engineer',
+    'Marketing Specialist', 'Business Owner', 'Consultant', 'Architect'
+]
+
+INDUSTRIES = [
+    'Information Technology', 'Healthcare', 'Financial Services', 'Manufacturing',
+    'Education', 'Real Estate', 'Retail & Ecommerce', 'Consulting', 'Government'
+]
+
+REGIONS_STATES_CITIES = [
+    ('NORTH', 'Delhi', 'New Delhi'),
+    ('NORTH', 'Haryana', 'Gurgaon'),
+    ('NORTH', 'Uttar Pradesh', 'Noida'),
+    ('NORTH', 'Punjab', 'Chandigarh'),
+    ('SOUTH', 'Karnataka', 'Bangalore'),
+    ('SOUTH', 'Tamil Nadu', 'Chennai'),
+    ('SOUTH', 'Telangana', 'Hyderabad'),
+    ('SOUTH', 'Kerala', 'Kochi'),
+    ('WEST', 'Maharashtra', 'Mumbai'),
+    ('WEST', 'Maharashtra', 'Pune'),
+    ('WEST', 'Gujarat', 'Ahmedabad'),
+    ('EAST', 'West Bengal', 'Kolkata'),
+    ('EAST', 'Odisha', 'Bhubaneswar'),
+    ('CENTRAL', 'Madhya Pradesh', 'Indore'),
+    ('CENTRAL', 'Madhya Pradesh', 'Bhopal')
+]
+
+ACQUISITION_CHANNELS = ['ORGANIC_DIGITAL', 'BRANCH', 'REFERRAL', 'PAID_SEARCH', 'PARTNER']
+ACQUISITION_CHANNEL_DIST = [0.40, 0.20, 0.15, 0.15, 0.10]
+
+ACQUISITION_SOURCES = {
+    'ORGANIC_DIGITAL': ['Mobile Banking App', 'Direct Website', 'Play Store Search', 'Organic SEO'],
+    'BRANCH': ['Main City Branch', 'Suburban Branch', 'Corporate Kiosk', 'Campus Branch'],
+    'REFERRAL': ['Friend Referral Program', 'Corporate Salary Tie-up', 'Family Banking'],
+    'PAID_SEARCH': ['Google Search Ads', 'LinkedIn Sponsored', 'Meta Performance Ad'],
+    'PARTNER': ['Fintech Partner API', 'Merchant Checkout Partner', 'Aggregator Portal']
+}
+
+SEGMENT_TIER_MAP = {
+    'STUDENT': 'BRONZE',
+    'RETAIL': 'SILVER',
+    'PREMIUM': 'GOLD',
+    'SENIOR_CITIZEN': 'GOLD',
+    'WEALTH': 'PLATINUM'
+}
+
 def generate_customers_scd():
     customers = []
     identity_mapping = []
@@ -99,7 +154,47 @@ def generate_customers_scd():
         risk = np.random.choice(RISK_PROFILES, p=RISK_DIST)
         onboard_date = random_date(datetime(2020, 1, 1), datetime(2023, 1, 1))
         
-        # Base version
+        # Demographics
+        gender = np.random.choice(GENDERS, p=GENDER_DIST)
+        if segment == 'STUDENT':
+            dob = random_date(datetime(2001, 1, 1), datetime(2005, 1, 1)).date()
+            emp_status = 'STUDENT'
+            occupation = 'Student'
+            industry = 'Education'
+            income = round(random.uniform(50000, 250000), 2)
+        elif segment == 'SENIOR_CITIZEN':
+            dob = random_date(datetime(1945, 1, 1), datetime(1960, 1, 1)).date()
+            emp_status = 'RETIRED'
+            occupation = 'Retired Professional'
+            industry = 'Pension / Investment'
+            income = round(random.uniform(400000, 1800000), 2)
+        elif segment == 'WEALTH':
+            dob = random_date(datetime(1965, 1, 1), datetime(1988, 1, 1)).date()
+            emp_status = random.choice(['EMPLOYED', 'SELF_EMPLOYED'])
+            occupation = random.choice(['Business Owner', 'Consultant', 'Product Manager', 'Doctor', 'Architect'])
+            industry = random.choice(INDUSTRIES)
+            income = round(random.uniform(3500000, 12000000), 2)
+        elif segment == 'PREMIUM':
+            dob = random_date(datetime(1975, 1, 1), datetime(1995, 1, 1)).date()
+            emp_status = 'EMPLOYED'
+            occupation = random.choice(['Software Engineer', 'Data Scientist', 'Financial Analyst', 'Marketing Specialist'])
+            industry = random.choice(['Information Technology', 'Financial Services', 'Healthcare'])
+            income = round(random.uniform(1500000, 4000000), 2)
+        else: # RETAIL
+            dob = random_date(datetime(1970, 1, 1), datetime(2000, 1, 1)).date()
+            emp_status = np.random.choice(EMPLOYMENT_STATUSES, p=EMPLOYMENT_DIST)
+            occupation = random.choice(OCCUPATIONS)
+            industry = random.choice(INDUSTRIES)
+            income = round(random.uniform(300000, 1200000), 2)
+
+        geo = random.choice(REGIONS_STATES_CITIES)
+        region, state, city = geo[0], geo[1], geo[2]
+        branch_id = f"BR-{region[:2]}-{random.randint(100, 999)}"
+        
+        channel = np.random.choice(ACQUISITION_CHANNELS, p=ACQUISITION_CHANNEL_DIST)
+        source = random.choice(ACQUISITION_SOURCES[channel])
+        tier = SEGMENT_TIER_MAP.get(segment, 'SILVER')
+
         name = fake.name()
         email = fake.email()
         base_record = {
@@ -107,11 +202,24 @@ def generate_customers_scd():
             'name': name,
             'email': email,
             'phone': fake.phone_number()[:15],
-            'address': fake.address().replace('\n', ', '),
+            'address': f"{fake.street_address()}, {city}, {state}",
             'customer_status': 'ACTIVE',
             'customer_segment': segment,
             'risk_profile': risk,
             'kyc_status': 'VERIFIED',
+            'date_of_birth': dob,
+            'gender': gender,
+            'employment_status': emp_status,
+            'occupation': occupation,
+            'industry': industry,
+            'annual_income': income,
+            'region': region,
+            'state': state,
+            'city': city,
+            'branch_id': branch_id,
+            'acquisition_channel': channel,
+            'acquisition_source': source,
+            'customer_tier': tier,
             'created_at': onboard_date.date()
         }
         
@@ -133,12 +241,18 @@ def generate_customers_scd():
             
             # Current Version
             v2_start = v1_scd['eff_end_ts'] + timedelta(seconds=1)
-            # Change something
             updated_record = base_record.copy()
             if random.random() < 0.5:
-                updated_record['customer_segment'] = 'PREMIUM' if segment == 'RETAIL' else 'WEALTH'
+                new_segment = 'PREMIUM' if segment == 'RETAIL' else 'WEALTH'
+                updated_record['customer_segment'] = new_segment
+                updated_record['customer_tier'] = SEGMENT_TIER_MAP.get(new_segment, 'GOLD')
+                updated_record['annual_income'] = round(income * 1.35, 2)
             else:
-                updated_record['address'] = fake.address().replace('\n', ', ')
+                new_geo = random.choice(REGIONS_STATES_CITIES)
+                updated_record['region'] = new_geo[0]
+                updated_record['state'] = new_geo[1]
+                updated_record['city'] = new_geo[2]
+                updated_record['address'] = f"{fake.street_address()}, {new_geo[2]}, {new_geo[1]}"
                 
             v2_scd = generate_scd_fields(2, v2_start, is_current=True)
             customers.append({**updated_record, **v2_scd})
@@ -148,6 +262,7 @@ def generate_customers_scd():
             customers.append({**base_record, **scd})
             
     return pd.DataFrame(customers), pd.DataFrame(identity_mapping)
+
 
 def generate_accounts_scd(customers_df):
     accounts = []
