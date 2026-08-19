@@ -60,8 +60,8 @@ export interface DemoCustomer {
 }
 
 class CustomerIdentityService {
-  private getBaseUrl() {
-    return process.env.NEXT_PUBLIC_IDENTITY_SERVICE_URL || "http://localhost:8080";
+  private getBaseUrl(): string {
+    return process.env.NEXT_PUBLIC_IDENTITY_SERVICE_URL || "http://localhost:8001";
   }
 
   /**

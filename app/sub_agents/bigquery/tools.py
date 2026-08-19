@@ -83,7 +83,7 @@ def get_database_settings(email_id):
         return database_settings
         
     import httpx
-    identity_service_url = os.getenv("IDENTITY_SERVICE_URL", "http://localhost:8080")
+    identity_service_url = os.getenv("IDENTITY_SERVICE_URL", "http://localhost:8001")
     context_url = f"{identity_service_url}/api/v1/adk/context"
     headers = {"Authorization": f"Bearer mock-token:{email_id}"}
     try:
@@ -108,7 +108,7 @@ def get_customer_profile(email_id):
         return customer_profile
         
     import httpx
-    identity_service_url = os.getenv("IDENTITY_SERVICE_URL", "http://localhost:8080")
+    identity_service_url = os.getenv("IDENTITY_SERVICE_URL", "http://localhost:8001")
     context_url = f"{identity_service_url}/api/v1/adk/context"
     headers = {"Authorization": f"Bearer mock-token:{email_id}"}
     try:

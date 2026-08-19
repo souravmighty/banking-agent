@@ -544,7 +544,7 @@ def load_database_settings_in_context(callback_context: CallbackContext):
     if token:
         headers["Authorization"] = f"Bearer {token}"
         
-    identity_service_url = os.getenv("IDENTITY_SERVICE_URL", "http://localhost:8080")
+    identity_service_url = os.getenv("IDENTITY_SERVICE_URL", "http://localhost:8001")
     context_url = f"{identity_service_url}/api/v1/adk/context"
     
     try:

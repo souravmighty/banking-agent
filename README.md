@@ -295,7 +295,7 @@ make dev
 ```
 *   **Web Portal UI**: `http://localhost:3000`
 *   **Agent Server**: `http://localhost:8501`
-*   **Identity Resolver**: `http://localhost:8080`
+*   **Identity Resolver**: `http://localhost:8001`
 
 ---
 
