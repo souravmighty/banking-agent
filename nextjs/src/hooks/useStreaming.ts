@@ -16,7 +16,7 @@ export interface UseStreamingReturn {
 
   // Operations
   startStream: (
-    apiPayload: { message: string; userId: string; sessionId: string },
+    apiPayload: { message: string; userId: string; sessionId: string; appName?: string },
     onMessageUpdate: (message: Message) => void,
     onEventUpdate: (messageId: string, event: ProcessedEvent) => void,
     onWebsiteCountUpdate: (count: number) => void
@@ -55,7 +55,7 @@ export function useStreaming(
   // Start streaming operation
   const startStream = useCallback(
     async (
-      apiPayload: { message: string; userId: string; sessionId: string },
+      apiPayload: { message: string; userId: string; sessionId: string; appName?: string },
       onMessageUpdate: (message: Message) => void,
       onEventUpdate: (messageId: string, event: ProcessedEvent) => void,
       onWebsiteCountUpdate: (count: number) => void
@@ -88,6 +88,7 @@ export function useStreaming(
         message: apiPayload.message,
         userId: apiPayload.userId,
         sessionId: apiPayload.sessionId,
+        appName: apiPayload.appName,
       };
 
       // Delegate to connection manager

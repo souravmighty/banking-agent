@@ -57,7 +57,7 @@ export async function handleLocalBackendStreamRequest(
     const localBackendPayload = formatLocalBackendPayload(requestData);
 
     // Build local backend URL with stream endpoint
-    const localBackendUrl = `${getEndpointForPath("/run_sse")}`;
+    const localBackendUrl = `${getEndpointForPath("/run_sse", "streamQuery", requestData.appName)}`;
 
     // Log operation start
     logStreamStart(localBackendUrl, localBackendPayload, "local_backend");

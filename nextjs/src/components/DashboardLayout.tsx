@@ -72,7 +72,7 @@ export function DashboardLayout({ children }: { children: React.ReactNode }) {
       
     if (isCustomerPage) {
       if (typeof window !== "undefined") {
-        window.location.href = "/staff/demo-requests";
+        window.location.href = "/staff/copilot";
       }
       return null;
     }

@@ -9,7 +9,6 @@ import { Card, CardContent } from "@/components/ui/card";
 import { 
   Landmark, 
   Search, 
-  LogOut, 
   Check, 
   X, 
   Eye, 
@@ -23,16 +22,14 @@ import {
   Linkedin,
   Building,
   User,
-  ExternalLink,
-  ChevronRight
+  ExternalLink
 } from "lucide-react";
 import { toast } from "sonner";
-import Link from "next/link";
-import { useRouter, useSearchParams } from "next/navigation";
+import { useSearchParams } from "next/navigation";
+import { StaffSidebarLayout } from "@/components/staff/StaffSidebarLayout";
 
 export function DemoRequestsDashboard({ requestId }: { requestId?: string }) {
-  const { user, logout } = useAuth();
-  const router = useRouter();
+  const { user } = useAuth();
   const searchParams = useSearchParams();
   
   // Dashboard states
@@ -158,54 +155,8 @@ export function DemoRequestsDashboard({ requestId }: { requestId?: string }) {
   });
 
   return (
-    <div className="min-h-screen bg-[#060814] text-slate-100 flex flex-col font-sans">
-      {/* Dashboard Header Banner */}
-      <header className="border-b border-slate-900 bg-slate-950/60 backdrop-blur-md px-6 py-4 flex items-center justify-between sticky top-0 z-20">
-        <div className="flex items-center gap-3">
-          <div className="w-10 h-10 rounded-xl bg-gradient-to-tr from-indigo-600 to-violet-600 flex items-center justify-center border border-indigo-500/20 shadow-md">
-            <Landmark className="h-5 w-5 text-white" />
-          </div>
-          <div>
-            <h1 className="text-md font-extrabold tracking-tight">BankPilot Operations</h1>
-            <p className="text-[10px] text-slate-500 font-semibold uppercase tracking-wider">Administrative Console</p>
-          </div>
-        </div>
-
-        <nav className="hidden md:flex items-center gap-6 text-sm font-semibold text-slate-400">
-          <Link href="/staff/demo-requests" className="text-white hover:text-white transition-colors pb-1 border-b border-indigo-500">
-            Demo Requests
-          </Link>
-          <Link href="/staff/demo-customers" className="hover:text-white transition-colors pb-1 border-b border-transparent">
-            Demo Customers Pool
-          </Link>
-        </nav>
-
-        <div className="flex items-center gap-3">
-          <span className="text-xs text-slate-400 font-medium bg-slate-900 border border-slate-800 px-3 py-1.5 rounded-full">
-            {user?.email || "Admin Session"}
-          </span>
-          <Button 
-            variant="outline" 
-            onClick={() => logout()}
-            className="border-slate-800 hover:bg-slate-900 hover:text-white text-slate-400 h-9 px-3 text-xs font-semibold gap-1.5"
-          >
-            <LogOut className="h-3.5 w-3.5" />
-            Sign Out
-          </Button>
-        </div>
-      </header>
-
-      {/* Sub-nav mobile */}
-      <div className="md:hidden flex items-center justify-center gap-6 bg-slate-950 px-4 py-2.5 border-b border-slate-900 text-xs font-bold text-slate-400">
-        <Link href="/staff/demo-requests" className="text-white">
-          Requests
-        </Link>
-        <Link href="/staff/demo-customers">
-          Customers Pool
-        </Link>
-      </div>
-
-      <main className="flex-1 p-6 md:p-10 max-w-7xl w-full mx-auto space-y-8">
+    <StaffSidebarLayout>
+      <div className="flex-1 p-4 sm:p-6 md:p-8 max-w-7xl w-full mx-auto space-y-6">
         {/* Metric Cards Grid */}
         <section className="grid grid-cols-2 lg:grid-cols-4 gap-4">
           {[
@@ -213,38 +164,38 @@ export function DemoRequestsDashboard({ requestId }: { requestId?: string }) {
               title: "Pending Requests",
               value: summary?.pending_requests ?? 0,
               icon: Clock,
-              color: "text-amber-400",
-              bgColor: "bg-amber-500/10 border-amber-500/20"
+              color: "text-amber-500 dark:text-amber-400",
+              bgColor: "bg-amber-50 dark:bg-amber-500/10 border-amber-200 dark:border-amber-500/20"
             },
             {
               title: "Allocated Customers",
               value: summary?.allocated_customers ?? 0,
               icon: CheckCircle2,
-              color: "text-indigo-400",
-              bgColor: "bg-indigo-500/10 border-indigo-500/20"
+              color: "text-indigo-600 dark:text-indigo-400",
+              bgColor: "bg-indigo-50 dark:bg-indigo-500/10 border-indigo-200 dark:border-indigo-500/20"
             },
             {
               title: "Available Pool",
               value: summary?.available_customers ?? 0,
               icon: Landmark,
-              color: "text-emerald-400",
-              bgColor: "bg-emerald-500/10 border-emerald-500/20"
+              color: "text-emerald-600 dark:text-emerald-400",
+              bgColor: "bg-emerald-50 dark:bg-emerald-500/10 border-emerald-200 dark:border-emerald-500/20"
             },
             {
               title: "Expired Today",
               value: summary?.expired_today ?? 0,
               icon: XCircle,
-              color: "text-rose-400",
-              bgColor: "bg-rose-500/10 border-rose-500/20"
+              color: "text-rose-600 dark:text-rose-400",
+              bgColor: "bg-rose-50 dark:bg-rose-500/10 border-rose-200 dark:border-rose-500/20"
             }
           ].map((card, idx) => (
-            <Card key={idx} className={`border ${card.bgColor} bg-slate-900/40 backdrop-blur-md`}>
+            <Card key={idx} className={`border ${card.bgColor} bg-white/80 dark:bg-slate-900/40 shadow-sm backdrop-blur-md`}>
               <CardContent className="p-4 md:p-5 flex items-center justify-between">
                 <div>
-                  <p className="text-[10px] font-bold uppercase tracking-wider text-slate-500 mb-1">{card.title}</p>
-                  <h3 className="text-2xl md:text-3xl font-black text-white">{loading ? "..." : card.value}</h3>
+                  <p className="text-[10px] font-bold uppercase tracking-wider text-slate-500 dark:text-slate-400 mb-1">{card.title}</p>
+                  <h3 className="text-2xl md:text-3xl font-black text-slate-900 dark:text-white">{loading ? "..." : card.value}</h3>
                 </div>
-                <div className={`w-10 h-10 rounded-xl bg-slate-950/80 border border-slate-800 flex items-center justify-center ${card.color}`}>
+                <div className={`w-10 h-10 rounded-xl bg-slate-100 dark:bg-slate-950/80 border border-slate-200 dark:border-slate-800 flex items-center justify-center ${card.color}`}>
                   <card.icon className="h-5 w-5" />
                 </div>
               </CardContent>
@@ -257,26 +208,26 @@ export function DemoRequestsDashboard({ requestId }: { requestId?: string }) {
           <div className="flex flex-col sm:flex-row gap-4 items-stretch sm:items-center justify-between">
             {/* Search Input */}
             <div className="relative max-w-sm flex-1">
-              <Search className="absolute left-3 top-3 h-4 w-4 text-slate-500" />
+              <Search className="absolute left-3 top-3 h-4 w-4 text-slate-400 dark:text-slate-500" />
               <Input
                 type="text"
                 placeholder="Search name, email, or company..."
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
-                className="pl-10 bg-slate-900/60 border-slate-800/80 text-white rounded-xl focus:border-indigo-500 focus:ring-indigo-500/30 text-xs h-10"
+                className="pl-10 bg-white dark:bg-slate-900/60 border-slate-200 dark:border-slate-800/80 text-slate-900 dark:text-white rounded-xl focus:border-indigo-500 focus:ring-indigo-500/30 text-xs h-10 shadow-sm"
               />
             </div>
 
             {/* Filter Tabs */}
-            <div className="flex bg-slate-950 p-1 rounded-xl border border-slate-900 text-[11px] font-bold text-slate-400 overflow-x-auto">
+            <div className="flex bg-slate-100 dark:bg-slate-950 p-1 rounded-xl border border-slate-200 dark:border-slate-900 text-[11px] font-bold text-slate-600 dark:text-slate-400 overflow-x-auto shadow-sm">
               {(["PENDING", "ALLOCATED", "REJECTED", "EXPIRED", "ALL"] as const).map((tab) => (
                 <button
                   key={tab}
                   onClick={() => setActiveTab(tab)}
                   className={`px-3.5 py-1.5 rounded-lg whitespace-nowrap transition-all ${
                     activeTab === tab 
-                      ? "bg-indigo-600 text-white shadow-lg shadow-indigo-500/10" 
-                      : "hover:text-white"
+                      ? "bg-indigo-600 text-white shadow-lg shadow-indigo-500/10 font-bold" 
+                      : "hover:text-slate-900 dark:hover:text-white"
                   }`}
                 >
                   {tab === "ALL" ? "All Requests" : tab.charAt(0) + tab.slice(1).toLowerCase()}
@@ -286,7 +237,7 @@ export function DemoRequestsDashboard({ requestId }: { requestId?: string }) {
           </div>
 
           {/* Table Container */}
-          <Card className="border-slate-900 bg-slate-950/30 overflow-hidden">
+          <Card className="border-slate-200 dark:border-slate-900 bg-white dark:bg-slate-950/30 shadow-sm overflow-hidden">
             <CardContent className="p-0">
               {loading ? (
                 <div className="flex flex-col items-center justify-center py-20 text-slate-500 gap-3">
@@ -295,15 +246,15 @@ export function DemoRequestsDashboard({ requestId }: { requestId?: string }) {
                 </div>
               ) : filteredRequests.length === 0 ? (
                 <div className="flex flex-col items-center justify-center py-20 text-slate-500 text-center px-4">
-                  <Inbox className="h-10 w-10 text-slate-700 mb-3" />
-                  <p className="text-sm font-bold text-slate-400">No matching requests found</p>
-                  <p className="text-xs text-slate-600 mt-1">There are no records matching your current filter parameter sets.</p>
+                  <Inbox className="h-10 w-10 text-slate-400 dark:text-slate-700 mb-3" />
+                  <p className="text-sm font-bold text-slate-700 dark:text-slate-400">No matching requests found</p>
+                  <p className="text-xs text-slate-500 dark:text-slate-600 mt-1">There are no records matching your current filter parameter sets.</p>
                 </div>
               ) : (
                 <div className="overflow-x-auto w-full">
                   <table className="w-full text-left border-collapse text-xs">
                     <thead>
-                      <tr className="border-b border-slate-900 text-slate-500 font-bold uppercase tracking-wider bg-slate-950/50">
+                      <tr className="border-b border-slate-200 dark:border-slate-900 text-slate-500 dark:text-slate-400 font-bold uppercase tracking-wider bg-slate-50 dark:bg-slate-950/50">
                         <th className="px-5 py-3.5">Requester Details</th>
                         <th className="px-5 py-3.5">Business / Role</th>
                         <th className="px-5 py-3.5">Requested At</th>
@@ -311,27 +262,27 @@ export function DemoRequestsDashboard({ requestId }: { requestId?: string }) {
                         <th className="px-5 py-3.5 text-right">Actions</th>
                       </tr>
                     </thead>
-                    <tbody className="divide-y divide-slate-900/60">
+                    <tbody className="divide-y divide-slate-100 dark:divide-slate-900/60">
                       {filteredRequests.map((req) => (
                         <tr 
                           key={req.request_id}
-                          className="hover:bg-slate-900/20 group transition-colors"
+                          className="hover:bg-slate-50 dark:hover:bg-slate-900/20 group transition-colors"
                         >
                           <td className="px-5 py-4">
                             <div>
-                              <p className="font-bold text-white group-hover:text-indigo-400 transition-colors">{req.name}</p>
+                              <p className="font-bold text-slate-900 dark:text-white group-hover:text-indigo-600 dark:group-hover:text-indigo-400 transition-colors">{req.name}</p>
                               <p className="text-slate-500 font-medium text-[11px]">{req.email}</p>
                             </div>
                           </td>
                           <td className="px-5 py-4">
                             <div>
-                              <p className="font-semibold text-slate-300">{req.company || "Individual/Independent"}</p>
-                              <p className="text-slate-500 text-[11px]">{req.role || "N/A"}</p>
+                              <p className="font-semibold text-slate-700 dark:text-slate-300">{req.company || "Individual/Independent"}</p>
+                              <p className="text-slate-400 dark:text-slate-500 text-[11px]">{req.role || "N/A"}</p>
                             </div>
                           </td>
-                          <td className="px-5 py-4 text-slate-400">
+                          <td className="px-5 py-4 text-slate-600 dark:text-slate-400">
                             <div className="flex items-center gap-1.5">
-                              <Calendar className="h-3.5 w-3.5 text-slate-600" />
+                              <Calendar className="h-3.5 w-3.5 text-slate-400 dark:text-slate-600" />
                               {req.created_at ? new Date(req.created_at).toLocaleDateString("en-US", {
                                 month: "short",
                                 day: "numeric",
@@ -342,10 +293,10 @@ export function DemoRequestsDashboard({ requestId }: { requestId?: string }) {
                           </td>
                           <td className="px-5 py-4">
                             <span className={`inline-flex px-2 py-1 rounded-md text-[10px] font-bold ${
-                              req.status === "PENDING" ? "bg-amber-500/10 text-amber-400 border border-amber-500/20" :
-                              req.status === "ALLOCATED" ? "bg-indigo-500/10 text-indigo-400 border border-indigo-500/20" :
-                              req.status === "REJECTED" ? "bg-rose-500/10 text-rose-400 border border-rose-500/20" :
-                              "bg-slate-800 text-slate-400"
+                              req.status === "PENDING" ? "bg-amber-50 dark:bg-amber-500/10 text-amber-700 dark:text-amber-400 border border-amber-200 dark:border-amber-500/20" :
+                              req.status === "ALLOCATED" ? "bg-indigo-50 dark:bg-indigo-500/10 text-indigo-700 dark:text-indigo-400 border border-indigo-200 dark:border-indigo-500/20" :
+                              req.status === "REJECTED" ? "bg-rose-50 dark:bg-rose-500/10 text-rose-700 dark:text-rose-400 border border-rose-200 dark:border-rose-500/20" :
+                              "bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-400"
                             }`}>
                               {req.status}
                             </span>
@@ -359,7 +310,7 @@ export function DemoRequestsDashboard({ requestId }: { requestId?: string }) {
                                   setSelectedRequest(req);
                                   setIsDrawerOpen(true);
                                 }}
-                                className="border-slate-800 hover:bg-slate-900 hover:text-white text-slate-400 h-8 px-2.5 rounded-lg text-xs"
+                                className="border-slate-200 dark:border-slate-800 hover:bg-slate-100 dark:hover:bg-slate-900 hover:text-slate-900 dark:hover:text-white text-slate-600 dark:text-slate-400 h-8 px-2.5 rounded-lg text-xs"
                               >
                                 <Eye className="h-3.5 w-3.5" />
                               </Button>
@@ -370,7 +321,7 @@ export function DemoRequestsDashboard({ requestId }: { requestId?: string }) {
                                     size="sm"
                                     onClick={() => handleApprove(req)}
                                     disabled={actionLoading !== null}
-                                    className="bg-indigo-600 hover:bg-indigo-500 text-white h-8 px-2.5 rounded-lg text-xs"
+                                    className="bg-indigo-600 hover:bg-indigo-500 text-white h-8 px-2.5 rounded-lg text-xs shadow-sm"
                                   >
                                     {actionLoading === req.request_id ? (
                                       <Loader2 className="h-3.5 w-3.5 animate-spin" />
@@ -386,7 +337,7 @@ export function DemoRequestsDashboard({ requestId }: { requestId?: string }) {
                                       setIsRejectModalOpen(true);
                                     }}
                                     disabled={actionLoading !== null}
-                                    className="bg-rose-950/20 hover:bg-rose-950/40 text-rose-400 border border-rose-900/30 h-8 px-2.5 rounded-lg text-xs"
+                                    className="bg-rose-50 dark:bg-rose-950/20 hover:bg-rose-100 dark:hover:bg-rose-950/40 text-rose-600 dark:text-rose-400 border border-rose-200 dark:border-rose-900/30 h-8 px-2.5 rounded-lg text-xs"
                                   >
                                     <X className="h-3.5 w-3.5" />
                                   </Button>
@@ -403,7 +354,7 @@ export function DemoRequestsDashboard({ requestId }: { requestId?: string }) {
             </CardContent>
           </Card>
         </section>
-      </main>
+      </div>
 
       {/* Slide-out Detail Drawer */}
       {isDrawerOpen && selectedRequest && (
@@ -623,6 +574,6 @@ export function DemoRequestsDashboard({ requestId }: { requestId?: string }) {
           </Card>
         </div>
       )}
-    </div>
+    </StaffSidebarLayout>
   );
 }

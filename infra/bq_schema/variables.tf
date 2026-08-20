@@ -8,7 +8,7 @@ variable "credentials" {
 variable "project_id" {
   description = "The GCP project ID"
   type        = string
-  default = "banking-agent-rag-mcp"
+  default     = "banking-agent-rag-mcp"
 }
 
 variable "region" {

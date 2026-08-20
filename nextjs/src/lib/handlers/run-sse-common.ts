@@ -21,6 +21,7 @@ export interface ProcessedStreamRequest {
   message: string;
   userId: string;
   sessionId: string;
+  appName?: string;
   idToken?: string;
 }
 
@@ -99,6 +100,7 @@ export async function parseStreamRequest(request: NextRequest): Promise<{
       message?: string;
       userId?: string;
       sessionId?: string;
+      appName?: string;
     };
 
     // Validate the request structure
@@ -117,6 +119,7 @@ export async function parseStreamRequest(request: NextRequest): Promise<{
         message: requestBody.message!,
         userId: requestBody.userId!,
         sessionId: requestBody.sessionId!,
+        appName: requestBody.appName,
         idToken,
       },
       validation: { isValid: true },
@@ -197,7 +200,7 @@ export function formatLocalBackendPayload(
   requestData: ProcessedStreamRequest
 ): LocalBackendPayload {
   return {
-    appName: getAdkAppName(),
+    appName: requestData.appName || getAdkAppName(),
     userId: requestData.userId,
     sessionId: requestData.sessionId,
     newMessage: {

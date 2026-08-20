@@ -9,7 +9,13 @@ class Settings(BaseSettings):
     # Google Cloud Configuration
     GOOGLE_CLOUD_PROJECT: str
     BIGQUERY_DATASET: str = "banking_data"
+    BIGQUERY_ANALYTICS_DATASET: str = "analytics"
     BIGQUERY_VIEWS_DATASET: str = "customer_views"
+
+    # Analytics Metadata Configuration & Allowlist
+    ANALYTICS_ALLOWED_TABLES: str = "customers,accounts,transactions,credit_cards,loans,fixed_deposits,credit_scores"
+    ANALYTICS_ALLOWED_VIEWS: str = "analytics_customer_360,analytics_customer_acquisition,analytics_transactions,analytics_products,analytics_balances"
+    ANALYTICS_METADATA_CACHE_TTL_SECONDS: int = 3600
     
     # Firebase Configuration
     FIREBASE_SERVICE_ACCOUNT_PATH: Optional[str] = None

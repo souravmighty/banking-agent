@@ -53,6 +53,13 @@ def get_demo_service(
 ) -> DemoService:
     return DemoService(demo_repo, view_service)
 
+def get_analytics_metadata_service(
+    bq: BigQueryService = Depends(get_bq_service)
+) -> Any:
+    from app.services.analytics_metadata_service import AnalyticsMetadataService
+    return AnalyticsMetadataService(bq)
+
+
 
 async def get_current_user(
     auth_creds: Optional[HTTPAuthorizationCredentials] = Depends(security),
@@ -94,16 +101,34 @@ async def get_current_user(
         val = token.split(":", 1)[1]
         if "@" in val:
             identity = identity_repo.get_by_email(val)
-            if not identity:
-                raise UnauthorizedException(detail=f"Mock email {val} not found in database")
+            if identity:
+                return {
+                    "uid": identity.get("firebase_uid") or f"mock-uid-{identity.get('customer_id', val)}",
+                    "email": identity.get("email_id") or val,
+                    "user_role": "BANK_STAFF" if ("staff" in val.lower() or "admin" in val.lower()) else "CUSTOMER"
+                }
+            if mock_auth_bypass or "staff" in val.lower() or "admin" in val.lower():
+                return {
+                    "uid": f"mock-uid-{val}",
+                    "email": val,
+                    "user_role": "BANK_STAFF" if ("staff" in val.lower() or "admin" in val.lower()) else "CUSTOMER"
+                }
+            raise UnauthorizedException(detail=f"Mock email {val} not found in database")
         else:
             identity = identity_repo.get_by_uid(val)
-            if not identity:
-                raise UnauthorizedException(detail=f"Mock UID {val} not found in database")
-        return {
-            "uid": identity["firebase_uid"] or f"mock-uid-{identity['customer_id']}",
-            "email": identity["email_id"]
-        }
+            if identity:
+                return {
+                    "uid": identity.get("firebase_uid") or val,
+                    "email": identity.get("email_id") or f"{val}@mock.bank",
+                    "user_role": "BANK_STAFF" if ("staff" in val.lower() or "admin" in val.lower()) else "CUSTOMER"
+                }
+            if mock_auth_bypass:
+                return {
+                    "uid": val,
+                    "email": os.getenv("CUSTOMER_EMAIL_ID", "souravmaiti1997@gmail.com"),
+                    "user_role": "BANK_STAFF"
+                }
+            raise UnauthorizedException(detail=f"Mock UID {val} not found in database")
         
     try:
         return firebase_service.verify_id_token(token)
@@ -151,13 +176,56 @@ async def get_current_user(
         if mock_auth_bypass:
             email = os.getenv("CUSTOMER_EMAIL_ID", "souravmaiti1997@gmail.com")
             identity = identity_repo.get_by_email(email)
-            if not identity:
-                raise UnauthorizedException(detail="Local mock user identity not found in database")
+            if identity:
+                return {
+                    "uid": identity["firebase_uid"] or f"mock-uid-{identity['customer_id']}",
+                    "email": identity["email_id"],
+                    "user_role": "BANK_STAFF"
+                }
             return {
-                "uid": identity["firebase_uid"] or f"mock-uid-{identity['customer_id']}",
-                "email": identity["email_id"]
+                "uid": "mock-staff-uid",
+                "email": email,
+                "user_role": "BANK_STAFF"
             }
         raise e
+
+
+async def require_bank_staff(
+    decoded_token: Dict[str, Any] = Depends(get_current_user),
+    identity_repo: IdentityRepository = Depends(get_identity_repository)
+) -> Dict[str, Any]:
+    from fastapi import HTTPException, status
+    import os
+    
+    mock_auth_bypass = os.getenv("MOCK_AUTH_BYPASS", "false").lower() == "true"
+    
+    # 1. Check if token contains explicit staff/admin role
+    token_role = str(decoded_token.get("role") or decoded_token.get("user_role") or "").upper()
+    if token_role in ["BANK_STAFF", "ADMIN", "STAFF"]:
+        decoded_token["user_role"] = "BANK_STAFF"
+        return decoded_token
+    
+    # 2. Check if user is staff/admin by email or UID via identity repository
+    email = decoded_token.get("email", "")
+    uid = decoded_token.get("uid", "")
+    
+    is_staff = False
+    if mock_auth_bypass:
+        is_staff = True
+    elif email and identity_repo.is_staff_email(email):
+        is_staff = True
+    elif uid and identity_repo.get_staff_by_uid(uid):
+        is_staff = True
+        
+    if not is_staff:
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="Access forbidden: authenticated user is not authorized as BANK_STAFF"
+        )
+        
+    decoded_token["user_role"] = "BANK_STAFF"
+    return decoded_token
+
 
 
 

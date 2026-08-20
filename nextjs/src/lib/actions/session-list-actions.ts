@@ -23,11 +23,12 @@ export interface SessionListResult {
 }
 
 export async function fetchActiveSessionsAction(
-  userId: string
+  userId: string,
+  appName?: string
 ): Promise<SessionListResult> {
   try {
     // Fetch sessions from ADK backend (server-side)
-    const result = await listUserSessions(userId);
+    const result = await listUserSessions(userId, appName);
 
     // Fetch session details with events for each session in parallel to get real message counts
 
@@ -35,7 +36,8 @@ export async function fetchActiveSessionsAction(
       try {
         const sessionWithEvents = await getSessionWithEvents(
           userId,
-          session.id
+          session.id,
+          appName
         );
         const messageCount = sessionWithEvents?.events?.length || 0;
 

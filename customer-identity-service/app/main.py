@@ -1,7 +1,7 @@
 import time
 from fastapi import FastAPI, Request
 from fastapi.middleware.cors import CORSMiddleware
-from app.routers import registration, auth, adk, mcp, demo
+from app.routers import registration, auth, adk, mcp, demo, analytics
 from app.config import settings
 from app.utils.logger import logger
 from app.utils.exceptions import CustomerIdentityException
@@ -58,6 +58,9 @@ app.include_router(auth.router, prefix=settings.API_V1_STR)
 app.include_router(adk.router, prefix=settings.API_V1_STR)
 app.include_router(mcp.router, prefix=settings.API_V1_STR)
 app.include_router(demo.router, prefix=settings.API_V1_STR)
+app.include_router(analytics.router, prefix=settings.API_V1_STR)
+app.include_router(analytics.router)  # Also expose at root /analytics-metadata
+
 
 
 @app.get("/health")

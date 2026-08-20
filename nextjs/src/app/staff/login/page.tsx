@@ -6,7 +6,6 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent } from "@/components/ui/card";
 import { 
-  Landmark, 
   Mail, 
   Lock, 
   ArrowRight, 
@@ -63,7 +62,7 @@ export default function StaffLoginPage() {
       if (redirectUrl) {
         router.push(redirectUrl);
       } else {
-        router.push("/staff/demo-requests");
+        router.push("/staff/copilot");
       }
     } catch (error: unknown) {
       console.error("Staff Google login error:", error);
@@ -96,7 +95,7 @@ export default function StaffLoginPage() {
       if (redirectUrl) {
         router.push(redirectUrl);
       } else {
-        router.push("/staff/demo-requests");
+        router.push("/staff/copilot");
       }
     } catch (error: unknown) {
       console.error("Staff login error:", error);

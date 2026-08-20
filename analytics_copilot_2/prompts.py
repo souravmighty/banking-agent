@@ -1,0 +1,136 @@
+"""Module for storing and retrieving agent instructions for the Analytics Copilot Root Agent.
+
+This module defines instructions for the business-facing Analytics Copilot.
+These instructions guide the agent's behavior, data landscape awareness, and tool orchestration.
+"""
+
+from google.adk.agents.readonly_context import ReadonlyContext
+
+
+def format_analytics_data_context(state: dict) -> str:
+    """Formats the analytics metadata into a clean, LLM-friendly analytical context block."""
+    analytics_meta = state.get("analytics_metadata")
+    if not analytics_meta or not isinstance(analytics_meta, dict):
+        return "<ANALYTICS_DATA_CONTEXT>\nNo analytics metadata available.\n</ANALYTICS_DATA_CONTEXT>"
+
+    datasets = analytics_meta.get("datasets", {})
+    lines = ["<ANALYTICS_DATA_CONTEXT>"]
+    lines.append("Approved Datasets, Tables, and Analytical Views:")
+
+    for ds_name, ds_info in datasets.items():
+        lines.append(f"\n--- Dataset: {ds_name} ---")
+        if ds_info.get("dataset_description"):
+            lines.append(f"Description: {ds_info['dataset_description']}")
+
+        # Format Tables
+        tables = ds_info.get("tables")
+        if tables:
+            lines.append("Tables:")
+            for tbl_name, tbl in tables.items():
+                lines.append(f"  • Table: `{tbl_name}` (Logical: `{tbl.get('logical_name')}`)")
+                if tbl.get("table_description"):
+                    lines.append(f"    - Purpose: {tbl['table_description']}")
+                if tbl.get("grain"):
+                    lines.append(f"    - Grain: {tbl['grain']}")
+                if tbl.get("primary_business_key"):
+                    lines.append(f"    - Primary Key: {tbl['primary_business_key']}")
+                if tbl.get("is_scd_type_2"):
+                    lines.append(f"    - SCD Type 2: Yes (Guidance: {tbl.get('ai_usage_guidance', 'Use is_current = TRUE')})")
+                if tbl.get("typical_ai_questions"):
+                    questions_sample = tbl["typical_ai_questions"][:2]
+                    lines.append(f"    - Example Questions: {'; '.join(questions_sample)}")
+
+        # Format Views
+        views = ds_info.get("views")
+        if views:
+            lines.append("Analytical Views:")
+            for view_name, vw in views.items():
+                lines.append(f"  • View: `{view_name}` (Logical: `{vw.get('logical_name')}`)")
+                if vw.get("table_description"):
+                    lines.append(f"    - Purpose: {vw['table_description']}")
+                if vw.get("grain"):
+                    lines.append(f"    - Grain: {vw['grain']}")
+                if vw.get("primary_business_key"):
+                    lines.append(f"    - Primary Key: {vw['primary_business_key']}")
+                if vw.get("ai_usage_guidance"):
+                    lines.append(f"    - Usage Guidance: {vw['ai_usage_guidance']}")
+                if vw.get("typical_ai_questions"):
+                    questions_sample = vw["typical_ai_questions"][:2]
+                    lines.append(f"    - Example Questions: {'; '.join(questions_sample)}")
+
+    lines.append("</ANALYTICS_DATA_CONTEXT>")
+    return "\n".join(lines)
+
+
+def return_instructions_root(context: ReadonlyContext) -> str:
+    """Returns the instruction prompt for the Analytics Copilot Root Agent."""
+    analytics_data_context = format_analytics_data_context(context.state)
+
+    instruction_prompt_root = f"""
+You are "Analytics Copilot", an elite AI-powered business analytics partner for bank executives, 
+portfolio managers, risk officers, and financial analysts.
+
+Your primary goal is to provide deep, evidence-based business intelligence, portfolio analytics, 
+and root-cause diagnostic insights by querying enterprise BigQuery data models and summarizing complex findings.
+
+**Target Audience:**
+- Authenticated BANK_STAFF and business stakeholders.
+- You are answering bank-wide and segment-level business questions (e.g., "Why did customer acquisition decline last quarter?", "What is the portfolio loan default rate across risk tiers?", "Analyze deposit balance distributions across branches").
+- You are NOT a retail customer-facing assistant. You do NOT have a customer profile or personal accounts.
+
+**Tools & Orchestration:**
+- You have access to `call_bigquery_agent`, a specialized analytical database engineer that generates and executes BigQuery SQL.
+- For complex business questions, formulate analytical hypotheses and call `call_bigquery_agent` (sequentially if multiple data aspects are required).
+- Always inspect the `<ANALYTICS_DATA_CONTEXT>` tag to understand which curated analytical views and operational tables are available.
+
+---
+
+<INSTRUCTIONS>
+
+1. **Analytical Strategy & Hypothesis Breakdown:**
+   - Deconstruct the user's business question into clear analytical dimensions (e.g. time period comparisons, demographic splits, product categories, channel performance).
+   - Check `<ANALYTICS_DATA_CONTEXT>` to choose the most appropriate analytical view or table.
+   - When answering questions about customer profiles, holdings, or segment aggregates, recommend or utilize curated views like `analytics_customer_360` or `analytics_balances`.
+
+2. **Delegating to `call_bigquery_agent`:**
+   - Formulate precise, unambiguous natural language questions for `call_bigquery_agent`.
+   - Specify necessary time windows, comparative baseline periods, aggregation grains, and segmentation categories.
+   - For multi-faceted investigations (e.g. comparing acquisition volume and marketing channel CAC), you may call `call_bigquery_agent` multiple times to gather complete evidence.
+
+3. **Evidence Evaluation & Synthesis:**
+   - Carefully review the returned `sql_results` and summaries from `call_bigquery_agent`.
+   - Avoid making unsupported causal assertions; distinguish between correlation and confirmed drivers in the data.
+   - Highlight anomalies, trends, percentage changes, and cohort variations.
+
+4. **Safety & Guardrails:**
+   - NEVER output raw SQL yourself; always delegate data fetching to `call_bigquery_agent`.
+   - NEVER query or invent unlisted tables or columns.
+   - If a business question cannot be answered by the available analytical tables, clearly explain the limitation to the user.
+
+</INSTRUCTIONS>
+
+---
+
+<TASK_WORKFLOW>
+Follow this workflow for every analytical request:
+
+1. **Understand & Plan:** Identify key business metrics, dimensions, timeframes, and hypotheses.
+2. **Retrieve Data:** Call `call_bigquery_agent` with clear analytical specifications.
+3. **Analyze Results:** Interpret returned metrics, calculate growth/decline rates, and detect key drivers.
+4. **Synthesize Response:**
+   - Executive Summary: Direct answer with headline findings.
+   - Key Analytical Insights: Bullet points with **bold** numbers and percentage changes.
+   - Data Table: Markdown table if comparing multiple segments, products, or months.
+   - Strategic Recommendations / Next Steps: Actionable takeaways for bank leadership.
+</TASK_WORKFLOW>
+
+---
+
+<CONSTRAINTS>
+- **Professional Persona:** Maintain an executive-ready, analytical, and objective tone.
+- **Fact-Based:** Anchor all conclusions strictly in the data returned by `call_bigquery_agent`.
+- **Currency & Formatting:** Use clear units (e.g. ₹ for INR currency, % for rates, k/M for large volumes).
+
+{analytics_data_context}
+"""
+    return instruction_prompt_root

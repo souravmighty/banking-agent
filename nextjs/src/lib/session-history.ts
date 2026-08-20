@@ -38,9 +38,10 @@ export class AdkSessionService {
    */
   static async getSession(
     userId: string,
-    sessionId: string
+    sessionId: string,
+    appName?: string
   ): Promise<AdkSession | null> {
-    const appName = getAdkAppName();
+    const targetAppName = appName || getAdkAppName();
 
     if (shouldUseAgentEngine()) {
       // Agent Engine: Use v1beta1 sessions API
@@ -81,7 +82,7 @@ export class AdkSessionService {
 
         return {
           id: actualSessionId,
-          app_name: getAdkAppName(),
+          app_name: targetAppName,
           user_id: sessionUserId || "",
           state: null,
           last_update_time: session.updateTime || session.createTime || null,
@@ -96,7 +97,9 @@ export class AdkSessionService {
     } else {
       // Local Backend: GET with path
       const endpoint = getEndpointForPath(
-        `/apps/${appName}/users/${userId}/sessions/${sessionId}`
+        `/apps/${targetAppName}/users/${userId}/sessions/${sessionId}`,
+        "streamQuery",
+        targetAppName
       );
 
       try {
@@ -130,8 +133,11 @@ export class AdkSessionService {
   /**
    * Lists all sessions for a user
    */
-  static async listSessions(userId: string): Promise<ListSessionsResponse> {
-    const appName = getAdkAppName();
+  static async listSessions(
+    userId: string,
+    appName?: string
+  ): Promise<ListSessionsResponse> {
+    const targetAppName = appName || getAdkAppName();
 
     if (shouldUseAgentEngine()) {
       // Agent Engine: Use v1beta1 sessions API
@@ -181,7 +187,7 @@ export class AdkSessionService {
 
             return {
               id: sessionId || "",
-              app_name: getAdkAppName(), // Add app_name for compatibility
+              app_name: targetAppName,
               user_id: session.userId || session.user_id || "",
               state: null,
               last_update_time: session.updateTime || session.createTime || null,
@@ -212,7 +218,9 @@ export class AdkSessionService {
     } else {
       // Local Backend: GET with path
       const endpoint = getEndpointForPath(
-        `/apps/${appName}/users/${userId}/sessions`
+        `/apps/${targetAppName}/users/${userId}/sessions`,
+        "streamQuery",
+        targetAppName
       );
 
       console.log(
@@ -221,7 +229,7 @@ export class AdkSessionService {
           endpoint,
           method: "GET",
           userId,
-          appName,
+          appName: targetAppName,
         }
       );
 
@@ -267,9 +275,10 @@ export class AdkSessionService {
    */
   static async listEvents(
     userId: string,
-    sessionId: string
+    sessionId: string,
+    appName?: string
   ): Promise<ListEventsResponse> {
-    const appName = getAdkAppName();
+    const targetAppName = appName || getAdkAppName();
 
     if (shouldUseAgentEngine()) {
       // Agent Engine: Use v1beta1 sessions API
@@ -313,7 +322,9 @@ export class AdkSessionService {
     } else {
       // Local Backend: GET with path
       const endpoint = getEndpointForPath(
-        `/apps/${appName}/users/${userId}/sessions/${sessionId}/events`
+        `/apps/${targetAppName}/users/${userId}/sessions/${sessionId}/events`,
+        "streamQuery",
+        targetAppName
       );
 
       try {
@@ -345,12 +356,13 @@ export class AdkSessionService {
    */
   static async getSessionWithEvents(
     userId: string,
-    sessionId: string
+    sessionId: string,
+    appName?: string
   ): Promise<AdkSessionWithEvents | null> {
     try {
       if (shouldUseAgentEngine()) {
         // First retrieve session and verify that it belongs to the logged-in user
-        const session = await AdkSessionService.getSession(userId, sessionId);
+        const session = await AdkSessionService.getSession(userId, sessionId, appName);
         if (!session) {
           console.warn(`⚠️ [ADK SESSION SERVICE] Session not found or unauthorized for user ${userId}: ${sessionId}`);
           return null;
@@ -359,7 +371,8 @@ export class AdkSessionService {
         // For Agent Engine, get events directly from the /events endpoint
         const eventsResponse = await AdkSessionService.listEvents(
           userId,
-          sessionId
+          sessionId,
+          appName
         );
         const events = eventsResponse?.events || [];
 
@@ -372,7 +385,7 @@ export class AdkSessionService {
         return sessionWithEvents;
       } else {
         // Local backend - fetch session only (backend includes events in session detail)
-        const session = await AdkSessionService.getSession(userId, sessionId);
+        const session = await AdkSessionService.getSession(userId, sessionId, appName);
 
         if (!session) {
           return null;
@@ -401,13 +414,15 @@ export class AdkSessionService {
  */
 export async function getSessionWithEvents(
   userId: string,
-  sessionId: string
+  sessionId: string,
+  appName?: string
 ): Promise<AdkSessionWithEvents | null> {
-  return await AdkSessionService.getSessionWithEvents(userId, sessionId);
+  return await AdkSessionService.getSessionWithEvents(userId, sessionId, appName);
 }
 
 export async function listUserSessions(
-  userId: string
+  userId: string,
+  appName?: string
 ): Promise<ListSessionsResponse> {
-  return await AdkSessionService.listSessions(userId);
+  return await AdkSessionService.listSessions(userId, appName);
 }

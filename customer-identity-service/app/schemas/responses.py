@@ -61,3 +61,44 @@ class MCPContextResponse(BaseModel):
     authorized_accounts: List[AccountDetail]
     beneficiary_details: List[BeneficiaryDetail]
     kyc_status: str
+
+class TableMetadataDetail(BaseModel):
+    table_name: str
+    query_object: str
+    logical_name: str
+    object_type: str = "TABLE"
+    table_description: str
+    primary_business_key: Optional[str] = None
+    grain: Optional[str] = None
+    relationship_information: Optional[str] = None
+    is_scd_type_2: bool = False
+    scd_columns: List[str] = []
+    ai_usage_guidance: Optional[str] = None
+    typical_ai_questions: Optional[List[str]] = None
+    schema: List[FieldMetadata]
+
+class ViewMetadataDetail(BaseModel):
+    view_name: str
+    query_object: str
+    logical_name: str
+    object_type: str = "VIEW"
+    table_description: str
+    primary_business_key: Optional[str] = None
+    grain: Optional[str] = None
+    relationship_information: Optional[str] = None
+    is_scd_type_2: bool = False
+    scd_columns: List[str] = []
+    ai_usage_guidance: Optional[str] = None
+    typical_ai_questions: Optional[List[str]] = None
+    schema: List[FieldMetadata]
+
+class DatasetDetail(BaseModel):
+    dataset_description: str
+    tables: Optional[Dict[str, TableMetadataDetail]] = None
+    views: Optional[Dict[str, ViewMetadataDetail]] = None
+
+class AnalyticsMetadataResponse(BaseModel):
+    authorized: bool = True
+    user_role: str = "BANK_STAFF"
+    datasets: Dict[str, DatasetDetail]
+

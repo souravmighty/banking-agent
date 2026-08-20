@@ -48,7 +48,21 @@ function detectDeploymentType(): EndpointConfig["deploymentType"] {
 /**
  * Gets the backend URL based on deployment context
  */
-function getBackendUrl(): string {
+export function getBackendUrl(appName?: string): string {
+  // If requesting analytics copilot specifically
+  if (
+    appName === "analytics_copilot_2" ||
+    appName === "analytics-copilot-2" ||
+    appName === "analytics_copilot" ||
+    appName === "analytics-copilot"
+  ) {
+    return (
+      process.env.ANALYTICS_COPILOT_BACKEND_URL ||
+      process.env.BACKEND_URL ||
+      "http://127.0.0.1:8002"
+    );
+  }
+
   const deploymentType = detectDeploymentType();
 
   switch (deploymentType) {
@@ -207,7 +221,8 @@ function getAgentEngineSessionsUrl(): string | undefined {
  */
 export function getEndpointForPath(
   path: string,
-  endpointType: AgentEngineEndpointType = "streamQuery"
+  endpointType: AgentEngineEndpointType = "streamQuery",
+  appName?: string
 ): string {
   if (shouldUseAgentEngine()) {
     // For Agent Engine, return the appropriate endpoint based on operation type
@@ -224,6 +239,12 @@ export function getEndpointForPath(
       }
       return `${sessionsUrl}/sessions${path}`;
     }
+  }
+
+  // If specific appName is passed (e.g. analytics-copilot-2), use its backend URL
+  if (appName) {
+    const backendUrl = getBackendUrl(appName);
+    return `${backendUrl}${path}`;
   }
 
   // For other deployments, append the path to the backend URL

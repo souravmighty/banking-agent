@@ -26,7 +26,7 @@ export interface SessionCreationResult {
  * Abstract base class for session management services
  */
 export abstract class SessionService {
-  abstract createSession(userId: string): Promise<SessionCreationResult>;
+  abstract createSession(userId: string, appName?: string): Promise<SessionCreationResult>;
 }
 
 /**
@@ -34,7 +34,7 @@ export abstract class SessionService {
  * Handles session creation using Agent Engine's API
  */
 export class AgentEngineSessionService extends SessionService {
-  async createSession(userId: string): Promise<SessionCreationResult> {
+  async createSession(userId: string, _appName?: string): Promise<SessionCreationResult> {
     const sessionEndpoint = getEndpointForPath("", "query");
 
     const createSessionPayload = {
@@ -98,10 +98,12 @@ export class AgentEngineSessionService extends SessionService {
  * Handles session creation using local backend API
  */
 export class LocalBackendSessionService extends SessionService {
-  async createSession(userId: string): Promise<SessionCreationResult> {
-    const appName = getAdkAppName();
+  async createSession(userId: string, appName?: string): Promise<SessionCreationResult> {
+    const targetApp = appName || getAdkAppName();
     const sessionEndpoint = getEndpointForPath(
-      `/apps/${appName}/users/${userId}/sessions`
+      `/apps/${targetApp}/users/${userId}/sessions`,
+      "streamQuery",
+      targetApp
     );
 
     try {
@@ -178,8 +180,9 @@ export function getSessionService(): SessionService {
  * This function determines the deployment strategy and delegates to the correct service
  */
 export async function createSessionWithService(
-  userId: string
+  userId: string,
+  appName?: string
 ): Promise<SessionCreationResult> {
   const service = getSessionService();
-  return await service.createSession(userId);
+  return await service.createSession(userId, appName);
 }

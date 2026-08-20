@@ -1,0 +1,18 @@
+{
+  "eval_cases": [
+    {
+      "eval_case_id": "credit_card_balance_drop",
+      "prompt": {
+        "role": "user",
+        "parts": [{"text": "Why have credit card balances dropped in recent months?"}]
+      }
+    },
+    {
+      "eval_case_id": "segment_payoff_analysis",
+      "prompt": {
+        "role": "user",
+        "parts": [{"text": "Which customer segments are driving changes in credit card payoff rates and balances?"}]
+      }
+    }
+  ]
+}

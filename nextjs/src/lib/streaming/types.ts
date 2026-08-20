@@ -91,6 +91,7 @@ export interface StreamingAPIPayload {
   message: string;
   userId: string;
   sessionId: string;
+  appName?: string;
 }
 
 /**

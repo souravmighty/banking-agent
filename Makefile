@@ -1,11 +1,11 @@
-.PHONY: install dev dev-backend dev-frontend identity-service customer-data-service analytics-metadata-service test-identity-service test-metadata-service bq-setup generate-data upload-data data-setup lint deploy-adk deploy-identity-service deploy-data-service
+.PHONY: install dev dev-backend dev-frontend identity-service customer-data-service analytics-metadata-service analytics-copilot analytics-copilot-api test-identity-service test-metadata-service test-analytics-copilot bq-setup generate-data upload-data data-setup lint deploy-adk deploy-identity-service deploy-data-service
 
 install:
 	@command -v uv >/dev/null 2>&1 || { echo "uv is not installed. Installing uv..."; curl -LsSf https://astral.sh/uv/0.6.12/install.sh | sh; source $HOME/.local/bin/env; }
 	uv sync && npm --prefix nextjs install
 
 dev:
-	make dev-backend & make dev-frontend & make identity-service & make customer-data-service & make analytics-metadata-service
+	make dev-backend & make dev-frontend & make identity-service & make customer-data-service & make analytics-copilot-api
 
 dev-backend:
 	uv run adk api_server . --allow_origins="*"
@@ -22,11 +22,20 @@ customer-data-service:
 analytics-metadata-service:
 	cd analytics-metadata-service && uv run uvicorn app.main:app --host 0.0.0.0 --port 8003 --reload
 
+analytics-copilot:
+	uv run adk web analytics_copilot_2 --port 8502
+
+analytics-copilot-api:
+	uv run adk api_server analytics_copilot_2 --port 8002 --allow_origins="*"
+
 test-identity-service:
 	cd customer-identity-service && PYTHONPATH=. uv run pytest tests/
 
 test-metadata-service:
 	cd analytics-metadata-service && PYTHONPATH=. uv run pytest tests/
+
+test-analytics-copilot:
+	cd analytics_copilot_2 && PYTHONPATH=. uv run pytest tests/
 
 adk-web:
 	uv run adk web --port 8501

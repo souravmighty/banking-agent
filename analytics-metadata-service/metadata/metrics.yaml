@@ -356,3 +356,61 @@ metrics:
     tags:
       - investments
       - term_deposits
+
+  - metric_name: credit_card_payoff_rate
+    display_name: "Credit Card Payoff Rate"
+    description: "Monthly percentage of credit card statement balances paid off by cardholders."
+    business_definition: "Total payments made divided by previous month statement balance."
+    sql_expression: "SUM(total_payments) / NULLIF(SUM(previous_statement_balance), 0) * 100"
+    default_aggregation: AVG
+    data_type: FLOAT
+    unit: "percentage"
+    source_tables:
+      - credit_cards
+      - analytics_balances
+      - analytics_transactions
+    allowed_dimensions:
+      - card_type
+      - customer_segment
+      - month
+      - year
+    allowed_filters:
+      - card_type
+      - customer_segment
+    is_ratio: true
+    calculation_notes: "A spike in payoff rate indicates accelerated debt reduction or tax refund paydowns."
+    tags:
+      - cards
+      - balance
+      - payoff
+      - root_cause
+
+  - metric_name: credit_card_total_balance
+    display_name: "Total Credit Card Outstanding Balance"
+    description: "Sum of outstanding balances across all active credit cards."
+    business_definition: "Aggregated sum of outstanding unpaid balances across credit cards."
+    sql_expression: "SUM(outstanding_balance)"
+    default_aggregation: SUM
+    data_type: FLOAT
+    unit: "INR"
+    source_tables:
+      - credit_cards
+      - analytics_balances
+      - analytics_customer_360
+    allowed_dimensions:
+      - card_type
+      - customer_segment
+      - region
+      - month
+      - year
+    allowed_filters:
+      - card_type
+      - customer_segment
+      - status
+    is_ratio: false
+    calculation_notes: "Always filter is_current = TRUE when querying credit_cards directly."
+    tags:
+      - cards
+      - balance
+      - liabilities
+

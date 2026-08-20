@@ -129,7 +129,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
             if (redirectUrl) {
               router.push(redirectUrl);
             } else if (isStaffUser) {
-              router.push("/staff/demo-requests");
+              router.push("/staff/copilot");
             } else {
               router.push("/");
             }
