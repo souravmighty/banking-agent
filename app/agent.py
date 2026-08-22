@@ -586,7 +586,7 @@ def get_root_agent() -> LlmAgent:
 
     # tools.append(call_transaction_agent)
     agent = LlmAgent(
-        model=os.getenv("ROOT_AGENT_MODEL", "gemini-2.5-flash"),
+        model=os.getenv("ROOT_AGENT_MODEL", "gemini-3.7-flash"),
         name="banking_root_agent",
         planner=BuiltInPlanner(
         thinking_config=genai_types.ThinkingConfig(include_thoughts=True)

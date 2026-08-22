@@ -94,7 +94,24 @@ export class StreamingConnectionManager {
       );
 
       if (!response.ok) {
-        throw new Error(`API error: ${response.status} ${response.statusText}`);
+        let errorDetails = response.statusText;
+        try {
+          const cloned = response.clone();
+          const errorJson = await cloned.json();
+          errorDetails =
+            errorJson.details ||
+            errorJson.error ||
+            errorJson.message ||
+            response.statusText;
+        } catch {
+          try {
+            const errorText = await response.text();
+            if (errorText) errorDetails = errorText;
+          } catch {
+            // Ignore if body reading fails
+          }
+        }
+        throw new Error(`API error: ${response.status} ${errorDetails}`);
       }
 
       this.connectionState = "connected";

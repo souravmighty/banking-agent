@@ -6,8 +6,16 @@ import os
 from typing import Optional, Dict, Any
 from dotenv import load_dotenv
 
-import numpy as np
-import pandas as pd
+try:
+    import numpy as np
+except ImportError:
+    np = None
+
+try:
+    import pandas as pd
+except ImportError:
+    pd = None
+
 from google.adk.tools import ToolContext
 from google.genai import Client
 from google.genai.types import HttpOptions
@@ -24,14 +32,16 @@ compute_project = os.getenv("GOOGLE_CLOUD_PROJECT")
 vertex_project = os.getenv("GOOGLE_CLOUD_PROJECT")
 llm_client = None
 
-MAX_NUM_ROWS = 10000
-
 
 def _serialize_value_for_sql(value):
-    """Serializes a Python value from a pandas DataFrame into a BigQuery SQL literal."""
-    if isinstance(value, (list, np.ndarray)):
+    """Serializes a Python value into a BigQuery SQL literal."""
+    if value is None:
+        return "NULL"
+    if np is not None and isinstance(value, np.ndarray):
         return f"[{', '.join(_serialize_value_for_sql(v) for v in value)}]"
-    if pd.isna(value):
+    if isinstance(value, (list, tuple)):
+        return f"[{', '.join(_serialize_value_for_sql(v) for v in value)}]"
+    if pd is not None and pd.isna(value):
         return "NULL"
     if isinstance(value, str):
         new_value = value.replace("\\", "\\\\").replace("'", "''")
@@ -40,7 +50,9 @@ def _serialize_value_for_sql(value):
         decoded = value.decode("utf-8", "replace")
         new_value = decoded.replace("\\", "\\\\").replace("'", "''")
         return f"b'{new_value}'"
-    if isinstance(value, (datetime.datetime, datetime.date, pd.Timestamp)):
+    if isinstance(value, (datetime.datetime, datetime.date)):
+        return f"'{value}'"
+    if pd is not None and isinstance(value, pd.Timestamp):
         return f"'{value}'"
     if isinstance(value, dict):
         string_values = [_serialize_value_for_sql(v) for v in value.values()]
@@ -81,8 +93,14 @@ def get_analytics_metadata(token: Optional[str] = None) -> Dict[str, Any]:
                 logger.info("Successfully fetched analytics metadata (authorized=%s, role=%s)",
                             metadata.get("authorized"), metadata.get("user_role"))
                 return metadata
+            elif response.status_code == 401:
+                raise RuntimeError(f"Authentication failed (401): {response.text}")
+            elif response.status_code == 403:
+                raise RuntimeError(f"Access forbidden (403): {response.text}")
             else:
                 logger.warning("Identity service returned status %d. Using fallback analytics metadata.", response.status_code)
+    except RuntimeError:
+        raise
     except Exception as exc:
         logger.warning("Could not reach identity service at %s: %s. Using fallback analytics metadata.", metadata_url, exc)
 
@@ -196,7 +214,7 @@ while strictly using the provided schema and analytical guidance.
 - **Aggregations & Grouping:** Include all non-aggregated `SELECT` columns in the `GROUP BY` clause.
   Use appropriate aggregation functions (`SUM`, `COUNT`, `AVG`, `COUNT(DISTINCT ...)`) to avoid double counting.
 - **Column Usage:** Use ONLY column names defined in the schema. Do NOT assume or invent unlisted columns.
-- **Filters & Limits:** Write efficient queries with appropriate `WHERE` clauses. Limit returned rows to at most {MAX_NUM_ROWS}.
+- **Filters & Row Limits:** Write efficient queries with appropriate `WHERE` clauses. Do NOT impose any artificial row limits (such as `LIMIT`) unless explicitly requested by the user's business question (e.g., top N rankings). Return all necessary rows for comprehensive analytical evaluation without row restrictions.
 - **Security & Integrity:** Never construct customer-specific view names like `customer_views.customer_*`.
   You are generating business-wide analytical queries for bank staff.
 
@@ -224,7 +242,7 @@ while strictly using the provided schema and analytical guidance.
         schema_str = str(schema)
 
     prompt = prompt_template.format(
-        MAX_NUM_ROWS=MAX_NUM_ROWS, SCHEMA=schema_str, QUESTION=question
+        SCHEMA=schema_str, QUESTION=question
     )
 
     global llm_client
@@ -240,7 +258,7 @@ while strictly using the provided schema and analytical guidance.
         )
 
     response = llm_client.models.generate_content(
-        model=os.getenv("BASELINE_NL2SQL_MODEL", "gemini-2.5-pro"),
+        model=os.getenv("BASELINE_NL2SQL_MODEL", "gemini-3.7-flash"),
         contents=prompt,
         config={"temperature": 0.05},
     )

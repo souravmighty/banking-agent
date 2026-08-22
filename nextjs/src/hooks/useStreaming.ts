@@ -115,6 +115,7 @@ export function useStreaming(
           message: "Please proceed to provide the final synthesized response based on the tool results.",
           userId: apiPayload.userId,
           sessionId: apiPayload.sessionId,
+          appName: apiPayload.appName,
         };
 
         await connectionManager.current.submitMessage(

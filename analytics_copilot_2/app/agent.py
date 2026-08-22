@@ -45,11 +45,11 @@ os.environ["GOOGLE_CLOUD_LOCATION"] = "global"
 try:
     from .prompts import return_instructions_root
     from .sub_agents.bigquery.tools import get_analytics_metadata
-    from .tools import call_bigquery_agent
+    from .tools import call_bigquery_agent, call_visualization_agent
 except (ImportError, ValueError):
-    from prompts import return_instructions_root
-    from sub_agents.bigquery.tools import get_analytics_metadata
-    from tools import call_bigquery_agent
+    from app.prompts import return_instructions_root
+    from app.sub_agents.bigquery.tools import get_analytics_metadata
+    from app.tools import call_bigquery_agent, call_visualization_agent
 
 load_dotenv()
 
@@ -405,10 +405,10 @@ def load_analytics_metadata_in_context(callback_context: CallbackContext):
 
 
 def get_root_agent() -> LlmAgent:
-    tools = [call_bigquery_agent]
+    tools = [call_bigquery_agent, call_visualization_agent]
 
     agent = LlmAgent(
-        model=os.getenv("ROOT_AGENT_MODEL", "gemini-2.5-flash"),
+        model=os.getenv("ROOT_AGENT_MODEL", "gemini-3.7-flash"),
         name="analytics_root_agent",
         planner=BuiltInPlanner(
             thinking_config=genai_types.ThinkingConfig(include_thoughts=True)
@@ -430,3 +430,11 @@ def get_root_agent() -> LlmAgent:
 
 # Instantiate root agent
 root_agent = get_root_agent()
+
+from google.adk.apps import App
+
+app = App(
+    name="analytics_copilot_2",
+    root_agent=root_agent,
+)
+

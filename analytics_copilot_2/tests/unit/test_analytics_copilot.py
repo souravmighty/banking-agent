@@ -1,9 +1,8 @@
 import pytest
 from unittest.mock import MagicMock, patch
-import httpx
 from types import SimpleNamespace
 
-from agent import (
+from app.agent import (
     load_analytics_metadata_in_context,
     reconstruct_database_settings_from_analytics_metadata,
     analytics_metadata_cache,
@@ -11,10 +10,10 @@ from agent import (
     get_root_agent,
     root_agent,
 )
-from prompts import return_instructions_root, format_analytics_data_context
-from sub_agents.bigquery.prompts import return_instructions_bigquery
-from sub_agents.bigquery.tools import get_analytics_metadata, bigquery_nl2sql
-from sub_agents.bigquery.agent import setup_before_agent_call
+from app.prompts import return_instructions_root, format_analytics_data_context
+from app.sub_agents.bigquery.prompts import return_instructions_bigquery
+from app.sub_agents.bigquery.tools import get_analytics_metadata, bigquery_nl2sql
+from app.sub_agents.bigquery.agent import setup_before_agent_call
 
 
 SAMPLE_ANALYTICS_METADATA = {
@@ -98,7 +97,7 @@ SAMPLE_ANALYTICS_METADATA = {
 
 
 def test_get_analytics_metadata_success():
-    """Test 1 & 12: Calls /analytics-metadata and propagates auth token."""
+    """Test: Calls /analytics-metadata and propagates auth token."""
     mock_response = MagicMock()
     mock_response.status_code = 200
     mock_response.json.return_value = SAMPLE_ANALYTICS_METADATA
@@ -110,7 +109,6 @@ def test_get_analytics_metadata_success():
         assert "banking-agent-rag-mcp.banking_data" in metadata["datasets"]
         assert "banking-agent-rag-mcp.analytics" in metadata["datasets"]
 
-        # Verify endpoint called is /analytics-metadata and Authorization header passed
         call_args, call_kwargs = mock_get.call_args
         assert call_args[0].endswith("/analytics-metadata")
         assert "/adk/context" not in call_args[0]
@@ -118,7 +116,7 @@ def test_get_analytics_metadata_success():
 
 
 def test_get_analytics_metadata_fallback_api_v1():
-    """Test 1: Falls back to /api/v1/analytics-metadata if root endpoint 404s."""
+    """Test: Falls back to /api/v1/analytics-metadata if root endpoint 404s."""
     mock_404 = MagicMock(status_code=404)
     mock_200 = MagicMock(status_code=200, json=lambda: SAMPLE_ANALYTICS_METADATA)
 
@@ -131,7 +129,7 @@ def test_get_analytics_metadata_fallback_api_v1():
 
 
 def test_get_analytics_metadata_unauthorized():
-    """Test 13: 401 Unauthorized prevents execution."""
+    """Test: 401 Unauthorized prevents execution."""
     mock_response = MagicMock()
     mock_response.status_code = 401
     mock_response.text = "Unauthorized"
@@ -143,7 +141,7 @@ def test_get_analytics_metadata_unauthorized():
 
 
 def test_get_analytics_metadata_forbidden():
-    """Test 13: 403 Forbidden for non-staff prevents execution."""
+    """Test: 403 Forbidden for non-staff prevents execution."""
     mock_response = MagicMock()
     mock_response.status_code = 403
     mock_response.text = "Forbidden: Customer role cannot access analytics"
@@ -155,19 +153,17 @@ def test_get_analytics_metadata_forbidden():
 
 
 def test_reconstruct_database_settings():
-    """Test 7 & 8: Reconstructs schema for both actual tables and analytical views."""
+    """Test: Reconstructs schema for both actual tables and analytical views."""
     db_settings = reconstruct_database_settings_from_analytics_metadata(SAMPLE_ANALYTICS_METADATA)
     assert "bigquery" in db_settings
     schema = db_settings["bigquery"]["schema"]
 
-    # Table entry
     tbl_key = "banking-agent-rag-mcp.banking_data.customers"
     assert tbl_key in schema
     assert schema[tbl_key]["object_type"] == "TABLE"
     assert schema[tbl_key]["is_scd_type_2"] is True
     assert len(schema[tbl_key]["table_schema"]) == 3
 
-    # View entry
     view_key = "banking-agent-rag-mcp.analytics.analytics_customer_360"
     assert view_key in schema
     assert schema[view_key]["object_type"] == "VIEW"
@@ -176,7 +172,7 @@ def test_reconstruct_database_settings():
 
 
 def test_load_analytics_metadata_callback():
-    """Test 3, 4, 10, 11: Callback loads metadata into state and caches it; avoids customer PII."""
+    """Test: Callback loads metadata into state and caches it; avoids customer PII."""
     analytics_metadata_cache.clear()
 
     callback_context = SimpleNamespace(
@@ -184,7 +180,7 @@ def test_load_analytics_metadata_callback():
         session=SimpleNamespace(id="sess-123", user_id="staff@bank.com")
     )
 
-    with patch("agent.get_analytics_metadata", return_value=SAMPLE_ANALYTICS_METADATA) as mock_fetch:
+    with patch("app.agent.get_analytics_metadata", return_value=SAMPLE_ANALYTICS_METADATA) as mock_fetch:
         load_analytics_metadata_in_context(callback_context)
 
         assert mock_fetch.call_count == 1
@@ -192,22 +188,19 @@ def test_load_analytics_metadata_callback():
         assert "database_settings" in callback_context.state
         assert callback_context.state["user_role"] == "BANK_STAFF"
 
-        # Ensure NO customer PII or customer-scoped keys exist
         assert "customer_id" not in callback_context.state
         assert "customer_profile" not in callback_context.state
         assert "authorized_account" not in callback_context.state
         assert "authorized_views" not in callback_context.state
 
-        # Calling again on same context should use state directly without HTTP call
         load_analytics_metadata_in_context(callback_context)
         assert mock_fetch.call_count == 1
 
-    # Calling with new callback_context for same user_id should hit memory cache
     new_context = SimpleNamespace(
         state={},
         session=SimpleNamespace(id="sess-456", user_id="staff@bank.com")
     )
-    with patch("agent.get_analytics_metadata", return_value=SAMPLE_ANALYTICS_METADATA) as mock_fetch_2:
+    with patch("app.agent.get_analytics_metadata", return_value=SAMPLE_ANALYTICS_METADATA) as mock_fetch_2:
         load_analytics_metadata_in_context(new_context)
         assert mock_fetch_2.call_count == 0  # hit cache
         assert "analytics_metadata" in new_context.state
@@ -215,39 +208,37 @@ def test_load_analytics_metadata_callback():
 
 
 def test_subagent_setup_before_agent_call_reuses_state():
-    """Test 6: BigQuery subagent reuses populated state without second fetch."""
+    """Test: BigQuery subagent reuses populated state without second fetch."""
     callback_context = SimpleNamespace(
         state={"database_settings": {"bigquery": {"schema": {}}}},
         session=SimpleNamespace(id="sess-789", user_id="staff@bank.com")
     )
 
-    with patch("agent.get_analytics_metadata") as mock_fetch:
+    with patch("app.agent.get_analytics_metadata") as mock_fetch:
         setup_before_agent_call(callback_context)
         assert mock_fetch.call_count == 0
 
 
 def test_root_agent_instructions_prompts():
-    """Test 5 & 9: Root Agent instructions contain analytics context and no customer profile."""
+    """Test: Root Agent instructions contain analytics context and no customer profile."""
     state = {
         "analytics_metadata": SAMPLE_ANALYTICS_METADATA
     }
     context = SimpleNamespace(state=state)
     instructions = return_instructions_root(context)
 
-    # Asserts Analytics Copilot role
     assert "Analytics Copilot" in instructions
     assert "BANK_STAFF" in instructions
     assert "<ANALYTICS_DATA_CONTEXT>" in instructions
     assert "banking-agent-rag-mcp.banking_data.customers" in instructions
     assert "banking-agent-rag-mcp.analytics.analytics_customer_360" in instructions
 
-    # Asserts absence of customer-facing profile tags
     assert "<CUSTOMER_PROFILE>" not in instructions
     assert "<AUTHORIZED_ACCOUNTS>" not in instructions
 
 
 def test_bigquery_agent_instructions():
-    """Test 6, 7, 8, 9: BigQuery subagent instructions enforce actual table/view names and SCD guidance."""
+    """Test: BigQuery subagent instructions enforce actual table/view names and SCD guidance."""
     instructions = return_instructions_bigquery()
 
     assert "BANK_STAFF" in instructions
@@ -259,7 +250,7 @@ def test_bigquery_agent_instructions():
 
 
 def test_bigquery_nl2sql_prompt_construction():
-    """Test 7 & 8: NL2SQL prompt receives full schema for tables and analytical views."""
+    """Test: NL2SQL prompt receives full schema for tables and analytical views."""
     db_settings = reconstruct_database_settings_from_analytics_metadata(SAMPLE_ANALYTICS_METADATA)
     tool_context = SimpleNamespace(
         state={
@@ -271,8 +262,8 @@ def test_bigquery_nl2sql_prompt_construction():
 
     with patch("google.genai.Client.models") as mock_models:
         mock_models.generate_content.return_value = mock_llm_response
-        with patch("sub_agents.bigquery.tools.llm_client", None):
-            with patch("sub_agents.bigquery.tools.Client") as mock_client_cls:
+        with patch("app.sub_agents.bigquery.tools.llm_client", None):
+            with patch("app.sub_agents.bigquery.tools.Client") as mock_client_cls:
                 mock_client_instance = MagicMock()
                 mock_client_instance.models.generate_content.return_value = mock_llm_response
                 mock_client_cls.return_value = mock_client_instance
@@ -285,3 +276,12 @@ def test_bigquery_nl2sql_prompt_construction():
                 assert "SELECT COUNT(*)" in sql
                 assert "banking-agent-rag-mcp.banking_data.customers" in sql
                 assert tool_context.state["sql_query"] == sql
+
+
+def test_root_agent_tools_registry():
+    """Test: Root agent registers call_bigquery_agent and call_visualization_agent."""
+    agent = get_root_agent()
+    tool_names = [getattr(t, "__name__", getattr(t, "name", str(t))) for t in agent.tools]
+    assert "call_bigquery_agent" in tool_names
+    assert "call_visualization_agent" in tool_names
+

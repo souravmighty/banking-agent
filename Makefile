@@ -26,7 +26,7 @@ analytics-copilot:
 	uv run adk web analytics_copilot_2 --port 8502
 
 analytics-copilot-api:
-	uv run adk api_server analytics_copilot_2 --port 8002 --allow_origins="*"
+	cd analytics_copilot_2 && uv run uvicorn app.fast_api_app:app --host 0.0.0.0 --port 8002
 
 test-identity-service:
 	cd customer-identity-service && PYTHONPATH=. uv run pytest tests/

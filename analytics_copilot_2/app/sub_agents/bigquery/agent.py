@@ -94,7 +94,7 @@ bigquery_toolset = BigQueryToolset(
 
 
 bigquery_agent = LlmAgent(
-    model=os.getenv("BIGQUERY_AGENT_MODEL", "gemini-2.5-pro"),
+    model=os.getenv("BIGQUERY_AGENT_MODEL", "gemini-3.7-flash"),
     name="bigquery_agent",
     planner=BuiltInPlanner(
         thinking_config=genai_types.ThinkingConfig(include_thoughts=True)
