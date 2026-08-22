@@ -8,8 +8,8 @@
 **adk-agent-sa.json
 **service-account-key.json
 /keys/
-keys/*
 /keys/**.json
+.google-agents-cli/
 
 
 # Byte-compiled / optimized / DLL files
