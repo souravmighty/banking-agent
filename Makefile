@@ -14,19 +14,19 @@ dev-frontend:
 	npm --prefix nextjs run dev
 
 identity-service:
-	cd customer-identity-service && uv run uvicorn app.main:app --host 0.0.0.0 --port 8001 --reload
+	cd customer-identity-service && env -u VIRTUAL_ENV uv run uvicorn app.main:app --host 0.0.0.0 --port 8001 --reload
 
 customer-data-service:
-	cd customer-data-service && uv run uvicorn app.main:app --host 0.0.0.0 --port 8081 --reload
+	cd customer-data-service && env -u VIRTUAL_ENV uv run uvicorn app.main:app --host 0.0.0.0 --port 8081 --reload
 
 analytics-metadata-service:
-	cd analytics-metadata-service && uv run uvicorn app.main:app --host 0.0.0.0 --port 8003 --reload
+	cd analytics-metadata-service && env -u VIRTUAL_ENV uv run uvicorn app.main:app --host 0.0.0.0 --port 8003 --reload
 
 analytics-copilot:
-	uv run adk web analytics-copilot --port 8502
+	env -u VIRTUAL_ENV uv run --project analytics-copilot adk web analytics-copilot --port 8502
 
 analytics-copilot-api:
-	cd analytics-copilot && uv run uvicorn app.fast_api_app:app --host 0.0.0.0 --port 8002
+	cd analytics-copilot && env -u VIRTUAL_ENV uv run uvicorn app.fast_api_app:app --host 0.0.0.0 --port 8002
 
 test-identity-service:
 	cd customer-identity-service && PYTHONPATH=. uv run pytest tests/

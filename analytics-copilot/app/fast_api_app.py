@@ -81,7 +81,7 @@ app: FastAPI = get_fast_api_app(
     artifact_service_uri=services.ARTIFACT_SERVICE_URI,
     allow_origins=allow_origins,
     session_service_uri=services.SESSION_SERVICE_URI,
-    otel_to_cloud=True,
+    otel_to_cloud=os.getenv("OTEL_TO_CLOUD", "false").lower() == "true",
     lifespan=lifespan,
 )
 app.title = "analytics-copilot"
