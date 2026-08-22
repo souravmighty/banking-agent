@@ -1,0 +1,28 @@
+{
+  "eval_cases": [
+    {
+      "eval_case_id": "current_active_customers_count",
+      "prompt": {
+        "role": "user",
+        "parts": [
+          {
+            "text": "How many active customers do we currently have across all customer segments?"
+          }
+        ]
+      },
+      "reference": "Count of distinct active customers filtering for is_current = TRUE."
+    },
+    {
+      "eval_case_id": "historical_vs_current_branch_deposit",
+      "prompt": {
+        "role": "user",
+        "parts": [
+          {
+            "text": "Show me current deposit totals by branch as of today compared to active branch records"
+          }
+        ]
+      },
+      "reference": "Branch deposit figures filtered by current effective records using is_current = TRUE or valid_to IS NULL."
+    }
+  ]
+}

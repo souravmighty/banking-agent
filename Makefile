@@ -37,6 +37,15 @@ test-metadata-service:
 test-analytics-copilot:
 	cd analytics-copilot && PYTHONPATH=. uv run pytest tests/
 
+eval-analytics-copilot:
+	cd analytics-copilot && env -u VIRTUAL_ENV uv run agents-cli eval run --config tests/eval/eval_config.yaml
+
+eval-banking-suite:
+	cd analytics-copilot && env -u VIRTUAL_ENV uv run agents-cli eval run --dataset tests/eval/datasets/banking_analytics_suite.json --config tests/eval/eval_config.yaml
+
+eval-safety-suite:
+	cd analytics-copilot && env -u VIRTUAL_ENV uv run agents-cli eval run --dataset tests/eval/datasets/adversarial_safety.json --config tests/eval/eval_config.yaml
+
 adk-web:
 	uv run adk web --port 8501
 

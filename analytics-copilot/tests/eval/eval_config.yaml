@@ -1,13 +1,32 @@
+# Evaluation configuration for Analytics Copilot using agents-cli / ADK Eval Framework
 metrics_to_run:
+  # Built-In Platform Metrics
+  - final_response_quality
+  - safety
+  # Custom Evaluator Metrics
+  - sql_safety_and_validity
+  - vega_lite_spec_validity
+  - scd2_filter_compliance
+  - zero_pii_compliance
   - custom_response_quality
 
 custom_metrics:
-  # Default: local LLM-as-judge (see response_quality.py). Runs in-process via
-  # google-genai on Agent Platform (ADC) or Google AI Studio (GEMINI_API_KEY).
+  - name: sql_safety_and_validity
+    custom_function_file: custom_evaluators.py
+    custom_function_name: evaluate_sql_safety_and_validity
+
+  - name: vega_lite_spec_validity
+    custom_function_file: custom_evaluators.py
+    custom_function_name: evaluate_vega_lite_spec_validity
+
+  - name: scd2_filter_compliance
+    custom_function_file: custom_evaluators.py
+    custom_function_name: evaluate_scd2_filter_compliance
+
+  - name: zero_pii_compliance
+    custom_function_file: custom_evaluators.py
+    custom_function_name: evaluate_zero_pii_compliance
+
   - name: custom_response_quality
-    custom_function_file: response_quality.py
-  - name: agent_turn_count
-    custom_function: |
-      def evaluate(instance):
-          turns = (instance.get("agent_data") or {}).get("turns", [])
-          return {'score': len(turns)}
+    custom_function_file: custom_evaluators.py
+    custom_function_name: evaluate_custom_response_quality

@@ -1,0 +1,64 @@
+{
+  "eval_cases": [
+    {
+      "eval_case_id": "mom_credit_card_trends",
+      "prompt": {
+        "role": "user",
+        "parts": [
+          {
+            "text": "Give me month on month view of credit card transacted customers and average credit card spends per customer"
+          }
+        ]
+      },
+      "reference": "Monthly breakdown table and trend visualization showing unique transacting credit card customers and average credit card spend per customer over time."
+    },
+    {
+      "eval_case_id": "active_loans_by_product",
+      "prompt": {
+        "role": "user",
+        "parts": [
+          {
+            "text": "Show me total active loan volume and average interest rate grouped by loan product type"
+          }
+        ]
+      },
+      "reference": "Summary table and chart grouping active loans by product type with total volume and mean interest rate."
+    },
+    {
+      "eval_case_id": "top_branches_by_deposits",
+      "prompt": {
+        "role": "user",
+        "parts": [
+          {
+            "text": "What are the top 5 branches by total deposit balances, and what is the distribution across account types?"
+          }
+        ]
+      },
+      "reference": "Ranking of top 5 branches by aggregate deposit balance with account type distribution."
+    },
+    {
+      "eval_case_id": "customer_segment_acquisition",
+      "prompt": {
+        "role": "user",
+        "parts": [
+          {
+            "text": "Give me segment wise monthly acquisition trends for new banking customers"
+          }
+        ]
+      },
+      "reference": "Monthly new customer acquisition numbers segmented by customer tier/segment with trend chart."
+    },
+    {
+      "eval_case_id": "delinquency_rate_analysis",
+      "prompt": {
+        "role": "user",
+        "parts": [
+          {
+            "text": "What is the portfolio delinquency rate across different loan categories over the last 6 months?"
+          }
+        ]
+      },
+      "reference": "Delinquency percentage metrics grouped by loan type across 6 months with risk commentary."
+    }
+  ]
+}
