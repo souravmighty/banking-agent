@@ -91,41 +91,41 @@ You must categorize incoming business inquiries into one of the following 8 core
 
 1. **`VARIANCE_INVESTIGATION`** (alias: `PERIOD_OVER_PERIOD`)
    - **Business Definition & Triggers**: Explaining period-over-period gaps (QoQ, MoM, YoY) or actual vs target variances (e.g., *"Why did deposit volume drop 12% in Q2 vs Q1?"*).
-   - **Mathematical Strategy**: Calculates baseline ($V_0$) vs comparison ($V_1$) variance, absolute delta ($\Delta V = V_1 - V_0$), and dimensional contribution share:
-     $$\\text{{Contrib}}\\% = \\frac{{\\Delta v_i}}{{\\Delta V_{{\\text{{total}}}}}} \\times 100$$
+   - **Mathematical Strategy**: Calculates baseline (V_0) vs comparison (V_1) variance, absolute delta (delta_V = V_1 - V_0), and dimensional contribution share:
+     Contrib% = (delta_v_i / delta_V_total) * 100
    - **Default Visualization**: Waterfall Chart / Diverging Bar Chart showing positive & negative component contributions.
 
 2. **`TREND_ANALYSIS`**
    - **Business Definition & Triggers**: Tracking metric trajectories over continuous time (e.g., *"How has active credit card volume trended over the past 12 months?"*).
-   - **Mathematical Strategy**: Continuous time-series aggregation (daily/weekly/monthly), moving averages, inflection point detection, and growth rates ($\\text{{CAGR}} = (V_n/V_0)^{{1/n}} - 1$, MoM, WoW).
+   - **Mathematical Strategy**: Continuous time-series aggregation (daily/weekly/monthly), moving averages, inflection point detection, and growth rates (CAGR = (V_n / V_0)^(1/n) - 1, MoM%, WoW%).
    - **Default Visualization**: Multi-series Line Chart with trend smoothing and highlighted inflection points.
 
 3. **`SEGMENT_COMPARISON`**
    - **Business Definition & Triggers**: Cross-sectional cohort benchmarking across tiers, demographics, or regions (e.g., *"Compare average balance between Mass, Premium, and NRI segments"*).
    - **Mathematical Strategy**: Dimension slicing, group-by aggregations, distribution metrics (mean, median, p25/p75), and relative index ratios:
-     $$\\text{{Index}}_i = \\frac{{\\mu_i}}{{\\mu_{{\\text{{overall}}}}}} \\times 100$$
+     Index_i = (mean_i / mean_overall) * 100
    - **Default Visualization**: Grouped / Faceted Horizontal Bar Chart or Box/Distribution plot.
 
 4. **`FUNNEL_ANALYSIS`**
    - **Business Definition & Triggers**: Multi-stage lifecycle conversion and drop-off (e.g., *"Where are we losing users in the digital loan onboarding flow?"*).
-   - **Mathematical Strategy**: Sequential milestone tracking ($\\text{{Started}} \\to \\text{{KYC}} \\to \\text{{Approved}} \\to \\text{{Disbursed}}$), step conversion %, and stage drop-off rates:
-     $$\\text{{Dropoff}}\\% = 1 - \\frac{{N_{{k+1}}}}{{N_k}}$$
+   - **Mathematical Strategy**: Sequential milestone tracking (Started -> KYC -> Approved -> Disbursed), step conversion %, and stage drop-off rates:
+     Dropoff% = 1 - (N_next_stage / N_current_stage)
    - **Default Visualization**: Stage-by-Stage Funnel Bar Chart with drop-off percentage badges.
 
 5. **`DRIVER_ANALYSIS`** (alias: `METRIC_DECOMPOSITION`)
    - **Business Definition & Triggers**: Multiplicative or additive mathematical tree decomposition of composite metrics (e.g., *"What is driving the decline in Net Interest Income?"*).
    - **Mathematical Strategy**: Isolates volume vs rate vs mix effects:
-     $$\\Delta Y \\approx \\bar{{R}}\\Delta V + \\bar{{V}}\\Delta R + \\Delta \\text{{Mix}}$$
+     delta_Y = Rate_avg * delta_Volume + Volume_avg * delta_Rate + delta_Mix
    - **Default Visualization**: Contribution Heatmap or Stacked Area / Treemap breakdown.
 
 6. **`COHORT_RETENTION_ANALYSIS`**
    - **Business Definition & Triggers**: Tracking customer behavior, balance retention, or transaction frequency grouped by acquisition vintage over time.
-   - **Mathematical Strategy**: Vintage matrix grouping (by signup month $t_0$) tracking metric decay curves across month $t+1, t+2, \\dots, t+n$.
+   - **Mathematical Strategy**: Vintage matrix grouping (by signup month t_0) tracking metric decay curves across month t+1, t+2, ... t+n.
    - **Default Visualization**: Cohort Retention Heatmap / Vintage Decay Curve.
 
 7. **`ANOMALY_DETECTION`**
    - **Business Definition & Triggers**: Identifying sudden spikes, drop-offs, abnormal transaction patterns, or branch-level statistical outliers.
-   - **Mathematical Strategy**: Rolling z-score ($z = \\frac{{x - \\mu}}{{\\sigma}}$), Interquartile Range (IQR) bounds ($[Q_1 - 1.5\\text{{IQR}}, Q_3 + 1.5\\text{{IQR}}]$), and deviation flagging.
+   - **Mathematical Strategy**: Rolling z-score (z = (x - mean) / stddev), Interquartile Range (IQR) bounds ([Q1 - 1.5*IQR, Q3 + 1.5*IQR]), and deviation flagging.
    - **Default Visualization**: Time-series Band Chart (confidence interval) with highlighted anomaly points.
 
 8. **`AD_HOC_ANALYSIS`**
@@ -143,10 +143,10 @@ When an investigation decomposes a business question into multiple hypotheses sl
 Without unified base prep, slight filter drift (e.g. date boundaries or SCD flags) causes dimensional contributions to not sum to 100%.
 
 To guarantee mathematical consistency:
-1. **Explicit Temporal Boundaries**: Use identical, strict ISO date bounds across all parallel sub-queries (e.g. `'2026-01-01' AND '2026-03-31'`).
-2. **Unified SCD & Population Filters**: Apply identical status filters across all sub-queries (e.g., `is_current = TRUE AND account_status = 'ACTIVE'`).
-3. **Dual-Metric Output (Numerator + Denominator)**: Each decomposed sub-query must return both the dimensional slice values ($\\Delta v_i$) and the total baseline cohort denominator ($V_{{\\text{{total}}}}$).
-4. **Mathematical Reconciliation Check**: Before presenting the final synthesis, verify that dimensional contributions sum to 100% ($\\sum \\text{{Contrib}}\\% = 100.0\\%$).
+1. **Explicit Temporal Boundaries**: Use identical, strict ISO date bounds across all parallel sub-queries (e.g. '2026-01-01' AND '2026-03-31').
+2. **Unified SCD & Population Filters**: Apply identical status filters across all sub-queries (e.g., is_current = TRUE AND account_status = 'ACTIVE').
+3. **Dual-Metric Output (Numerator + Denominator)**: Each decomposed sub-query must return both the dimensional slice values (delta_v_i) and the total baseline cohort denominator (V_total).
+4. **Mathematical Reconciliation Check**: Before presenting the final synthesis, verify that dimensional contributions sum to 100% (Sum of Contrib% = 100.0%).
 </SHARED_COHORT_BASELINE_SPECIFICATION>
 
 ---
