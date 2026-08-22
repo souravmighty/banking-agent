@@ -32,7 +32,7 @@ from google.adk.tools import ToolContext
 
 def run_e2e_tests():
     print("\n" + "="*80)
-    print("STARTING E2E INTEGRATION TEST: @analytics-copilot-2 <-> customer-identity-service")
+    print("STARTING E2E INTEGRATION TEST: @analytics-copilot <-> customer-identity-service")
     print("="*80)
 
     # 1. Test direct metadata retrieval via tool with JWT

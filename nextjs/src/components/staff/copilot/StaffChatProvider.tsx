@@ -38,7 +38,7 @@ export interface StaffChatContextValue {
 
 const StaffChatContext = createContext<StaffChatContextValue | null>(null);
 
-const APP_NAME = "analytics_copilot_2";
+const APP_NAME = "analytics-copilot";
 
 export function StaffChatProvider({ children }: { children: React.ReactNode }) {
   const { user } = useAuth();

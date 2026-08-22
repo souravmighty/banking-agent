@@ -56,8 +56,27 @@ async def lifespan(app: FastAPI) -> AsyncIterator[None]:
     yield
 
 
+from google.adk.cli.utils.agent_loader import AgentLoader
+
+
+class AnalyticsCopilotAgentLoader(AgentLoader):
+    """Agent loader that ensures analytics-copilot, analytics_copilot, and app names resolve."""
+
+    def list_agents(self) -> list[str]:
+        return ["analytics-copilot", "analytics_copilot", "analytics_copilot_2", "app"]
+
+    def _perform_load(self, agent_name: str):
+        if agent_name in ("analytics-copilot", "analytics_copilot", "analytics_copilot_2", "app"):
+            from app.agent import app as adk_app
+            return adk_app
+        return super()._perform_load(agent_name)
+
+
+agent_loader = AnalyticsCopilotAgentLoader(AGENT_DIR)
+
 app: FastAPI = get_fast_api_app(
     agents_dir=AGENT_DIR,
+    agent_loader=agent_loader,
     web=True,
     artifact_service_uri=services.ARTIFACT_SERVICE_URI,
     allow_origins=allow_origins,

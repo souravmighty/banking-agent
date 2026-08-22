@@ -1,12 +1,8 @@
 """Local LLM-as-judge for `custom_response_quality` (see eval_config.yaml)."""
 
-import os
-from dotenv import load_dotenv
 from google import genai
 from google.genai import types
 from pydantic import BaseModel
-
-load_dotenv()
 
 
 class _Verdict(BaseModel):
@@ -18,7 +14,7 @@ def evaluate(instance):
     reference = instance.get("reference")
     rubric = (
         "Grade the agent's final response on a 1-5 scale (1 poor, 5 excellent) for "
-        "accuracy, depth of analytical reasoning, data evidence clarity, and actionable insights."
+        "accuracy, relevance, and clarity."
     )
     if reference:
         rubric += (
@@ -26,7 +22,7 @@ def evaluate(instance):
             "factual disagreement with it."
         )
     prompt = (
-        f"You are an expert QA evaluator for an enterprise AI analytics assistant. {rubric}\n"
+        f"You are an expert QA evaluator for an enterprise AI assistant. {rubric}\n"
         f"User Prompt: {instance.get('prompt', '')}\n"
         f"Final Response: {instance.get('response', '')}\n"
     )
@@ -34,18 +30,9 @@ def evaluate(instance):
         prompt += f"Expected Answer (ground truth): {reference}\n"
     prompt += f"Full Agent Trace: {instance.get('agent_data', '')}\n"
 
-    api_key = os.getenv("GEMINI_API_KEY")
-    use_vertex = os.getenv("GOOGLE_GENAI_USE_VERTEXAI", "true").lower() == "true"
-    project = os.getenv("GOOGLE_CLOUD_PROJECT")
-    location = os.getenv("GOOGLE_CLOUD_LOCATION", "global")
-
-    if api_key:
-        client = genai.Client(api_key=api_key)
-    else:
-        client = genai.Client(vertexai=use_vertex, project=project, location=location)
-
+    client = genai.Client()  # AI Studio (GEMINI_API_KEY) or Agent Platform (ADC)
     response = client.models.generate_content(
-        model="gemini-3.6-flash",
+        model="gemini-3.7-flash",
         contents=prompt,
         config=types.GenerateContentConfig(
             temperature=0,  # deterministic grading
