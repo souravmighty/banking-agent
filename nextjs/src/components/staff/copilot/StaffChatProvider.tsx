@@ -211,6 +211,7 @@ export function StaffChatProvider({ children }: { children: React.ReactNode }) {
             const nextMap = new Map(prev);
             const events = nextMap.get(messageId) || [];
 
+            // 1. Deduplicate thinking activities by title
             if (event.title.startsWith("🤔")) {
               const idx = events.findIndex((e) => e.title === event.title);
               if (idx >= 0) {
@@ -220,9 +221,67 @@ export function StaffChatProvider({ children }: { children: React.ReactNode }) {
               } else {
                 nextMap.set(messageId, [...events, event]);
               }
-            } else {
-              nextMap.set(messageId, [...events, event]);
+              return nextMap;
             }
+
+            // 2. Deduplicate function calls and responses by tool ID or signature
+            const eventData = event.data as Record<string, unknown> | undefined;
+            if (eventData && typeof eventData === "object") {
+              const eventType = eventData.type;
+              const eventId = typeof eventData.id === "string" ? eventData.id : "";
+              const eventName = typeof eventData.name === "string" ? eventData.name : "";
+
+              if (eventType === "functionCall" || eventType === "functionResponse") {
+                const existingIdx = events.findIndex((e) => {
+                  const existingData = e.data as Record<string, unknown> | undefined;
+                  if (!existingData || typeof existingData !== "object") return false;
+                  if (existingData.type !== eventType) return false;
+
+                  // Match by non-empty tool call ID
+                  if (eventId && existingData.id && eventId === existingData.id) {
+                    return true;
+                  }
+
+                  // Match by name and payload equality (e.g. identical function args or response)
+                  if (eventName && existingData.name === eventName) {
+                    if (eventType === "functionCall") {
+                      try {
+                        return JSON.stringify(existingData.args) === JSON.stringify(eventData.args);
+                      } catch {
+                        return false;
+                      }
+                    } else if (eventType === "functionResponse") {
+                      try {
+                        return JSON.stringify(existingData.response) === JSON.stringify(eventData.response);
+                      } catch {
+                        return false;
+                      }
+                    }
+                  }
+                  return false;
+                });
+
+                if (existingIdx >= 0) {
+                  const nextEvents = [...events];
+                  nextEvents[existingIdx] = event;
+                  nextMap.set(messageId, nextEvents);
+                  return nextMap;
+                }
+              }
+            }
+
+            // 3. Fallback: Deduplicate identical adjacent events
+            if (events.length > 0) {
+              const lastEvent = events[events.length - 1];
+              if (
+                lastEvent.title === event.title &&
+                JSON.stringify(lastEvent.data) === JSON.stringify(event.data)
+              ) {
+                return nextMap;
+              }
+            }
+
+            nextMap.set(messageId, [...events, event]);
             return nextMap;
           });
         };

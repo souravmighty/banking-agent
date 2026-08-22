@@ -256,7 +256,61 @@ export function ChatProvider({
             newMap.set(messageId, [...existingEvents, event]);
           }
         } else {
-          // For non-thinking activities, add normally (no deduplication needed)
+          // For non-thinking activities, check for duplicate functionCall / functionResponse
+          const eventData = event.data as Record<string, unknown> | undefined;
+          if (eventData && typeof eventData === "object") {
+            const eventType = eventData.type;
+            const eventId = typeof eventData.id === "string" ? eventData.id : "";
+            const eventName = typeof eventData.name === "string" ? eventData.name : "";
+
+            if (eventType === "functionCall" || eventType === "functionResponse") {
+              const existingIdx = existingEvents.findIndex((e) => {
+                const existingData = e.data as Record<string, unknown> | undefined;
+                if (!existingData || typeof existingData !== "object") return false;
+                if (existingData.type !== eventType) return false;
+
+                if (eventId && existingData.id && eventId === existingData.id) {
+                  return true;
+                }
+
+                if (eventName && existingData.name === eventName) {
+                  if (eventType === "functionCall") {
+                    try {
+                      return JSON.stringify(existingData.args) === JSON.stringify(eventData.args);
+                    } catch {
+                      return false;
+                    }
+                  } else if (eventType === "functionResponse") {
+                    try {
+                      return JSON.stringify(existingData.response) === JSON.stringify(eventData.response);
+                    } catch {
+                      return false;
+                    }
+                  }
+                }
+                return false;
+              });
+
+              if (existingIdx >= 0) {
+                const updatedEvents = [...existingEvents];
+                updatedEvents[existingIdx] = event;
+                newMap.set(messageId, updatedEvents);
+                return newMap;
+              }
+            }
+          }
+
+          // Fallback: Deduplicate identical adjacent events
+          if (existingEvents.length > 0) {
+            const lastEvent = existingEvents[existingEvents.length - 1];
+            if (
+              lastEvent.title === event.title &&
+              JSON.stringify(lastEvent.data) === JSON.stringify(event.data)
+            ) {
+              return newMap;
+            }
+          }
+
           newMap.set(messageId, [...existingEvents, event]);
         }
 

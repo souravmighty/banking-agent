@@ -102,11 +102,10 @@ export function useStreaming(
         aiMessageId
       );
 
-      // 🔑 CRITICAL: If the stream finished and a tool was executed, automatically trigger
-      // a secondary connection with the same sessionId and aiMessageId to synthesize the final markdown response.
-      // This displays the final synthesized text right under the AI Activity Timeline inside the initial bubble.
-      if (result?.hasToolExecution) {
-        console.log("🤖 [useStreaming] Tool execution detected. Auto-triggering secondary synthesis connection.");
+      // If the stream finished with tool execution AND no synthesized text was received,
+      // trigger secondary connection as fallback. If text was already streamed by ADK, skip.
+      if (result?.hasToolExecution && !accumulatedTextRef.current.trim()) {
+        console.log("🤖 [useStreaming] Tool execution without response text detected. Auto-triggering secondary synthesis connection.");
         
         // Wait 300ms before starting the secondary turn to allow backend to finalize the tool state
         await new Promise((resolve) => setTimeout(resolve, 300));
