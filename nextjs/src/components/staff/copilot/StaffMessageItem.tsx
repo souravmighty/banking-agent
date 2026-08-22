@@ -20,6 +20,81 @@ interface StaffMessageItemProps {
   isLoading?: boolean;
 }
 
+function getActiveTaskSummary(events: ProcessedEvent[]): string {
+  if (!events || events.length === 0) {
+    return "Formulating analytical plan & hypotheses...";
+  }
+
+  // Traverse from the latest event backward to find the current active operation
+  for (let i = events.length - 1; i >= 0; i--) {
+    const event = events[i];
+    const data = event.data as Record<string, unknown> | undefined;
+    if (!data) continue;
+
+    if (data.type === "functionCall") {
+      const name = typeof data.name === "string" ? data.name : "";
+      const args = (data.args && typeof data.args === "object" ? data.args : {}) as Record<string, unknown>;
+
+      if (name === "call_bigquery_agent" || name.includes("bigquery")) {
+        const question = typeof args.question === "string" ? args.question : typeof args.request === "string" ? args.request : "";
+        if (question.trim()) {
+          const cleanQ = question.trim().replace(/^["']|["']$/g, "");
+          return `Querying BigQuery: ${cleanQ.length > 85 ? cleanQ.slice(0, 82) + "..." : cleanQ}`;
+        }
+        return "Querying BigQuery analytical warehouse...";
+      }
+
+      if (name === "call_visualization_agent" || name.includes("visualization")) {
+        const goal = typeof args.goal === "string" ? args.goal : "";
+        if (goal.trim()) {
+          const cleanGoal = goal.trim().replace(/^["']|["']$/g, "");
+          return `Generating visualization: ${cleanGoal.length > 85 ? cleanGoal.slice(0, 82) + "..." : cleanGoal}`;
+        }
+        return "Generating interactive Vega-Lite visualization...";
+      }
+
+      if (name === "bigquery_nl2sql") {
+        return "Translating business question into BigQuery SQL...";
+      }
+
+      if (name === "execute_sql") {
+        return "Executing SQL query against analytical tables...";
+      }
+
+      if (name === "validate_vega_lite_spec") {
+        return "Validating Vega-Lite chart specification...";
+      }
+
+      const formattedName = name.replace(/_/g, " ").trim();
+      return `Executing ${formattedName || "analytical tool"}...`;
+    }
+
+    if (data.type === "functionResponse") {
+      const name = typeof data.name === "string" ? data.name : "";
+      if (name === "call_bigquery_agent") {
+        return "Analyzing BigQuery records & calculating metrics...";
+      }
+      if (name === "call_visualization_agent") {
+        return "Verifying visualization specification & rendering...";
+      }
+      return "Synthesizing retrieved analytics data...";
+    }
+
+    if (data.type === "thinking" || event.title.startsWith("🤔")) {
+      const content = typeof data.content === "string" ? data.content.trim() : "";
+      if (content) {
+        const firstLine = content.split("\n")[0].trim();
+        if (firstLine.length > 10) {
+          return firstLine.length > 85 ? firstLine.slice(0, 82) + "..." : firstLine;
+        }
+      }
+      return "Evaluating analytical hypotheses & data requirements...";
+    }
+  }
+
+  return "Analyzing banking portfolio metrics & trends...";
+}
+
 export function StaffMessageItem({
   message,
   timelineEvents = [],
@@ -45,6 +120,8 @@ export function StaffMessageItem({
         minute: "2-digit",
       })
     : "";
+
+  const activeTaskSummary = isAi && isLoading ? getActiveTaskSummary(timelineEvents) : "";
 
   return (
     <div
@@ -121,7 +198,7 @@ export function StaffMessageItem({
         ) : isAi && isLoading ? (
           <div className="flex items-center gap-2 text-xs text-indigo-600 dark:text-indigo-400/90 font-medium py-1">
             <span className="w-1.5 h-1.5 rounded-full bg-indigo-600 dark:bg-indigo-400 animate-pulse" />
-            <span>Analyzing banking portfolio metrics & trends...</span>
+            <span className="truncate">{activeTaskSummary}</span>
           </div>
         ) : null}
       </div>
