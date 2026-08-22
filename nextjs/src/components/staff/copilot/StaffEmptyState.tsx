@@ -7,9 +7,11 @@ import {
   CreditCard,
   TrendingUp,
   Users,
-  ShoppingBag,
   Landmark,
   ArrowRight,
+  Target,
+  DollarSign,
+  ShieldAlert,
 } from "lucide-react";
 
 interface StaffEmptyStateProps {
@@ -20,40 +22,40 @@ interface StaffEmptyStateProps {
 export function StaffEmptyState({ onSelectPrompt, inputComponent }: StaffEmptyStateProps) {
   const suggestedQueries = [
     {
-      title: "Deposit Portfolio & Risk Tiers",
-      query: "What is the total deposit balance distribution across customer risk segments and account types?",
+      title: "High-Balance Cross-Sell Target",
+      query: "Identify low-risk customer cohorts holding over $25,000 in deposits who do not hold an active credit card or wealth product.",
+      icon: Target,
+      category: "Cross-Sell & Fee Income",
+    },
+    {
+      title: "CASA Deposit Runoff & Retention",
+      query: "Analyze high-net-worth and affluent customer segments experiencing checking or savings balance outflows over the last 90 days.",
       icon: Landmark,
-      category: "Portfolio Health",
+      category: "Liquidity & NIM",
     },
     {
-      title: "Credit Card Utilization & Limits",
-      query: "Compare average credit card utilization rates and credit limits across risk tiers.",
+      title: "Merchant Spend & Revolver Margins",
+      query: "Analyze month-over-month credit card spend growth across Travel and Dining merchant categories and compare transacting vs revolving balances.",
       icon: CreditCard,
-      category: "Product Performance",
+      category: "Interchange Yield",
     },
     {
-      title: "Loan Exposure & Distribution",
-      query: "What is our total outstanding loan balance and risk distribution across Personal and Home loans?",
+      title: "Lending Delinquency & Yield Spread",
+      query: "What is the 30+ DPD delinquency rate and weighted-average interest yield across Personal, Auto, and Mortgage loan portfolios?",
+      icon: ShieldAlert,
+      category: "Risk-Adjusted Return",
+    },
+    {
+      title: "Acquisition Vintage LTV & Adoption",
+      query: "Evaluate customer acquisition cohorts over the last 12 months by multi-product adoption speed and 90-day deposit balance growth.",
       icon: TrendingUp,
-      category: "Lending & Risk",
+      category: "Cohort ROI & CAC",
     },
     {
-      title: "High-Balance Cross-Sell",
-      query: "Identify customer segments with high deposit balances who do not hold an active credit card or loan.",
-      icon: Users,
-      category: "Growth & Retention",
-    },
-    {
-      title: "Merchant Category Spend Trends",
-      query: "Analyze transaction volumes and total customer spend across merchant categories like Travel, Retail, and Dining.",
-      icon: ShoppingBag,
-      category: "Spend Velocity",
-    },
-    {
-      title: "Fixed Deposit Tenure & Yield",
-      query: "Show the distribution of fixed deposits by tenure length and average interest rates.",
-      icon: PieChart,
-      category: "Deposits & Yield",
+      title: "Fixed Deposit Maturity & ALM Pricing",
+      query: "Break down upcoming fixed deposit maturities by tenure length, average interest rate yield, and customer segment distribution.",
+      icon: DollarSign,
+      category: "Funding Cost Strategy",
     },
   ];
 
