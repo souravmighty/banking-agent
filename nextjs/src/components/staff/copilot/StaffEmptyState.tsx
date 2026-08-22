@@ -58,14 +58,14 @@ export function StaffEmptyState({ onSelectPrompt, inputComponent }: StaffEmptySt
   ];
 
   return (
-    <div className="flex flex-col items-center justify-center my-auto py-4 px-2 sm:px-4 max-w-4xl mx-auto w-full">
+    <div className="flex flex-col items-center justify-center my-auto py-1 sm:py-2 px-2 sm:px-4 max-w-4xl mx-auto w-full">
       {/* Hero Header */}
-      <div className="text-center max-w-2xl mx-auto mb-6 sm:mb-8 flex flex-col items-center">
-        <h1 className="text-4xl sm:text-5xl lg:text-6xl font-black tracking-tight bg-gradient-to-r from-indigo-600 via-violet-600 to-cyan-600 dark:from-indigo-400 dark:via-violet-400 dark:to-cyan-400 bg-clip-text text-transparent pb-1.5 leading-tight">
+      <div className="text-center max-w-2xl mx-auto mb-4 sm:mb-6 flex flex-col items-center">
+        <h1 className="text-3xl sm:text-4xl lg:text-5xl font-black tracking-tight bg-gradient-to-r from-indigo-600 via-violet-600 to-cyan-600 dark:from-indigo-400 dark:via-violet-400 dark:to-cyan-400 bg-clip-text text-transparent px-2 py-1 leading-normal sm:leading-snug select-none">
           Analytics Copilot
         </h1>
 
-        <div className="mt-2 mb-3.5 inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-indigo-50/90 dark:bg-indigo-950/80 border border-indigo-200/80 dark:border-indigo-500/30 text-indigo-700 dark:text-indigo-300 text-xs font-semibold shadow-sm">
+        <div className="mt-1 mb-2.5 inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-indigo-50/90 dark:bg-indigo-950/80 border border-indigo-200/80 dark:border-indigo-500/30 text-indigo-700 dark:text-indigo-300 text-xs font-semibold shadow-sm">
           <Sparkles className="h-3.5 w-3.5 text-indigo-600 dark:text-indigo-400" />
           <span>Product & Portfolio Intelligence</span>
         </div>
@@ -77,7 +77,7 @@ export function StaffEmptyState({ onSelectPrompt, inputComponent }: StaffEmptySt
 
       {/* Hero Chat Input Box in the middle */}
       {inputComponent && (
-        <div className="w-full max-w-3xl mx-auto mb-6 sm:mb-8">
+        <div className="w-full max-w-3xl mx-auto mb-5 sm:mb-6">
           {inputComponent}
         </div>
       )}
