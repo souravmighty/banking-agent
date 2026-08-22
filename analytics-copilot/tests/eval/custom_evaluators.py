@@ -253,7 +253,18 @@ class _Verdict(BaseModel):
 
 def evaluate_custom_response_quality(instance: dict) -> dict:
     """LLM-as-judge scoring 1-5 for accuracy, analytical insight, and clarity."""
-    reference = instance.get("reference")
+    reference_raw = instance.get("reference")
+    reference = ""
+    if isinstance(reference_raw, dict):
+        resp_obj = reference_raw.get("response") or reference_raw
+        if isinstance(resp_obj, dict):
+            parts = resp_obj.get("parts", [])
+            reference = " ".join(p.get("text", "") for p in parts if isinstance(p, dict))
+        else:
+            reference = str(resp_obj)
+    elif isinstance(reference_raw, str):
+        reference = reference_raw
+
     rubric = (
         "Grade the agent's analytical response on a 1-5 scale (1 poor, 5 excellent) for "
         "numerical correctness, business insight, clarity, and visualization alignment."

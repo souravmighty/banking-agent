@@ -11,7 +11,18 @@ class _Verdict(BaseModel):
 
 
 def evaluate(instance):
-    reference = instance.get("reference")
+    reference_raw = instance.get("reference")
+    reference = ""
+    if isinstance(reference_raw, dict):
+        resp_obj = reference_raw.get("response") or reference_raw
+        if isinstance(resp_obj, dict):
+            parts = resp_obj.get("parts", [])
+            reference = " ".join(p.get("text", "") for p in parts if isinstance(p, dict))
+        else:
+            reference = str(resp_obj)
+    elif isinstance(reference_raw, str):
+        reference = reference_raw
+
     rubric = (
         "Grade the agent's final response on a 1-5 scale (1 poor, 5 excellent) for "
         "accuracy, relevance, and clarity."

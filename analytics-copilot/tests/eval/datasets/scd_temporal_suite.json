@@ -10,7 +10,16 @@
           }
         ]
       },
-      "reference": "Count of distinct active customers filtering for is_current = TRUE."
+      "reference": {
+        "response": {
+          "role": "model",
+          "parts": [
+            {
+              "text": "Count of distinct active customers filtering for is_current = TRUE."
+            }
+          ]
+        }
+      }
     },
     {
       "eval_case_id": "historical_vs_current_branch_deposit",
@@ -22,7 +31,16 @@
           }
         ]
       },
-      "reference": "Branch deposit figures filtered by current effective records using is_current = TRUE or valid_to IS NULL."
+      "reference": {
+        "response": {
+          "role": "model",
+          "parts": [
+            {
+              "text": "Branch deposit figures filtered by current effective records using is_current = TRUE or valid_to IS NULL."
+            }
+          ]
+        }
+      }
     }
   ]
 }

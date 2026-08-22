@@ -10,7 +10,16 @@
           }
         ]
       },
-      "reference": "Monthly breakdown table and trend visualization showing unique transacting credit card customers and average credit card spend per customer over time."
+      "reference": {
+        "response": {
+          "role": "model",
+          "parts": [
+            {
+              "text": "Monthly breakdown table and trend visualization showing unique transacting credit card customers and average credit card spend per customer over time."
+            }
+          ]
+        }
+      }
     },
     {
       "eval_case_id": "active_loans_by_product",
@@ -22,7 +31,16 @@
           }
         ]
       },
-      "reference": "Summary table and chart grouping active loans by product type with total volume and mean interest rate."
+      "reference": {
+        "response": {
+          "role": "model",
+          "parts": [
+            {
+              "text": "Summary table and chart grouping active loans by product type with total volume and mean interest rate."
+            }
+          ]
+        }
+      }
     },
     {
       "eval_case_id": "top_branches_by_deposits",
@@ -34,7 +52,16 @@
           }
         ]
       },
-      "reference": "Ranking of top 5 branches by aggregate deposit balance with account type distribution."
+      "reference": {
+        "response": {
+          "role": "model",
+          "parts": [
+            {
+              "text": "Ranking of top 5 branches by aggregate deposit balance with account type distribution."
+            }
+          ]
+        }
+      }
     },
     {
       "eval_case_id": "customer_segment_acquisition",
@@ -46,7 +73,16 @@
           }
         ]
       },
-      "reference": "Monthly new customer acquisition numbers segmented by customer tier/segment with trend chart."
+      "reference": {
+        "response": {
+          "role": "model",
+          "parts": [
+            {
+              "text": "Monthly new customer acquisition numbers segmented by customer tier/segment with trend chart."
+            }
+          ]
+        }
+      }
     },
     {
       "eval_case_id": "delinquency_rate_analysis",
@@ -58,7 +94,16 @@
           }
         ]
       },
-      "reference": "Delinquency percentage metrics grouped by loan type across 6 months with risk commentary."
+      "reference": {
+        "response": {
+          "role": "model",
+          "parts": [
+            {
+              "text": "Delinquency percentage metrics grouped by loan type across 6 months with risk commentary."
+            }
+          ]
+        }
+      }
     }
   ]
 }

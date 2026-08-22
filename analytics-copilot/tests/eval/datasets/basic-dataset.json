@@ -1,14 +1,67 @@
-[
-  {
-    "prompt": "Give me month on month view of credit card transacted customers and average credit card spends per customer",
-    "reference": "Month on month credit card unique transacting customers and average spend per customer table and analysis."
-  },
-  {
-    "prompt": "Show me total active loan volume grouped by loan product type",
-    "reference": "Breakdown of total active loans and balance grouped by product type."
-  },
-  {
-    "prompt": "What are the top 5 branches by deposit balance?",
-    "reference": "Top 5 branches ranked by total deposit balances."
-  }
-]
+{
+  "eval_cases": [
+    {
+      "eval_case_id": "basic_mom_credit_card",
+      "prompt": {
+        "role": "user",
+        "parts": [
+          {
+            "text": "Give me month on month view of credit card transacted customers and average credit card spends per customer"
+          }
+        ]
+      },
+      "reference": {
+        "response": {
+          "role": "model",
+          "parts": [
+            {
+              "text": "Month on month credit card unique transacting customers and average spend per customer table and analysis."
+            }
+          ]
+        }
+      }
+    },
+    {
+      "eval_case_id": "basic_active_loan_volume",
+      "prompt": {
+        "role": "user",
+        "parts": [
+          {
+            "text": "Show me total active loan volume grouped by loan product type"
+          }
+        ]
+      },
+      "reference": {
+        "response": {
+          "role": "model",
+          "parts": [
+            {
+              "text": "Breakdown of total active loans and balance grouped by product type."
+            }
+          ]
+        }
+      }
+    },
+    {
+      "eval_case_id": "basic_top_branches_deposits",
+      "prompt": {
+        "role": "user",
+        "parts": [
+          {
+            "text": "What are the top 5 branches by deposit balance?"
+          }
+        ]
+      },
+      "reference": {
+        "response": {
+          "role": "model",
+          "parts": [
+            {
+              "text": "Top 5 branches ranked by total deposit balances."
+            }
+          ]
+        }
+      }
+    }
+  ]
+}
