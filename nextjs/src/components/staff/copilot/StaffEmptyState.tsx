@@ -3,10 +3,8 @@
 import React from "react";
 import {
   Sparkles,
-  PieChart,
   CreditCard,
   TrendingUp,
-  Users,
   Landmark,
   ArrowRight,
   Target,
