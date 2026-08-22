@@ -30,13 +30,9 @@ export function StaffChatHeader({
             <h2 className="text-sm font-bold text-slate-900 dark:text-white tracking-tight">
               BankPilot Analytics Copilot
             </h2>
-            <span className="text-[10px] px-2 py-0.5 rounded-full font-bold bg-emerald-50 dark:bg-emerald-500/10 text-emerald-700 dark:text-emerald-400 border border-emerald-200 dark:border-emerald-500/20 flex items-center gap-1">
-              <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 dark:bg-emerald-400 animate-pulse" />
-              BigQuery Agent
-            </span>
           </div>
           <p className="text-[11px] text-slate-500 dark:text-slate-400">
-            Portfolio intelligence, diagnostic analytics & data exploration
+            Strategic portfolio intelligence & product performance analytics
           </p>
         </div>
       </div>

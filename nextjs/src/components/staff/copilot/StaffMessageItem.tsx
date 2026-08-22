@@ -73,11 +73,11 @@ export function StaffMessageItem({
         <div className="flex items-center justify-between gap-2">
           <div className="flex items-center gap-2">
             <span className="text-xs font-bold text-slate-900 dark:text-slate-200">
-              {isAi ? "Analytics Copilot" : "Staff Analyst"}
+              {isAi ? "Analytics Copilot" : "Product & Business Lead"}
             </span>
             {isAi && (
               <span className="text-[9px] px-1.5 py-0.2 rounded bg-indigo-50 dark:bg-indigo-500/15 text-indigo-700 dark:text-indigo-300 font-semibold border border-indigo-200 dark:border-indigo-500/30">
-                Operations AI
+                Executive AI
               </span>
             )}
             {formattedTime && (
@@ -121,7 +121,7 @@ export function StaffMessageItem({
         ) : isAi && isLoading ? (
           <div className="flex items-center gap-2 text-xs text-indigo-600 dark:text-indigo-400/90 font-medium py-1">
             <span className="w-1.5 h-1.5 rounded-full bg-indigo-600 dark:bg-indigo-400 animate-pulse" />
-            <span>Analyzing enterprise telemetry & BigQuery records...</span>
+            <span>Analyzing banking portfolio metrics & trends...</span>
           </div>
         ) : null}
       </div>

@@ -13,6 +13,7 @@ interface StaffMessageAreaProps {
   isLoading: boolean;
   isLoadingHistory: boolean;
   onSelectPrompt: (prompt: string) => void;
+  inputComponent?: React.ReactNode;
 }
 
 export function StaffMessageArea({
@@ -21,6 +22,7 @@ export function StaffMessageArea({
   isLoading,
   isLoadingHistory,
   onSelectPrompt,
+  inputComponent,
 }: StaffMessageAreaProps) {
   const scrollRef = useRef<HTMLDivElement | null>(null);
 
@@ -35,7 +37,7 @@ export function StaffMessageArea({
     return (
       <div className="flex-1 flex flex-col items-center justify-center p-8 text-slate-500 dark:text-slate-400">
         <Loader2 className="h-6 w-6 animate-spin text-indigo-600 dark:text-indigo-400 mb-2" />
-        <span className="text-xs font-semibold">Loading session analysis records...</span>
+        <span className="text-xs font-semibold">Loading portfolio analytics records...</span>
       </div>
     );
   }
@@ -44,9 +46,12 @@ export function StaffMessageArea({
     return (
       <div
         ref={scrollRef}
-        className="flex-1 overflow-y-auto px-4 py-6 scrollbar-thin scrollbar-thumb-slate-300 dark:scrollbar-thumb-slate-800"
+        className="flex-1 overflow-y-auto px-4 py-4 scrollbar-thin scrollbar-thumb-slate-300 dark:scrollbar-thumb-slate-800 flex flex-col justify-center"
       >
-        <StaffEmptyState onSelectPrompt={onSelectPrompt} />
+        <StaffEmptyState
+          onSelectPrompt={onSelectPrompt}
+          inputComponent={inputComponent}
+        />
       </div>
     );
   }

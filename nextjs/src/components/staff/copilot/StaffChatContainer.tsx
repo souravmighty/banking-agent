@@ -21,6 +21,8 @@ function StaffChatInner() {
     handleCreateNewSession,
   } = useStaffChat();
 
+  const isLandingState = messages.length === 0;
+
   return (
     <div className="flex-1 flex flex-col h-[calc(100vh-4rem)] max-h-[calc(100vh-4rem)] overflow-hidden bg-slate-50 dark:bg-[#060814] text-slate-900 dark:text-slate-100 transition-colors">
       {/* Analytics Chat Header */}
@@ -32,22 +34,35 @@ function StaffChatInner() {
         isLoading={isInitializing}
       />
 
-      {/* Messages / Conversation Area */}
+      {/* Messages Area / Landing View */}
       <StaffMessageArea
         messages={messages}
         messageEvents={messageEvents}
         isLoading={isLoading}
         isLoadingHistory={isLoadingHistory}
         onSelectPrompt={handleSubmit}
+        inputComponent={
+          isLandingState ? (
+            <StaffChatInput
+              onSubmit={handleSubmit}
+              onStop={handleStopStream}
+              isLoading={isLoading}
+              disabled={isLoadingHistory || isInitializing}
+              isHero={true}
+            />
+          ) : undefined
+        }
       />
 
-      {/* Chat Input Bar */}
-      <StaffChatInput
-        onSubmit={handleSubmit}
-        onStop={handleStopStream}
-        isLoading={isLoading}
-        disabled={isLoadingHistory || isInitializing}
-      />
+      {/* Chat Input Bar (only docked at bottom when active conversation is ongoing) */}
+      {!isLandingState && (
+        <StaffChatInput
+          onSubmit={handleSubmit}
+          onStop={handleStopStream}
+          isLoading={isLoading}
+          disabled={isLoadingHistory || isInitializing}
+        />
+      )}
     </div>
   );
 }

@@ -269,7 +269,7 @@ export function StaffActivityTimeline({
                   <div className="flex items-center gap-2 p-2.5 rounded-lg bg-indigo-50 dark:bg-slate-900/40 border border-indigo-200 dark:border-slate-800 animate-pulse w-full min-w-0">
                     <Loader2 className="h-3.5 w-3.5 animate-spin text-indigo-600 dark:text-indigo-400 shrink-0" />
                     <span className="text-xs font-semibold text-indigo-700 dark:text-indigo-300 truncate">
-                      Analytics Copilot is generating BigQuery query & hypothesis...
+                      Analytics Copilot is synthesizing portfolio data & generating insights...
                     </span>
                   </div>
                 )}

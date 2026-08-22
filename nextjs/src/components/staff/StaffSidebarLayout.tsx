@@ -15,7 +15,6 @@ import {
 } from "lucide-react";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
-import { ThemeToggle } from "@/components/ThemeToggle";
 
 interface StaffSidebarLayoutProps {
   children: React.ReactNode;
@@ -43,7 +42,7 @@ export function StaffSidebarLayout({ children }: StaffSidebarLayoutProps) {
           <div className="w-10 h-10 rounded-xl bg-gradient-to-tr from-indigo-600 to-violet-600 flex items-center justify-center animate-pulse shadow-lg shadow-indigo-500/20">
             <Landmark className="h-5 w-5 text-white" />
           </div>
-          <span className="text-xs font-semibold">Loading Operations Console...</span>
+          <span className="text-xs font-semibold">Loading Business Intelligence...</span>
         </div>
       </div>
     );
@@ -77,11 +76,11 @@ export function StaffSidebarLayout({ children }: StaffSidebarLayoutProps) {
               <span className="text-sm font-extrabold tracking-tight text-slate-900 dark:text-white flex items-center gap-1.5">
                 BankPilot
                 <span className="text-[10px] px-1.5 py-0.5 rounded-md font-bold bg-indigo-50 dark:bg-indigo-950/60 text-indigo-600 dark:text-indigo-400 border border-indigo-200 dark:border-indigo-800/60 uppercase tracking-wider">
-                  Staff
+                  Enterprise
                 </span>
               </span>
               <span className="text-[10px] text-slate-500 dark:text-slate-400 font-medium hidden sm:inline">
-                Operations & Intelligence
+                Business & Product Intelligence
               </span>
             </div>
           </Link>
@@ -132,11 +131,8 @@ export function StaffSidebarLayout({ children }: StaffSidebarLayoutProps) {
           </nav>
         </div>
 
-        {/* Right: Actions, Theme Toggle, User Profile & Logout */}
+        {/* Right: Actions, User Profile & Logout */}
         <div className="flex items-center gap-2.5 sm:gap-3">
-          {/* Light / Dark Mode Toggle */}
-          <ThemeToggle />
-
           {/* User Email Pill */}
           <span className="hidden lg:inline-flex text-xs text-slate-700 dark:text-slate-300 font-medium bg-slate-100 dark:bg-slate-900/90 border border-slate-200 dark:border-slate-800 px-3 py-1.5 rounded-xl shadow-inner max-w-[200px] truncate">
             {user?.email || "Staff Admin"}
