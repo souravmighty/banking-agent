@@ -35,9 +35,35 @@ async def call_bigquery_agent(
     async with _bigquery_semaphore:
         agent_tool = AgentTool(agent=bigquery_agent)
 
-        bigquery_agent_output = await agent_tool.run_async(
-            args={"request": question}, tool_context=tool_context
-        )
+        bigquery_agent_output = None
+        last_exception = None
+
+        # Robust execution with up to 2 retries for transient transport/auth network glitches
+        for attempt in range(2):
+            try:
+                bigquery_agent_output = await agent_tool.run_async(
+                    args={"request": question}, tool_context=tool_context
+                )
+                break
+            except Exception as exc:
+                last_exception = exc
+                logger.warning(
+                    "call_bigquery_agent attempt %d failed with error: %s. Retrying...",
+                    attempt + 1,
+                    exc,
+                )
+                if attempt == 0:
+                    await asyncio.sleep(1.0)
+
+        if bigquery_agent_output is None:
+            error_msg = f"Network or authentication connectivity issue: {last_exception}"
+            logger.error("call_bigquery_agent failed completely: %s", error_msg)
+            bigquery_agent_output = {
+                "explain": f"Encountered temporary transport/connectivity error: {last_exception}",
+                "sql": "",
+                "sql_results": [],
+                "nl_results": f"Unable to reach the BigQuery analytical service due to a transient connection error ({last_exception}). Please retry your request.",
+            }
 
         # Maintain both a collection list (for multi-query parallel runs) and latest output key
         if "bigquery_agent_outputs" not in tool_context.state:
@@ -70,9 +96,30 @@ async def call_visualization_agent(
         f"Data Records / Table:\n{data_summary_or_records}"
     )
 
-    visualization_output = await agent_tool.run_async(
-        args={"request": request_prompt}, tool_context=tool_context
-    )
+    visualization_output = None
+    last_exception = None
+
+    for attempt in range(2):
+        try:
+            visualization_output = await agent_tool.run_async(
+                args={"request": request_prompt}, tool_context=tool_context
+            )
+            break
+        except Exception as exc:
+            last_exception = exc
+            logger.warning(
+                "call_visualization_agent attempt %d failed with error: %s. Retrying...",
+                attempt + 1,
+                exc,
+            )
+            if attempt == 0:
+                await asyncio.sleep(1.0)
+
+    if visualization_output is None:
+        logger.error("call_visualization_agent failed: %s", last_exception)
+        visualization_output = (
+            f"Unable to generate chart specification due to temporary connectivity issue: {last_exception}"
+        )
 
     # Maintain collection list and latest output key
     if "visualization_agent_outputs" not in tool_context.state:
