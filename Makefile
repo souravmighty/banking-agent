@@ -23,7 +23,13 @@ analytics-metadata-service:
 	cd analytics-metadata-service && env -u VIRTUAL_ENV uv run uvicorn app.main:app --host 0.0.0.0 --port 8003 --reload
 
 analytics-copilot:
-	env -u VIRTUAL_ENV uv run --project analytics-copilot adk web analytics-copilot --port 8502
+	cd analytics-copilot && env -u VIRTUAL_ENV python3 scripts/run_adk_web.py
+
+adk-web-analytics-copilot:
+	cd analytics-copilot && env -u VIRTUAL_ENV python3 scripts/run_adk_web.py
+
+generate-staff-jwt:
+	cd analytics-copilot && env -u VIRTUAL_ENV python3 scripts/generate_staff_jwt.py
 
 analytics-copilot-api:
 	cd analytics-copilot && env -u VIRTUAL_ENV uv run uvicorn app.fast_api_app:app --host 0.0.0.0 --port 8002
