@@ -133,39 +133,75 @@ export function createEndpointConfig(): EndpointConfig {
 export const endpointConfig = createEndpointConfig();
 
 /**
+ * Utility to check if a URL is a Vertex AI Reasoning Engine endpoint
+ */
+export function isReasoningEngineUrl(url?: string): boolean {
+  if (!url) return false;
+  return url.includes("reasoningEngines") || url.includes("aiplatform.googleapis.com");
+}
+
+/**
+ * Gets the configured Agent Engine endpoint for a given app
+ */
+export function getAgentEngineEndpointForApp(appName?: string): string | undefined {
+  const isAnalyticsCopilot =
+    appName === "analytics_copilot_2" ||
+    appName === "analytics-copilot-2" ||
+    appName === "analytics_copilot" ||
+    appName === "analytics-copilot";
+
+  if (isAnalyticsCopilot) {
+    if (process.env.ANALYTICS_COPILOT_AGENT_ENGINE_ENDPOINT) {
+      return process.env.ANALYTICS_COPILOT_AGENT_ENGINE_ENDPOINT;
+    }
+    if (isReasoningEngineUrl(process.env.ANALYTICS_COPILOT_BACKEND_URL)) {
+      return process.env.ANALYTICS_COPILOT_BACKEND_URL;
+    }
+  }
+
+  if (process.env.AGENT_ENGINE_ENDPOINT) {
+    return process.env.AGENT_ENGINE_ENDPOINT;
+  }
+  if (isReasoningEngineUrl(process.env.BACKEND_URL)) {
+    return process.env.BACKEND_URL;
+  }
+
+  return undefined;
+}
+
+/**
  * Utility function to get authentication headers for Google Cloud API calls
  */
-export async function getAuthHeaders(): Promise<Record<string, string>> {
+export async function getAuthHeaders(targetUrl?: string): Promise<Record<string, string>> {
   const headers: Record<string, string> = {
     "Content-Type": "application/json",
   };
 
-  // For Agent Engine deployment, we need proper Google Cloud authentication
-  if (endpointConfig.deploymentType === "agent_engine") {
+  const isGcpEndpoint =
+    (targetUrl && isReasoningEngineUrl(targetUrl)) ||
+    endpointConfig.deploymentType === "agent_engine" ||
+    Boolean(process.env.AGENT_ENGINE_ENDPOINT || process.env.ANALYTICS_COPILOT_AGENT_ENGINE_ENDPOINT);
+
+  if (isGcpEndpoint) {
     try {
-      // Use base64-encoded service account key from environment variables (for Vercel deployment)
-      const serviceAccountKeyBase64 =
-        process.env.GOOGLE_SERVICE_ACCOUNT_KEY_BASE64;
-
-      if (!serviceAccountKeyBase64) {
-        throw new Error(
-          "GOOGLE_SERVICE_ACCOUNT_KEY_BASE64 environment variable is required for Agent Engine deployment"
-        );
-      }
-
-      // Decode the base64-encoded service account key
-      const serviceAccountKeyJson = Buffer.from(
-        serviceAccountKeyBase64,
-        "base64"
-      ).toString("utf-8");
-      const credentials = JSON.parse(serviceAccountKeyJson);
-
-      // Use the service account to get an access token
       const { GoogleAuth } = await import("google-auth-library");
-      const auth = new GoogleAuth({
-        credentials,
-        scopes: ["https://www.googleapis.com/auth/cloud-platform"],
-      });
+      let auth;
+
+      if (process.env.GOOGLE_SERVICE_ACCOUNT_KEY_BASE64) {
+        const serviceAccountKeyJson = Buffer.from(
+          process.env.GOOGLE_SERVICE_ACCOUNT_KEY_BASE64,
+          "base64"
+        ).toString("utf-8");
+        const credentials = JSON.parse(serviceAccountKeyJson);
+        auth = new GoogleAuth({
+          credentials,
+          scopes: ["https://www.googleapis.com/auth/cloud-platform"],
+        });
+      } else {
+        auth = new GoogleAuth({
+          scopes: ["https://www.googleapis.com/auth/cloud-platform"],
+        });
+      }
 
       const authClient = await auth.getClient();
       const accessToken = await authClient.getAccessToken();
@@ -174,8 +210,7 @@ export async function getAuthHeaders(): Promise<Record<string, string>> {
         headers["Authorization"] = `Bearer ${accessToken.token}`;
       }
     } catch (error) {
-      console.error("Failed to get Google Cloud access token:", error);
-      throw new Error("Authentication failed");
+      console.warn("Could not automatically retrieve Google Cloud access token:", error);
     }
   }
 
@@ -186,13 +221,8 @@ export async function getAuthHeaders(): Promise<Record<string, string>> {
  * Determines if we should use Agent Engine API directly for a specific agent
  */
 export function shouldUseAgentEngine(appName?: string): boolean {
-  if (
-    appName === "analytics_copilot_2" ||
-    appName === "analytics-copilot-2" ||
-    appName === "analytics_copilot" ||
-    appName === "analytics-copilot"
-  ) {
-    return Boolean(process.env.ANALYTICS_COPILOT_AGENT_ENGINE_ENDPOINT);
+  if (getAgentEngineEndpointForApp(appName)) {
+    return true;
   }
   return (
     endpointConfig.deploymentType === "agent_engine" &&
@@ -212,7 +242,6 @@ function getAgentEngineSessionsUrl(customEndpoint?: string): string | undefined 
   const targetUrl = customEndpoint || endpointConfig.agentEngineUrl;
   if (!targetUrl) return undefined;
 
-  // Sessions API uses v1beta1, construct from the base URL parts
   const urlParts = targetUrl.match(
     /^(https:\/\/[^\/]+)\/v1\/(projects\/[^\/]+\/locations\/[^\/]+\/reasoningEngines\/[^\/]+)/
   );
@@ -233,57 +262,33 @@ export function getEndpointForPath(
   endpointType: AgentEngineEndpointType = "streamQuery",
   appName?: string
 ): string {
-  const isAnalyticsCopilot =
-    appName === "analytics_copilot_2" ||
-    appName === "analytics-copilot-2" ||
-    appName === "analytics_copilot" ||
-    appName === "analytics-copilot";
+  const agentEngineEndpoint = getAgentEngineEndpointForApp(appName) || endpointConfig.agentEngineUrl;
 
-  if (isAnalyticsCopilot) {
-    if (process.env.ANALYTICS_COPILOT_AGENT_ENGINE_ENDPOINT) {
-      const endpoint = process.env.ANALYTICS_COPILOT_AGENT_ENGINE_ENDPOINT;
-      if (endpointType === "streamQuery") {
-        return `${endpoint}:streamQuery`;
-      } else if (endpointType === "query") {
-        return `${endpoint}:query`;
-      } else if (endpointType === "sessions") {
-        const sessionsUrl = getAgentEngineSessionsUrl(endpoint);
-        if (!sessionsUrl) {
-          throw new Error(
-            "Could not construct sessions API URL from ANALYTICS_COPILOT_AGENT_ENGINE_ENDPOINT"
-          );
-        }
-        return `${sessionsUrl}/sessions${path}`;
-      }
-    }
-    const backendUrl = getBackendUrl(appName);
-    return `${backendUrl}${path}`;
-  }
+  if (shouldUseAgentEngine(appName) && agentEngineEndpoint) {
+    const cleanEndpoint = agentEngineEndpoint
+      .replace(/\/+$/, "")
+      .replace(/:(streamQuery|query)$/, "");
 
-  if (shouldUseAgentEngine(appName)) {
-    // For Agent Engine, return the appropriate endpoint based on operation type
     if (endpointType === "streamQuery") {
-      return `${endpointConfig.agentEngineUrl}:streamQuery`;
+      return `${cleanEndpoint}:streamQuery`;
     } else if (endpointType === "query") {
-      return `${endpointConfig.agentEngineUrl}:query`;
+      return `${cleanEndpoint}:query`;
     } else if (endpointType === "sessions") {
-      const sessionsUrl = getAgentEngineSessionsUrl();
+      const sessionsUrl = getAgentEngineSessionsUrl(cleanEndpoint);
       if (!sessionsUrl) {
         throw new Error(
-          "Could not construct sessions API URL from AGENT_ENGINE_ENDPOINT"
+          `Could not construct sessions API URL from ${cleanEndpoint}`
         );
       }
       return `${sessionsUrl}/sessions${path}`;
     }
   }
 
-  // If specific appName is passed, use its backend URL
   if (appName) {
     const backendUrl = getBackendUrl(appName);
     return `${backendUrl}${path}`;
   }
 
-  // For other deployments, append the path to the backend URL
   return `${endpointConfig.backendUrl}${path}`;
 }
 
@@ -293,3 +298,4 @@ export function getEndpointForPath(
 export function getAgentEngineStreamEndpoint(appName?: string): string {
   return getEndpointForPath("", "streamQuery", appName);
 }
+

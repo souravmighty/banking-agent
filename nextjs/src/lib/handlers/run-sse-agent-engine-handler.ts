@@ -330,13 +330,13 @@ export async function handleAgentEngineStreamRequest(
     const agentEnginePayload = formatAgentEnginePayload(requestData);
 
     // Build Agent Engine URL with the streamQuery endpoint
-    const agentEngineUrl = getEndpointForPath("", "streamQuery");
+    const agentEngineUrl = getEndpointForPath("", "streamQuery", requestData.appName);
 
     // Log operation start
     logStreamStart(agentEngineUrl, agentEnginePayload, "agent_engine");
 
     // Get authentication headers
-    const authHeaders = await getAuthHeaders();
+    const authHeaders = await getAuthHeaders(agentEngineUrl);
 
     // Forward request to Agent Engine streaming endpoint
     const response = await fetch(agentEngineUrl, {

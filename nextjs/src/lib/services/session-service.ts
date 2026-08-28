@@ -34,8 +34,8 @@ export abstract class SessionService {
  * Handles session creation using Agent Engine's API
  */
 export class AgentEngineSessionService extends SessionService {
-  async createSession(userId: string, _appName?: string): Promise<SessionCreationResult> {
-    const sessionEndpoint = getEndpointForPath("", "query");
+  async createSession(userId: string, appName?: string): Promise<SessionCreationResult> {
+    const sessionEndpoint = getEndpointForPath("", "query", appName);
 
     const createSessionPayload = {
       class_method: "create_session",
@@ -45,7 +45,7 @@ export class AgentEngineSessionService extends SessionService {
     };
 
     try {
-      const authHeaders = await getAuthHeaders();
+      const authHeaders = await getAuthHeaders(sessionEndpoint);
       const createSessionResponse = await fetch(sessionEndpoint, {
         method: "POST",
         headers: {
