@@ -3,12 +3,5 @@
   "deployment_target": "agent_runtime",
   "is_a2a": true,
   "agent_directory": "app",
-  "deployment_timestamp": "2026-08-28T19:19:31.384079+00:00",
-  "pending_operation": {
-    "operation_name": "projects/569817520730/locations/us-central1/reasoningEngines/12707605638021120/operations/3328097199060942848",
-    "project": "banking-agent-rag-mcp",
-    "location": "us-central1",
-    "deployment_target": "agent_runtime",
-    "started_at": "2026-08-28T20:45:59.799007+00:00"
-  }
+  "deployment_timestamp": "2026-08-28T20:49:03.724001+00:00"
 }
