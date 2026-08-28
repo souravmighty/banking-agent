@@ -222,6 +222,158 @@ def _build_fallback_analytics_metadata() -> dict[str, Any]:
     }
 
 
+TABLE_DOMAIN_KEYWORDS = {
+    "analytics_balances": [
+        "balance", "deposit", "savings", "current", "casa", "aum", "eom",
+        "average balance", "fixed deposit", "term deposit", "liquidity", "fund",
+        "liability", "wealth", "interest earned"
+    ],
+    "analytics_transactions": [
+        "transaction", "spend", "merchant", "debit", "credit card spend", "mcc",
+        "category", "volume", "purchase", "shopping", "pos", "atm", "wire", "transfer"
+    ],
+    "analytics_customer_360": [
+        "customer", "segment", "tier", "mass", "premium", "affluent", "nri",
+        "demographic", "branch", "relationship", "customer 360", "profile", "age",
+        "gender", "state", "city", "occupation", "tenure"
+    ],
+    "analytics_portfolio_risk": [
+        "loan", "lending", "risk", "delinquency", "npa", "dti", "default",
+        "credit score", "borrower", "exposure", "collateral", "overdue", "dpd",
+        "mortgage", "personal loan", "auto loan"
+    ],
+    "analytics_customer_acquisition": [
+        "acquisition", "vintage", "cohort", "retention", "signup", "onboarding",
+        "channel", "digital", "new customer", "growth", "churn", "activation"
+    ],
+    "customers": [
+        "customer_id", "first_name", "last_name", "kyc", "address", "pincode",
+        "phone", "email", "income"
+    ],
+    "accounts": [
+        "account_number", "account_status", "account_type", "open_date", "close_date",
+        "currency", "branch_id"
+    ],
+    "transactions": [
+        "transaction_id", "transaction_type", "direction", "amount", "narration",
+        "counterparty"
+    ],
+    "credit_cards": [
+        "credit_card", "card_number", "card_limit", "card_type", "expiry", "billing"
+    ],
+    "loans": [
+        "loan_id", "principal", "interest_rate", "tenure_months", "disbursed_amount",
+        "outstanding_balance"
+    ],
+    "branches": [
+        "branch_code", "branch_name", "region", "zone", "manager"
+    ],
+    "products": [
+        "product_id", "product_name", "product_category", "interest_rate_offered"
+    ],
+}
+
+
+def prune_schema_for_nl2sql(
+    schema: dict[str, Any] | Any,
+    question: str,
+    force_full: bool = False,
+    max_full_tables: int = 3,
+) -> str:
+    """Formats and prunes database schema for NL2SQL prompt.
+
+    Tiers:
+    - Tier 3 Fallback: If force_full=True (e.g. execution retry), injects full column schema for all tables.
+    - Normal Path: Injects full schema for Top 2-3 matched tables + 1-line reference catalog for the rest.
+    - Fallback Tier 1: If no keyword match found, injects full schema for master hub views (customer_360 + balances) + 1-line reference catalog.
+    - Fallback Tier 2: Hybrid summary ensures zero hallucinations of unlisted tables by listing all enterprise tables in the reference section.
+    """
+    import json
+
+    if not isinstance(schema, dict) or not schema:
+        return str(schema)
+
+    if force_full:
+        return json.dumps(schema, indent=2)
+
+    q_lower = question.lower()
+    scores: dict[str, int] = {}
+
+    for tbl_key, tbl_meta in schema.items():
+        score = 0
+        tbl_clean = tbl_key.split(".")[-1].lower()
+
+        # 1. Match table name directly
+        if tbl_clean in q_lower or tbl_key.lower() in q_lower:
+            score += 10
+
+        # 2. Match domain keywords
+        for key, kw_list in TABLE_DOMAIN_KEYWORDS.items():
+            if key in tbl_clean:
+                for kw in kw_list:
+                    if kw in q_lower:
+                        score += 4
+
+        # 3. Match column names
+        for col in tbl_meta.get("table_schema", []):
+            col_name = col.get("column_name", "").lower()
+            if col_name and len(col_name) > 3 and col_name in q_lower:
+                score += 3
+
+        # 4. Logical name and description match
+        desc = (
+            tbl_meta.get("table_description", "")
+            + " "
+            + tbl_meta.get("logical_name", "")
+        ).lower()
+        if any(w in desc for w in q_lower.split() if len(w) > 3):
+            score += 1
+
+        # Prefer curated analytical views for customer/balance analytical questions
+        if "analytics_" in tbl_clean:
+            score += 1
+
+        scores[tbl_key] = score
+
+    # Sort tables by score descending
+    sorted_tables = sorted(scores.items(), key=lambda x: x[1], reverse=True)
+
+    # Pick top matched tables with positive score
+    selected_table_keys = [t[0] for t in sorted_tables if t[1] > 1][:max_full_tables]
+
+    # Fallback Tier 1: If no tables scored above threshold, pick core analytical hub views
+    if not selected_table_keys:
+        for tbl_key in schema:
+            tbl_clean = tbl_key.split(".")[-1].lower()
+            if (
+                "analytics_customer_360" in tbl_clean
+                or "analytics_balances" in tbl_clean
+            ):
+                selected_table_keys.append(tbl_key)
+        # If still empty, take first 2 tables
+        if not selected_table_keys:
+            selected_table_keys = list(schema.keys())[:2]
+
+    # Separate into full tables and reference catalog (Fallback Tier 2)
+    full_tables = {k: schema[k] for k in selected_table_keys if k in schema}
+    other_tables = {k: schema[k] for k in schema if k not in full_tables}
+
+    lines = []
+    lines.append("### PRIMARY RELEVANT TABLES & VIEWS (FULL SCHEMAS IN SCOPE):")
+    lines.append(json.dumps(full_tables, indent=2))
+
+    if other_tables:
+        lines.append("\n### OTHER AVAILABLE ENTERPRISE TABLES (REFERENCE CATALOG ONLY):")
+        for k, v in other_tables.items():
+            logical = v.get("logical_name") or k
+            obj_type = v.get("object_type", "TABLE")
+            grain = v.get("grain", "Not specified")
+            desc = v.get("table_description", "")
+            lines.append(f"- `{k}` ({obj_type} - {logical}): {desc} [Grain: {grain}]")
+
+    return "\n".join(lines)
+
+
 def bigquery_nl2sql(
     question: str,
     tool_context: ToolContext,
@@ -280,12 +432,14 @@ while strictly using the provided schema and analytical guidance.
 
     db_settings = tool_context.state.get("database_settings", {})
     schema = db_settings.get("bigquery", {}).get("schema", "")
-    if isinstance(schema, dict):
-        import json
+    force_full = tool_context.state.get("force_full_schema", False)
 
-        schema_str = json.dumps(schema, indent=2)
-    else:
-        schema_str = str(schema)
+    schema_str = prune_schema_for_nl2sql(
+        schema=schema,
+        question=question,
+        force_full=force_full,
+        max_full_tables=3,
+    )
 
     prompt = prompt_template.format(SCHEMA=schema_str, QUESTION=question)
 

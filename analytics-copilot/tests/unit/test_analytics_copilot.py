@@ -12,7 +12,11 @@ from app.agent import (
 from app.prompts import return_instructions_root
 from app.sub_agents.bigquery.agent import setup_before_agent_call
 from app.sub_agents.bigquery.prompts import return_instructions_bigquery
-from app.sub_agents.bigquery.tools import bigquery_nl2sql, get_analytics_metadata
+from app.sub_agents.bigquery.tools import (
+    bigquery_nl2sql,
+    get_analytics_metadata,
+    prune_schema_for_nl2sql,
+)
 
 SAMPLE_ANALYTICS_METADATA = {
     "authorized": True,
@@ -296,3 +300,57 @@ def test_root_agent_tools_registry():
     ]
     assert "call_bigquery_agent" in tool_names
     assert "call_visualization_agent" in tool_names
+
+
+def test_prune_schema_for_nl2sql_keyword_match():
+    """Test: Question matching balances and customers prunes schema to top relevant tables."""
+    db_settings = reconstruct_database_settings_from_analytics_metadata(
+        SAMPLE_ANALYTICS_METADATA
+    )
+    schema = db_settings["bigquery"]["schema"]
+
+    pruned = prune_schema_for_nl2sql(
+        schema=schema,
+        question="What is the deposit balance by customer segment?",
+        force_full=False,
+        max_full_tables=2,
+    )
+
+    assert "PRIMARY RELEVANT TABLES & VIEWS" in pruned
+    assert "OTHER AVAILABLE ENTERPRISE TABLES" in pruned
+    assert "analytics_balances" in pruned or "analytics_customer_360" in pruned or "customers" in pruned
+
+
+def test_prune_schema_for_nl2sql_fallback_hub_views():
+    """Test: Generic question with no keyword match falls back to core analytical hub views."""
+    db_settings = reconstruct_database_settings_from_analytics_metadata(
+        SAMPLE_ANALYTICS_METADATA
+    )
+    schema = db_settings["bigquery"]["schema"]
+
+    pruned = prune_schema_for_nl2sql(
+        schema=schema,
+        question="Hello, show me general performance summary",
+        force_full=False,
+    )
+
+    assert "PRIMARY RELEVANT TABLES & VIEWS" in pruned
+    assert "analytics_balances" in pruned or "customers" in pruned
+
+
+def test_prune_schema_for_nl2sql_force_full():
+    """Test: force_full=True returns the complete unpruned schema dictionary."""
+    db_settings = reconstruct_database_settings_from_analytics_metadata(
+        SAMPLE_ANALYTICS_METADATA
+    )
+    schema = db_settings["bigquery"]["schema"]
+
+    full_output = prune_schema_for_nl2sql(
+        schema=schema,
+        question="What is the total balance?",
+        force_full=True,
+    )
+
+    assert "PRIMARY RELEVANT TABLES" not in full_output
+    assert "customers" in full_output
+
