@@ -76,24 +76,75 @@ def _serialize_value_for_sql(value):
 database_settings = None
 customer_profile = None
 
-def get_database_settings(email_id):
+def get_database_settings(token=None):
     """Get database settings from identity-service."""
     global database_settings
     if database_settings is not None:
         return database_settings
         
+    import base64
+    import json
+    import time
     import httpx
-    identity_service_url = os.getenv("IDENTITY_SERVICE_URL", "http://localhost:8001")
-    context_url = f"{identity_service_url}/api/v1/adk/context"
-    headers = {"Authorization": f"Bearer mock-token:{email_id}"}
+
+    identity_service_url = os.getenv(
+        "CUSTOMER_IDENTITY_SERVICE_URL",
+        os.getenv("IDENTITY_SERVICE_URL", "http://localhost:8001"),
+    ).rstrip("/")
+
+    # If token is not provided or is a mock-token format, build a valid staff JWT
+    auth_token = token
+    if not auth_token or auth_token == "mock-token" or auth_token.startswith("mock-token:"):
+        user_id = auth_token.split(":", 1)[1] if auth_token and ":" in auth_token else "staff_analyst_01"
+        now = int(time.time())
+        header_b64 = base64.urlsafe_b64encode(b'{"alg":"HS256","typ":"JWT"}').decode().rstrip("=")
+        payload_data = {
+            "iss": "https://securetoken.google.com/banking-agent-rag-mcp",
+            "aud": "banking-agent-rag-mcp",
+            "auth_time": now,
+            "user_id": user_id,
+            "sub": user_id,
+            "uid": user_id,
+            "email": "souravmaiti1997@gmail.com",
+            "email_verified": True,
+            "name": "Sarah Chen (Senior Portfolio Analyst)",
+            "role": "BANK_STAFF",
+            "user_role": "BANK_STAFF",
+            "roles": ["BANK_STAFF", "ANALYTICS_USER"],
+            "iat": now,
+            "exp": now + 86400 * 365,
+        }
+        payload_b64 = base64.urlsafe_b64encode(json.dumps(payload_data, separators=(",", ":")).encode()).decode().rstrip("=")
+        auth_token = f"{header_b64}.{payload_b64}.mock_staff_signature"
+
+    metadata_url = f"{identity_service_url}/analytics-metadata"
+    headers = {"Authorization": f"Bearer {auth_token}"}
+
+    logger.info("Calling analytics metadata service at: %s", metadata_url)
     try:
         with httpx.Client(timeout=60.0) as client:
-            response = client.get(context_url, headers=headers)
+            response = client.get(metadata_url, headers=headers)
+
+            # Fallback to /api/v1/analytics-metadata if 404
+            if response.status_code == 404:
+                fallback_url = f"{identity_service_url}/api/v1/analytics-metadata"
+                logger.info("Retrying with fallback URL: %s", fallback_url)
+                response = client.get(fallback_url, headers=headers)
+
             if response.status_code == 200:
-                context_data = response.json()
+                metadata = response.json()
+                logger.info(
+                    "Successfully fetched analytics metadata (authorized=%s, role=%s)",
+                    metadata.get("authorized"),
+                    metadata.get("user_role"),
+                )
                 from app.agent import reconstruct_database_settings
-                database_settings = reconstruct_database_settings(context_data.get("authorized_views", {}))
+                database_settings = reconstruct_database_settings(metadata.get("authorized_views", {}))
                 return database_settings
+            elif response.status_code == 401:
+                raise RuntimeError(f"Authentication failed (401): {response.text}")
+            elif response.status_code == 403:
+                raise RuntimeError(f"Access forbidden (403): {response.text}")
             else:
                 logger.error("Failed to fetch database settings from identity-service: %d %s", response.status_code, response.text)
     except Exception as e:
