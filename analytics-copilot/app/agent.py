@@ -125,11 +125,12 @@ class ASGIJWTInterceptorMiddleware:
 
         method = scope.get("method", "")
 
+        receive_to_use = receive
         if token and method == "POST":
+            messages = []
             try:
                 body = b""
                 more_body = True
-                messages = []
                 while more_body:
                     message = await receive()
                     messages.append(message)
@@ -169,12 +170,11 @@ class ASGIJWTInterceptorMiddleware:
                         return messages.pop(0)
                     return await receive()
 
-                await self.app(scope, mock_receive, send)
-                return
+                receive_to_use = mock_receive
             except Exception as e:
                 _logger.error("Error reading body in middleware: %s", e)
 
-        await self.app(scope, receive, send)
+        await self.app(scope, receive_to_use, send)
 
 
 def inject_middleware_into_existing_apps():

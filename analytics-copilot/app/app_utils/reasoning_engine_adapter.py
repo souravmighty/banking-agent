@@ -79,14 +79,25 @@ def attach_reasoning_engine_routes(app: FastAPI) -> None:
     async def stream_query(request: Request) -> responses.StreamingResponse:
         body = await request.json()
         method = resolve_method(body["class_method"], streaming=True)
+        kwargs = body.get("input") or {}
+        res = method(**kwargs)
 
-        async def generator():
-            async for event in method(**(body.get("input") or {})):
-                yield json.dumps(event) + "\n"
+        if hasattr(res, "__aiter__"):
+            async def async_generator():
+                async for event in res:
+                    yield json.dumps(encoders.jsonable_encoder(event)) + "\n"
 
-        return responses.StreamingResponse(
-            content=generator(), media_type="application/json"
-        )
+            return responses.StreamingResponse(
+                content=async_generator(), media_type="application/json"
+            )
+        else:
+            def sync_generator():
+                for event in res:
+                    yield json.dumps(encoders.jsonable_encoder(event)) + "\n"
+
+            return responses.StreamingResponse(
+                content=sync_generator(), media_type="application/json"
+            )
 
     @app.post("/api/reasoning_engine")
     async def query(request: Request) -> responses.JSONResponse:
