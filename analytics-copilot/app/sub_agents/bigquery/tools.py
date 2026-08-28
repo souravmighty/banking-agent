@@ -21,6 +21,7 @@ from pathlib import Path
 
 from google.adk.tools import ToolContext
 from google.genai import Client
+import google.genai.types as genai_types
 from google.genai.types import HttpOptions
 
 script_dir = Path(__file__).resolve().parent

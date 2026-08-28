@@ -12,6 +12,7 @@ from google.adk.tools import ToolContext
 from google.adk.tools.bigquery.client import get_bigquery_client
 from google.cloud import bigquery
 from google.genai import Client
+import google.genai.types as genai_types
 from google.oauth2 import service_account
 from google.genai.types import HttpOptions
 from google.api_core.exceptions import NotFound
