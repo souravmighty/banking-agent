@@ -19,7 +19,7 @@ visualization_agent = LlmAgent(
     model=os.getenv("VISUALIZATION_AGENT_MODEL", "gemini-3.7-flash"),
     name="visualization_agent",
     planner=BuiltInPlanner(
-        thinking_config=genai_types.ThinkingConfig(include_thoughts=True)
+        thinking_config=genai_types.ThinkingConfig(thinking_budget=0)
     ),
     instruction=return_instructions_visualization(),
     tools=[validate_vega_lite_spec],

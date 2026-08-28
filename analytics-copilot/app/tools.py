@@ -11,9 +11,12 @@ except (ImportError, ValueError):
 
 logger = logging.getLogger(__name__)
 
-# Maximum concurrent BigQuery agent sub-tasks per turn
+# Maximum concurrent BigQuery and Visualization agent sub-tasks per turn
 MAX_CONCURRENT_BIGQUERY_CALLS = 5
 _bigquery_semaphore = asyncio.Semaphore(MAX_CONCURRENT_BIGQUERY_CALLS)
+
+MAX_CONCURRENT_VISUALIZATION_CALLS = 2
+_visualization_semaphore = asyncio.Semaphore(MAX_CONCURRENT_VISUALIZATION_CALLS)
 
 
 async def call_bigquery_agent(
@@ -87,17 +90,21 @@ async def call_visualization_agent(
 ) -> str:
     """Tool to call the BI Visualization Agent to generate a self-contained Vega-Lite v5 chart specification.
 
+    Limit chart generation to at most 2 charts per turn. If multiple charts are needed, invoke this tool
+    concurrently in parallel in a single turn.
+
     Args:
         analytical_goal: Description of what chart is needed (e.g. 'Month-on-month acquisition trend line chart' or 'Deposit balance distribution by segment bar chart').
         data_summary_or_records: The raw query result rows, JSON records, or formatted data table produced by the BigQuery agent.
     """
     logger.debug("call_visualization_agent: %s", analytical_goal)
 
-    agent_tool = AgentTool(agent=visualization_agent)
-    request_prompt = (
-        f"Analytical Goal: {analytical_goal}\n\n"
-        f"Data Records / Table:\n{data_summary_or_records}"
-    )
+    async with _visualization_semaphore:
+        agent_tool = AgentTool(agent=visualization_agent)
+        request_prompt = (
+            f"Analytical Goal: {analytical_goal}\n\n"
+            f"Data Records / Table:\n{data_summary_or_records}"
+        )
 
     visualization_output = None
     last_exception = None

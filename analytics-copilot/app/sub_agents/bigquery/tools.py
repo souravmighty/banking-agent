@@ -305,7 +305,10 @@ while strictly using the provided schema and analytical guidance.
     response = llm_client.models.generate_content(
         model=os.getenv("BASELINE_NL2SQL_MODEL", "gemini-3.7-flash"),
         contents=prompt,
-        config={"temperature": 0.05},
+        config=genai_types.GenerateContentConfig(
+            temperature=0.05,
+            thinking_config=genai_types.ThinkingConfig(thinking_budget=0),
+        ),
     )
 
     sql = response.text or ""
