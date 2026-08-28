@@ -1,20 +1,18 @@
-import pytest
-from unittest.mock import MagicMock, patch
 from types import SimpleNamespace
+from unittest.mock import MagicMock, patch
+
+import pytest
 
 from app.agent import (
+    analytics_metadata_cache,
+    get_root_agent,
     load_analytics_metadata_in_context,
     reconstruct_database_settings_from_analytics_metadata,
-    analytics_metadata_cache,
-    AnalyticsMetadataCache,
-    get_root_agent,
-    root_agent,
 )
-from app.prompts import return_instructions_root, format_analytics_data_context
-from app.sub_agents.bigquery.prompts import return_instructions_bigquery
-from app.sub_agents.bigquery.tools import get_analytics_metadata, bigquery_nl2sql
+from app.prompts import return_instructions_root
 from app.sub_agents.bigquery.agent import setup_before_agent_call
-
+from app.sub_agents.bigquery.prompts import return_instructions_bigquery
+from app.sub_agents.bigquery.tools import bigquery_nl2sql, get_analytics_metadata
 
 SAMPLE_ANALYTICS_METADATA = {
     "authorized": True,
@@ -154,7 +152,9 @@ def test_get_analytics_metadata_forbidden():
 
 def test_reconstruct_database_settings():
     """Test: Reconstructs schema for both actual tables and analytical views."""
-    db_settings = reconstruct_database_settings_from_analytics_metadata(SAMPLE_ANALYTICS_METADATA)
+    db_settings = reconstruct_database_settings_from_analytics_metadata(
+        SAMPLE_ANALYTICS_METADATA
+    )
     assert "bigquery" in db_settings
     schema = db_settings["bigquery"]["schema"]
 
@@ -162,12 +162,16 @@ def test_reconstruct_database_settings():
     assert tbl_key in schema
     assert schema[tbl_key]["object_type"] == "TABLE"
     assert schema[tbl_key]["is_scd_type_2"] is True
+    assert schema[tbl_key]["scd_columns"] == ["is_current", "record_version"]
+    assert "Joined with accounts" in schema[tbl_key]["relationship_information"]
     assert len(schema[tbl_key]["table_schema"]) == 3
 
     view_key = "banking-agent-rag-mcp.analytics.analytics_customer_360"
     assert view_key in schema
     assert schema[view_key]["object_type"] == "VIEW"
     assert schema[view_key]["is_scd_type_2"] is False
+    assert schema[view_key]["scd_columns"] == []
+    assert "Curated 360 view" in schema[view_key]["relationship_information"]
     assert len(schema[view_key]["table_schema"]) == 2
 
 
@@ -176,11 +180,12 @@ def test_load_analytics_metadata_callback():
     analytics_metadata_cache.clear()
 
     callback_context = SimpleNamespace(
-        state={},
-        session=SimpleNamespace(id="sess-123", user_id="staff@bank.com")
+        state={}, session=SimpleNamespace(id="sess-123", user_id="staff@bank.com")
     )
 
-    with patch("app.agent.get_analytics_metadata", return_value=SAMPLE_ANALYTICS_METADATA) as mock_fetch:
+    with patch(
+        "app.agent.get_analytics_metadata", return_value=SAMPLE_ANALYTICS_METADATA
+    ) as mock_fetch:
         load_analytics_metadata_in_context(callback_context)
 
         assert mock_fetch.call_count == 1
@@ -197,10 +202,11 @@ def test_load_analytics_metadata_callback():
         assert mock_fetch.call_count == 1
 
     new_context = SimpleNamespace(
-        state={},
-        session=SimpleNamespace(id="sess-456", user_id="staff@bank.com")
+        state={}, session=SimpleNamespace(id="sess-456", user_id="staff@bank.com")
     )
-    with patch("app.agent.get_analytics_metadata", return_value=SAMPLE_ANALYTICS_METADATA) as mock_fetch_2:
+    with patch(
+        "app.agent.get_analytics_metadata", return_value=SAMPLE_ANALYTICS_METADATA
+    ) as mock_fetch_2:
         load_analytics_metadata_in_context(new_context)
         assert mock_fetch_2.call_count == 0  # hit cache
         assert "analytics_metadata" in new_context.state
@@ -211,7 +217,7 @@ def test_subagent_setup_before_agent_call_reuses_state():
     """Test: BigQuery subagent reuses populated state without second fetch."""
     callback_context = SimpleNamespace(
         state={"database_settings": {"bigquery": {"schema": {}}}},
-        session=SimpleNamespace(id="sess-789", user_id="staff@bank.com")
+        session=SimpleNamespace(id="sess-789", user_id="staff@bank.com"),
     )
 
     with patch("app.agent.get_analytics_metadata") as mock_fetch:
@@ -221,9 +227,7 @@ def test_subagent_setup_before_agent_call_reuses_state():
 
 def test_root_agent_instructions_prompts():
     """Test: Root Agent instructions contain analytics context and no customer profile."""
-    state = {
-        "analytics_metadata": SAMPLE_ANALYTICS_METADATA
-    }
+    state = {"analytics_metadata": SAMPLE_ANALYTICS_METADATA}
     context = SimpleNamespace(state=state)
     instructions = return_instructions_root(context)
 
@@ -251,26 +255,32 @@ def test_bigquery_agent_instructions():
 
 def test_bigquery_nl2sql_prompt_construction():
     """Test: NL2SQL prompt receives full schema for tables and analytical views."""
-    db_settings = reconstruct_database_settings_from_analytics_metadata(SAMPLE_ANALYTICS_METADATA)
+    db_settings = reconstruct_database_settings_from_analytics_metadata(
+        SAMPLE_ANALYTICS_METADATA
+    )
     tool_context = SimpleNamespace(
         state={
             "database_settings": db_settings,
         }
     )
 
-    mock_llm_response = MagicMock(text="```sql\nSELECT COUNT(*) FROM `banking-agent-rag-mcp.banking_data.customers` WHERE is_current = TRUE\n```")
+    mock_llm_response = MagicMock(
+        text="```sql\nSELECT COUNT(*) FROM `banking-agent-rag-mcp.banking_data.customers` WHERE is_current = TRUE\n```"
+    )
 
     with patch("google.genai.Client.models") as mock_models:
         mock_models.generate_content.return_value = mock_llm_response
         with patch("app.sub_agents.bigquery.tools.llm_client", None):
             with patch("app.sub_agents.bigquery.tools.Client") as mock_client_cls:
                 mock_client_instance = MagicMock()
-                mock_client_instance.models.generate_content.return_value = mock_llm_response
+                mock_client_instance.models.generate_content.return_value = (
+                    mock_llm_response
+                )
                 mock_client_cls.return_value = mock_client_instance
 
                 sql = bigquery_nl2sql(
                     question="How many active customers do we have?",
-                    tool_context=tool_context
+                    tool_context=tool_context,
                 )
 
                 assert "SELECT COUNT(*)" in sql
@@ -281,7 +291,8 @@ def test_bigquery_nl2sql_prompt_construction():
 def test_root_agent_tools_registry():
     """Test: Root agent registers call_bigquery_agent and call_visualization_agent."""
     agent = get_root_agent()
-    tool_names = [getattr(t, "__name__", getattr(t, "name", str(t))) for t in agent.tools]
+    tool_names = [
+        getattr(t, "__name__", getattr(t, "name", str(t))) for t in agent.tools
+    ]
     assert "call_bigquery_agent" in tool_names
     assert "call_visualization_agent" in tool_names
-

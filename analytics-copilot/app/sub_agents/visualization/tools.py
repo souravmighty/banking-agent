@@ -2,12 +2,12 @@
 
 import json
 import logging
-from typing import Any, Dict
+from typing import Any
 
 logger = logging.getLogger(__name__)
 
 
-def validate_vega_lite_spec(spec_json: str) -> Dict[str, Any]:
+def validate_vega_lite_spec(spec_json: str) -> dict[str, Any]:
     """Validates a Vega-Lite v5 JSON specification for correctness, data integrity, and structural validity.
 
     Args:
@@ -40,8 +40,15 @@ def validate_vega_lite_spec(spec_json: str) -> Dict[str, Any]:
         if "$schema" not in parsed:
             parsed["$schema"] = "https://vega.github.io/schema/vega-lite/v5.json"
 
-        if "mark" not in parsed and "layer" not in parsed and "hconcat" not in parsed and "vconcat" not in parsed:
-            errors.append("Specification must contain 'mark', 'layer', 'hconcat', or 'vconcat'.")
+        if (
+            "mark" not in parsed
+            and "layer" not in parsed
+            and "hconcat" not in parsed
+            and "vconcat" not in parsed
+        ):
+            errors.append(
+                "Specification must contain 'mark', 'layer', 'hconcat', or 'vconcat'."
+            )
 
         if "data" not in parsed:
             errors.append("Specification missing 'data' field.")
@@ -50,7 +57,9 @@ def validate_vega_lite_spec(spec_json: str) -> Dict[str, Any]:
             if values is None:
                 errors.append("'data' object must contain 'values' array.")
             elif not isinstance(values, list) or len(values) == 0:
-                errors.append("'data.values' should be a non-empty list of data records.")
+                errors.append(
+                    "'data.values' should be a non-empty list of data records."
+                )
 
         if errors:
             return {
@@ -75,7 +84,7 @@ def validate_vega_lite_spec(spec_json: str) -> Dict[str, Any]:
         logger.warning("Vega-Lite JSON syntax error: %s", e)
         return {
             "status": "INVALID",
-            "error": f"JSON syntax error: {str(e)}",
+            "error": f"JSON syntax error: {e!s}",
             "suggestion": "Check for trailing commas, unescaped quotes, or mismatched braces.",
         }
     except Exception as e:

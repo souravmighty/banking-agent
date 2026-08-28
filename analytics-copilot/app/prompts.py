@@ -27,7 +27,9 @@ def format_analytics_data_context(state: dict) -> str:
         if tables:
             lines.append("Tables:")
             for tbl_name, tbl in tables.items():
-                lines.append(f"  • Table: `{tbl_name}` (Logical: `{tbl.get('logical_name')}`)")
+                lines.append(
+                    f"  • Table: `{tbl_name}` (Logical: `{tbl.get('logical_name')}`)"
+                )
                 if tbl.get("table_description"):
                     lines.append(f"    - Purpose: {tbl['table_description']}")
                 if tbl.get("grain"):
@@ -35,17 +37,23 @@ def format_analytics_data_context(state: dict) -> str:
                 if tbl.get("primary_business_key"):
                     lines.append(f"    - Primary Key: {tbl['primary_business_key']}")
                 if tbl.get("is_scd_type_2"):
-                    lines.append(f"    - SCD Type 2: Yes (Guidance: {tbl.get('ai_usage_guidance', 'Use is_current = TRUE')})")
+                    lines.append(
+                        f"    - SCD Type 2: Yes (Guidance: {tbl.get('ai_usage_guidance', 'Use is_current = TRUE')})"
+                    )
                 if tbl.get("typical_ai_questions"):
                     questions_sample = tbl["typical_ai_questions"][:2]
-                    lines.append(f"    - Example Questions: {'; '.join(questions_sample)}")
+                    lines.append(
+                        f"    - Example Questions: {'; '.join(questions_sample)}"
+                    )
 
         # Format Views
         views = ds_info.get("views")
         if views:
             lines.append("Analytical Views:")
             for view_name, vw in views.items():
-                lines.append(f"  • View: `{view_name}` (Logical: `{vw.get('logical_name')}`)")
+                lines.append(
+                    f"  • View: `{view_name}` (Logical: `{vw.get('logical_name')}`)"
+                )
                 if vw.get("table_description"):
                     lines.append(f"    - Purpose: {vw['table_description']}")
                 if vw.get("grain"):
@@ -56,7 +64,9 @@ def format_analytics_data_context(state: dict) -> str:
                     lines.append(f"    - Usage Guidance: {vw['ai_usage_guidance']}")
                 if vw.get("typical_ai_questions"):
                     questions_sample = vw["typical_ai_questions"][:2]
-                    lines.append(f"    - Example Questions: {'; '.join(questions_sample)}")
+                    lines.append(
+                        f"    - Example Questions: {'; '.join(questions_sample)}"
+                    )
 
     lines.append("</ANALYTICS_DATA_CONTEXT>")
     return "\n".join(lines)
@@ -67,11 +77,11 @@ def return_instructions_root(context: ReadonlyContext) -> str:
     analytics_data_context = format_analytics_data_context(context.state)
 
     instruction_prompt_root = f"""
-You are "Analytics Copilot", an elite AI-powered business analytics partner for bank executives, 
+You are "Analytics Copilot", an elite AI-powered business analytics partner for bank executives,
 portfolio managers, risk officers, and financial analysts.
 
-Your primary goal is to provide deep, evidence-based business intelligence, portfolio analytics, 
-and root-cause diagnostic insights by querying enterprise BigQuery data models, generating supporting 
+Your primary goal is to provide deep, evidence-based business intelligence, portfolio analytics,
+and root-cause diagnostic insights by querying enterprise BigQuery data models, generating supporting
 interactive visual charts (Vega-Lite), and presenting rich executive-ready analysis.
 
 **Target Audience:**
@@ -210,7 +220,7 @@ Follow this workflow for analytical requests:
 
 1. **Pattern Recognition & Ambiguity Check:**
    - Classify the inquiry into one of the 8 Analytical Patterns.
-   - If the inquiry is open-ended or ambiguous, trigger the **Human-in-the-Loop Protocol** to present 2–4 MECE hypotheses and await user confirmation.
+   - If the inquiry is open-ended or ambiguous, trigger the **Human-in-the-Loop Protocol** to present 2-4 MECE hypotheses and await user confirmation.
 2. **Plan, Decompose & Query in Parallel (Max 5):**
    - Decompose approved hypotheses into at most 5 discrete sub-questions under the **Shared Cohort Baseline Specification**.
    - Emit parallel `call_bigquery_agent` tool calls in the same turn.
@@ -220,7 +230,7 @@ Follow this workflow for analytical requests:
    - **Interactive Charts:** Dedicated ````vega-lite ... ```` blocks for each analytical topic.
    - **Key Analytical Insights & Breakdown:** Clear, categorized breakdown for each hypothesis with mathematical contribution shares.
    - **Structured Data Tables:** Clean markdown tables showing exact figures for reference.
-   - **Recommended Next Deep Dives:** 2–3 proactive follow-up actions for continued investigation.
+   - **Recommended Next Deep Dives:** 2-3 proactive follow-up actions for continued investigation.
 </TASK_WORKFLOW>
 
 ---

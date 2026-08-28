@@ -1,7 +1,5 @@
-import os
-import sys
-import json
 import logging
+import os
 from types import SimpleNamespace
 
 # Set environment variables for end-to-end test
@@ -17,35 +15,43 @@ JWT_TOKEN = (
 os.environ["LOCAL_TEST_JWT"] = JWT_TOKEN
 
 # Configure logging
-logging.basicConfig(level=logging.INFO, format="%(asctime)s [%(levelname)s] %(name)s: %(message)s")
+logging.basicConfig(
+    level=logging.INFO, format="%(asctime)s [%(levelname)s] %(name)s: %(message)s"
+)
 logger = logging.getLogger("e2e_analytics_copilot_test")
 
-from app.agent import (
+from app.agent import (  # noqa: E402
+    firebase_jwt_var,
     load_analytics_metadata_in_context,
     reconstruct_database_settings_from_analytics_metadata,
-    firebase_jwt_var,
-    root_agent,
 )
-from app.sub_agents.bigquery.tools import get_analytics_metadata, bigquery_nl2sql
-from app.prompts import return_instructions_root
-from google.adk.tools import ToolContext
+from app.prompts import return_instructions_root  # noqa: E402
+from app.sub_agents.bigquery.tools import (  # noqa: E402
+    bigquery_nl2sql,
+    get_analytics_metadata,
+)
+
 
 def run_e2e_tests():
-    print("\n" + "="*80)
-    print("STARTING E2E INTEGRATION TEST: @analytics-copilot <-> customer-identity-service")
-    print("="*80)
+    print("\n" + "=" * 80)
+    print(
+        "STARTING E2E INTEGRATION TEST: @analytics-copilot <-> customer-identity-service"
+    )
+    print("=" * 80)
 
     # 1. Test direct metadata retrieval via tool with JWT
     print("\n[STEP 1] Fetching analytics metadata directly using JWT...")
     firebase_jwt_var.set(JWT_TOKEN)
     metadata = get_analytics_metadata(token=JWT_TOKEN)
-    
+
     assert metadata is not None, "Metadata response is None"
-    assert metadata.get("authorized") is True, f"Expected authorized=True, got {metadata.get('authorized')}"
+    assert metadata.get("authorized") is True, (
+        f"Expected authorized=True, got {metadata.get('authorized')}"
+    )
     print(f"-> Authorized: {metadata.get('authorized')}")
     print(f"-> User Role: {metadata.get('user_role')}")
     print(f"-> Available Datasets: {list(metadata.get('datasets', {}).keys())}")
-    
+
     for ds_name, ds_info in metadata.get("datasets", {}).items():
         tables = list(ds_info.get("tables", {}).keys()) if ds_info.get("tables") else []
         views = list(ds_info.get("views", {}).keys()) if ds_info.get("views") else []
@@ -61,18 +67,26 @@ def run_e2e_tests():
     schema = db_settings.get("bigquery", {}).get("schema", {})
     print(f"-> Reconstructed {len(schema)} schema objects (tables and views)")
     for obj_name, obj_meta in schema.items():
-        print(f"   - [{obj_meta.get('object_type')}] {obj_name} (SCD Type 2: {obj_meta.get('is_scd_type_2')}, Columns: {len(obj_meta.get('table_schema', []))})")
+        print(
+            f"   - [{obj_meta.get('object_type')}] {obj_name} (SCD Type 2: {obj_meta.get('is_scd_type_2')}, Columns: {len(obj_meta.get('table_schema', []))})"
+        )
     assert len(schema) >= 10, f"Expected at least 10 schema objects, got {len(schema)}"
 
     # 3. Test callback execution
     print("\n[STEP 3] Testing before_agent_callback on simulated agent context...")
     context = SimpleNamespace(
         state={},
-        session=SimpleNamespace(id="test-e2e-session-123", user_id="UBBHaTkgNuVD3LbP5nv4ywOq68v2")
+        session=SimpleNamespace(
+            id="test-e2e-session-123", user_id="UBBHaTkgNuVD3LbP5nv4ywOq68v2"
+        ),
     )
     load_analytics_metadata_in_context(context)
-    assert "analytics_metadata" in context.state, "Callback failed to inject analytics_metadata"
-    assert "database_settings" in context.state, "Callback failed to inject database_settings"
+    assert "analytics_metadata" in context.state, (
+        "Callback failed to inject analytics_metadata"
+    )
+    assert "database_settings" in context.state, (
+        "Callback failed to inject database_settings"
+    )
     assert context.state["user_role"] == "BANK_STAFF"
     print("-> Callback successfully populated context state with zero customer PII")
 
@@ -82,25 +96,28 @@ def run_e2e_tests():
     assert "<ANALYTICS_DATA_CONTEXT>" in instructions
     assert "analytics_customer_360" in instructions
     assert "analytics_transactions" in instructions
-    print("-> Instruction prompt successfully formatted with all analytical views and operational tables")
+    print(
+        "-> Instruction prompt successfully formatted with all analytical views and operational tables"
+    )
 
     # 5. Test BigQuery NL2SQL tool call
     print("\n[STEP 5] Testing NL2SQL generation via Gemini 2.5 Pro...")
     tool_ctx = SimpleNamespace(state=context.state)
     sample_question = "Give me month on month view of credit card transacted customers and average credit card spends per customer"
-    
+
     sql = bigquery_nl2sql(question=sample_question, tool_context=tool_ctx)
-    print("\n" + "-"*40 + " GENERATED SQL " + "-"*40)
+    print("\n" + "-" * 40 + " GENERATED SQL " + "-" * 40)
     print(sql)
     print("-" * 95)
-    
+
     assert "SELECT" in sql.upper()
     assert "analytics_transactions" in sql or "transactions" in sql
     print("-> NL2SQL successfully generated SQL against BigQuery schema")
 
-    print("\n" + "="*80)
+    print("\n" + "=" * 80)
     print("ALL E2E INTEGRATION TESTS PASSED SUCCESSFULLY!")
-    print("="*80 + "\n")
+    print("=" * 80 + "\n")
+
 
 if __name__ == "__main__":
     run_e2e_tests()

@@ -1,15 +1,48 @@
+# Data & Keys
 **/data/*
-*.tfstate
-*.tfstate.*
-**.terraform
-**.terraform.lock.*
+/data/
+/keys/
+/keys/**.json
+/secrets/
+
+# Credentials & Service Accounts
+*.pem
+*.key
+*.p12
+*.pfx
+*-sa.json
+*-key.json
+*service-account*.json
+*service_account*.json
+*credentials*.json
+*creds*.json
 **google_credentials.json
 **my-creds.json
 **adk-agent-sa.json
 **service-account-key.json
-/keys/
-/keys/**.json
+
+# Terraform
+*.tfstate
+*.tfstate.*
+*.tfstate.backup
+*.tfplan
+*.auto.tfvars
+terraform.tfvars
+secrets.tfvars
+.terraform/
+.terraform.lock.hcl
+**/.terraform/
+**/.terraform.lock.hcl
+
+# Google Agent CLI & ADK
 .google-agents-cli/
+**/.google-agents-cli/
+.adk/
+**/.adk/
+.saved_chats
+.persist_vector_store
+.locust_env
+
 
 
 # Byte-compiled / optimized / DLL files
@@ -114,43 +147,74 @@ celerybeat.pid
 # SageMath parsed files
 *.sage.py
 
-# Environments
+# Environments & Secrets
 .env
-.venv
+.env.*
+.env.local
+.env.development.local
+.env.test.local
+.env.production.local
+!.env.example
+!.env.template
+
+# Virtual Environments
+.venv/
+.venv*
 env/
 venv/
 ENV/
 env.bak/
 venv.bak/
 
-# Spyder project settings
-.spyderproject
-.spyderworkspace
+# Evaluation Artifacts & Test Reports
+artifacts/
+**/artifacts/
+grade_results/
+**/grade_results/
+tests/load_test/.results/
 
-# Rope project settings
-.ropeproject
+# Node / Next.js
+node_modules/
+**/node_modules/
+.next/
+**/.next/
+.vercel/
+**/.vercel/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+.pnpm-debug.log*
+*.tsbuildinfo
+next-env.d.ts
 
-# mkdocs documentation
-/site
-
-# mypy
+# Caches and Linters
+.ruff_cache/
+**/.ruff_cache/
+.pytest_cache/
+**/.pytest_cache/
 .mypy_cache/
+**/.mypy_cache/
 .dmypy.json
 dmypy.json
+.hypothesis/
 
-# Pyre type checker
-.pyre/
+# AgentOps & Observability Logs
+agentops.log
+**/agentops.log
 
-# pytype static type analyzer
-.pytype/
-
-# Cython debug symbols
-cython_debug/
-
-# VS Code settings
+# Spyder & Editor settings
+.spyderproject
+.spyderworkspace
+.ropeproject
 .vscode/
+.idea/
+.DS_Store
+**/.DS_Store
+Thumbs.db
+
+# Documentation & packaging
+/site
 ref/
 ref/**
 /ref/
-.adk/
 uv.lock

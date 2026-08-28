@@ -14,16 +14,21 @@
 
 import contextlib
 import os
+import uuid
 from collections.abc import AsyncIterator
+from typing import Literal
 
 from a2a.server.tasks import InMemoryTaskStore
 from dotenv import load_dotenv
 from fastapi import FastAPI
 from google.adk.cli.fast_api import get_fast_api_app
+from google.adk.cli.utils.agent_loader import AgentLoader
 from google.adk.runners import Runner
+from pydantic import BaseModel, Field
 
 from app.app_utils import services
 from app.app_utils.a2a import attach_a2a_routes
+from app.app_utils.reasoning_engine_adapter import attach_reasoning_engine_routes
 
 load_dotenv()
 allow_origins = (
@@ -56,9 +61,6 @@ async def lifespan(app: FastAPI) -> AsyncIterator[None]:
     yield
 
 
-from google.adk.cli.utils.agent_loader import AgentLoader
-
-
 class AnalyticsCopilotAgentLoader(AgentLoader):
     """Agent loader that ensures analytics-copilot, analytics_copilot, and app names resolve."""
 
@@ -66,10 +68,27 @@ class AnalyticsCopilotAgentLoader(AgentLoader):
         return ["analytics-copilot", "analytics_copilot", "analytics_copilot_2", "app"]
 
     def _perform_load(self, agent_name: str):
-        if agent_name in ("analytics-copilot", "analytics_copilot", "analytics_copilot_2", "app"):
+        if agent_name in (
+            "analytics-copilot",
+            "analytics_copilot",
+            "analytics_copilot_2",
+            "app",
+        ):
             from app.agent import app as adk_app
+
             return adk_app
         return super()._perform_load(agent_name)
+
+
+class Feedback(BaseModel):
+    """Represents user feedback for conversation evaluation."""
+
+    score: int | float
+    text: str | None = ""
+    log_type: Literal["feedback"] = "feedback"
+    service_name: Literal["analytics-copilot"] = "analytics-copilot"
+    user_id: str = Field(default_factory=lambda: str(uuid.uuid4()))
+    session_id: str = Field(default_factory=lambda: str(uuid.uuid4()))
 
 
 agent_loader = AnalyticsCopilotAgentLoader(AGENT_DIR)
@@ -86,6 +105,26 @@ app: FastAPI = get_fast_api_app(
 )
 app.title = "analytics-copilot"
 app.description = "API for interacting with the Agent analytics-copilot"
+attach_reasoning_engine_routes(app)
+
+
+@app.post("/feedback")
+def collect_feedback(feedback: Feedback) -> dict[str, str]:
+    """Collect and log user feedback to Cloud Logging / BigQuery sink."""
+    try:
+        from google.cloud import logging as google_cloud_logging
+
+        logging_client = google_cloud_logging.Client()
+        cloud_logger = logging_client.logger("analytics-copilot-feedback")
+        cloud_logger.log_struct(feedback.model_dump(), severity="INFO")
+    except Exception:
+        import logging
+
+        logging.getLogger("feedback").info(
+            "User feedback received: %s", feedback.model_dump_json()
+        )
+
+    return {"status": "success"}
 
 
 # Main execution

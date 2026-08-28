@@ -33,8 +33,8 @@ export async function POST(request: NextRequest): Promise<Response> {
       );
     }
 
-    // Determine deployment strategy based on configuration
-    const deploymentType = shouldUseAgentEngine()
+    // Determine deployment strategy based on configuration and target agent
+    const deploymentType = shouldUseAgentEngine(requestData.appName)
       ? "agent_engine"
       : "local_backend";
 

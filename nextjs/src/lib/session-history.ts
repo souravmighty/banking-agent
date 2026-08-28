@@ -43,9 +43,9 @@ export class AdkSessionService {
   ): Promise<AdkSession | null> {
     const targetAppName = appName || getAdkAppName();
 
-    if (shouldUseAgentEngine()) {
+    if (shouldUseAgentEngine(targetAppName)) {
       // Agent Engine: Use v1beta1 sessions API
-      const endpoint = getEndpointForPath(`/${sessionId}`, "sessions");
+      const endpoint = getEndpointForPath(`/${sessionId}`, "sessions", targetAppName);
 
       try {
         const authHeaders = await getAuthHeaders();
@@ -139,9 +139,9 @@ export class AdkSessionService {
   ): Promise<ListSessionsResponse> {
     const targetAppName = appName || getAdkAppName();
 
-    if (shouldUseAgentEngine()) {
+    if (shouldUseAgentEngine(targetAppName)) {
       // Agent Engine: Use v1beta1 sessions API
-      const endpoint = getEndpointForPath("", "sessions");
+      const endpoint = getEndpointForPath("", "sessions", targetAppName);
 
       console.log(
         "🔗 [ADK SESSION SERVICE] Agent Engine listSessions request:",
@@ -280,9 +280,9 @@ export class AdkSessionService {
   ): Promise<ListEventsResponse> {
     const targetAppName = appName || getAdkAppName();
 
-    if (shouldUseAgentEngine()) {
+    if (shouldUseAgentEngine(targetAppName)) {
       // Agent Engine: Use v1beta1 sessions API
-      const endpoint = getEndpointForPath(`/${sessionId}/events`, "sessions");
+      const endpoint = getEndpointForPath(`/${sessionId}/events`, "sessions", targetAppName);
 
       try {
         const authHeaders = await getAuthHeaders();
@@ -360,7 +360,8 @@ export class AdkSessionService {
     appName?: string
   ): Promise<AdkSessionWithEvents | null> {
     try {
-      if (shouldUseAgentEngine()) {
+      const targetAppName = appName || getAdkAppName();
+      if (shouldUseAgentEngine(targetAppName)) {
         // First retrieve session and verify that it belongs to the logged-in user
         const session = await AdkSessionService.getSession(userId, sessionId, appName);
         if (!session) {

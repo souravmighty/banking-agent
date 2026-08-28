@@ -1,4 +1,4 @@
-.PHONY: install dev dev-backend dev-frontend identity-service customer-data-service analytics-metadata-service analytics-copilot analytics-copilot-api test-identity-service test-metadata-service test-analytics-copilot bq-setup generate-data upload-data data-setup lint deploy-adk deploy-identity-service deploy-data-service
+.PHONY: install dev dev-backend dev-frontend identity-service customer-data-service analytics-metadata-service analytics-copilot analytics-copilot-api test-identity-service test-metadata-service test-analytics-copilot bq-setup generate-data upload-data data-setup lint deploy-adk deploy-identity-service deploy-data-service deploy-analytics-copilot
 
 install:
 	@command -v uv >/dev/null 2>&1 || { echo "uv is not installed. Installing uv..."; curl -LsSf https://astral.sh/uv/0.6.12/install.sh | sh; source $HOME/.local/bin/env; }
@@ -85,5 +85,17 @@ deploy-identity-service:
 # Deploy the customer data service remotely to GCP Cloud Run
 deploy-data-service:
 	cd customer-data-service && gcloud builds submit --config cloudbuild.yaml .
+
+# Deploy Analytics Copilot to GCP Agent Platform (Vertex AI Agent Runtime)
+PROJECT_ID ?= banking-agent-rag-mcp
+REGION ?= us-central1
+APP_SERVICE_ACCOUNT ?= analytics-copilot-app@$(PROJECT_ID).iam.gserviceaccount.com
+
+deploy-analytics-copilot:
+	cd analytics-copilot && env -u VIRTUAL_ENV uv run agents-cli deploy \
+		--project $(PROJECT_ID) \
+		--region $(REGION) \
+		--service-account $(APP_SERVICE_ACCOUNT)
+
 
 

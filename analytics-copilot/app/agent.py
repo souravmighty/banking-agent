@@ -1,4 +1,3 @@
-import base64
 import contextvars
 import gc
 import inspect
@@ -8,7 +7,7 @@ import os
 import threading
 import time
 from datetime import date
-from typing import Any, Dict, Optional
+from typing import Any
 
 import google.genai
 import google.genai.types as genai_types
@@ -17,10 +16,9 @@ from fastapi import FastAPI
 from google import genai
 from google.adk.agents import LlmAgent
 from google.adk.agents.callback_context import CallbackContext
+from google.adk.apps import App
 from google.adk.planners import BuiltInPlanner
-from google.adk.tools import BaseTool, ToolContext
 from starlette.middleware import Middleware
-from starlette.middleware.base import BaseHTTPMiddleware
 
 _logger = logging.getLogger("banking_agent_patch")
 
@@ -33,7 +31,10 @@ def _patched_client_init(self, *args, **kwargs):
     if api_location:
         _logger.info("Patched Client.__init__: forcing location to %s", api_location)
         kwargs["location"] = api_location
-        if "vertexai" not in kwargs and os.environ.get("GOOGLE_GENAI_USE_VERTEXAI", "TRUE") == "TRUE":
+        if (
+            "vertexai" not in kwargs
+            and os.environ.get("GOOGLE_GENAI_USE_VERTEXAI", "TRUE") == "TRUE"
+        ):
             kwargs["vertexai"] = True
     _original_client_init(self, *args, **kwargs)
 
@@ -56,6 +57,23 @@ load_dotenv()
 logging.basicConfig(level=logging.INFO)
 _logger = logging.getLogger(__name__)
 
+# AgentOps Observability Initialization
+agentops_api_key = os.environ.get("AGENTOPS_API_KEY")
+if agentops_api_key:
+    try:
+        import agentops
+
+        agentops.init(
+            api_key=agentops_api_key,
+            default_tags=["analytics-copilot", "banking-agent", "dev"],
+            auto_start_session=True,
+            instrument_llm_calls=True,
+        )
+        _logger.info("AgentOps initialized successfully in analytics copilot.")
+    except Exception as e:
+        _logger.warning("Could not initialize AgentOps: %s", e)
+
+
 client = genai.Client(
     vertexai=True,
     project=os.getenv("GOOGLE_CLOUD_PROJECT"),
@@ -64,7 +82,9 @@ client = genai.Client(
 
 firebase_jwt_var = contextvars.ContextVar("firebase_jwt", default="")
 _session_tokens = {}  # Global mapping from user/session to token
-_last_token = ""      # Thread-safe/process-safe global fallback for the single-user local app
+_last_token = (
+    ""  # Thread-safe/process-safe global fallback for the single-user local app
+)
 
 
 class ASGIJWTInterceptorMiddleware:
@@ -79,16 +99,22 @@ class ASGIJWTInterceptorMiddleware:
         headers = dict(scope.get("headers", []))
 
         token = ""
-        fb_token_bytes = headers.get(b"x-firebase-id-token") or headers.get(b"x-auth-token")
+        fb_token_bytes = headers.get(b"x-firebase-id-token") or headers.get(
+            b"x-auth-token"
+        )
         if fb_token_bytes:
             token = fb_token_bytes.decode("utf-8")
-            _logger.info("ASGIJWTInterceptorMiddleware: Captured JWT from custom X-Firebase-Id-Token / X-Auth-Token header.")
+            _logger.info(
+                "ASGIJWTInterceptorMiddleware: Captured JWT from custom X-Firebase-Id-Token / X-Auth-Token header."
+            )
         else:
             auth_bytes = headers.get(b"authorization", b"")
             auth_header = auth_bytes.decode("utf-8") if auth_bytes else ""
             if auth_header.startswith("Bearer "):
                 token = auth_header[7:]
-                _logger.info("ASGIJWTInterceptorMiddleware: Captured JWT from Authorization header.")
+                _logger.info(
+                    "ASGIJWTInterceptorMiddleware: Captured JWT from Authorization header."
+                )
 
         if token:
             firebase_jwt_var.set(token)
@@ -134,7 +160,9 @@ class ASGIJWTInterceptorMiddleware:
                             user_id,
                         )
                 except Exception as parse_err:
-                    _logger.warning("Failed to parse JSON body in middleware: %s", parse_err)
+                    _logger.warning(
+                        "Failed to parse JSON body in middleware: %s", parse_err
+                    )
 
                 async def mock_receive():
                     if messages:
@@ -169,14 +197,22 @@ def inject_middleware_into_existing_apps():
                     if hasattr(obj, "_middleware_stack"):
                         obj._middleware_stack = None
                     obj._asgi_jwt_intercepted = True
-                    _logger.info("Successfully injected ASGIJWTInterceptorMiddleware into FastAPI instance.")
+                    _logger.info(
+                        "Successfully injected ASGIJWTInterceptorMiddleware into FastAPI instance."
+                    )
         except ReferenceError:
             pass
         except Exception as e:
-            _logger.warning("Error inspecting object of class %s: %s", getattr(obj, "__class__", None), e)
+            _logger.warning(
+                "Error inspecting object of class %s: %s",
+                getattr(obj, "__class__", None),
+                e,
+            )
 
     if not found_any:
-        _logger.warning("No FastAPI instance found in GC during inject_middleware_into_existing_apps scan.")
+        _logger.warning(
+            "No FastAPI instance found in GC during inject_middleware_into_existing_apps scan."
+        )
 
 
 inject_middleware_into_existing_apps()
@@ -193,7 +229,7 @@ def patched_init(self, *args, **kwargs):
 FastAPI.__init__ = patched_init
 
 
-def get_firebase_jwt_token(callback_context: Optional[CallbackContext] = None) -> str:
+def get_firebase_jwt_token(callback_context: CallbackContext | None = None) -> str:
     """Extract authenticated JWT token for BANK_STAFF authorization."""
     # 1. Try global session dictionary
     if callback_context:
@@ -209,7 +245,9 @@ def get_firebase_jwt_token(callback_context: Optional[CallbackContext] = None) -
             if token:
                 return token
         except Exception as e:
-            _logger.warning("Error extracting session info in get_firebase_jwt_token: %s", e)
+            _logger.warning(
+                "Error extracting session info in get_firebase_jwt_token: %s", e
+            )
 
     # 2. Try contextvars
     token = firebase_jwt_var.get()
@@ -245,27 +283,44 @@ def get_firebase_jwt_token(callback_context: Optional[CallbackContext] = None) -
             pass
 
     # 6. Mock token bypass if configured
-    if callback_context and getattr(callback_context, "session", None) and getattr(callback_context.session, "user_id", None):
+    if (
+        callback_context
+        and getattr(callback_context, "session", None)
+        and getattr(callback_context.session, "user_id", None)
+    ):
         user_id = callback_context.session.user_id
-        if user_id.startswith("mock-") or os.getenv("MOCK_AUTH_BYPASS", "false").lower() == "true":
+        if (
+            user_id.startswith("mock-")
+            or os.getenv("MOCK_AUTH_BYPASS", "false").lower() == "true"
+        ):
             _logger.info("Test/Mock user_id detected (%s). Using mock-token.", user_id)
             return f"mock-token:{user_id}"
 
     # 7. Last resort fallback for test sessions
-    if callback_context and getattr(callback_context, "session", None) and getattr(callback_context.session, "user_id", None):
+    if (
+        callback_context
+        and getattr(callback_context, "session", None)
+        and getattr(callback_context.session, "user_id", None)
+    ):
         user_id = callback_context.session.user_id
         return f"mock-token:{user_id}"
 
     return ""
 
 
-def reconstruct_database_settings_from_analytics_metadata(analytics_metadata: dict) -> dict:
+def reconstruct_database_settings_from_analytics_metadata(
+    analytics_metadata: dict,
+) -> dict:
     """Reconstruct database settings structure for BigQuery NL2SQL from the analytics metadata response."""
-    project_id = os.getenv("BQ_PROJECT_ID") or os.getenv("GOOGLE_CLOUD_PROJECT") or "banking-agent-rag-mcp"
+    project_id = (
+        os.getenv("BQ_PROJECT_ID")
+        or os.getenv("GOOGLE_CLOUD_PROJECT")
+        or "banking-agent-rag-mcp"
+    )
     schema_dict = {}
 
     datasets = analytics_metadata.get("datasets", {})
-    for ds_name, ds_info in datasets.items():
+    for _ds_name, ds_info in datasets.items():
         # Process tables
         tables = ds_info.get("tables") or {}
         for tbl_name, tbl in tables.items():
@@ -273,12 +328,14 @@ def reconstruct_database_settings_from_analytics_metadata(analytics_metadata: di
             table_schema = []
             fields = tbl.get("schema") or []
             for field in fields:
-                table_schema.append({
-                    "column_name": field.get("column_name"),
-                    "type": field.get("type"),
-                    "description": field.get("description", ""),
-                    "mode": field.get("mode", "NULLABLE"),
-                })
+                table_schema.append(
+                    {
+                        "column_name": field.get("column_name"),
+                        "type": field.get("type"),
+                        "description": field.get("description", ""),
+                        "mode": field.get("mode", "NULLABLE"),
+                    }
+                )
 
             schema_dict[query_obj] = {
                 "logical_name": tbl.get("logical_name", ""),
@@ -286,7 +343,9 @@ def reconstruct_database_settings_from_analytics_metadata(analytics_metadata: di
                 "table_description": tbl.get("table_description", ""),
                 "grain": tbl.get("grain", ""),
                 "primary_business_key": tbl.get("primary_business_key", ""),
+                "relationship_information": tbl.get("relationship_information", ""),
                 "is_scd_type_2": tbl.get("is_scd_type_2", False),
+                "scd_columns": tbl.get("scd_columns", []),
                 "ai_usage_guidance": tbl.get("ai_usage_guidance", ""),
                 "table_schema": table_schema,
             }
@@ -298,12 +357,14 @@ def reconstruct_database_settings_from_analytics_metadata(analytics_metadata: di
             view_schema = []
             fields = vw.get("schema") or []
             for field in fields:
-                view_schema.append({
-                    "column_name": field.get("column_name"),
-                    "type": field.get("type"),
-                    "description": field.get("description", ""),
-                    "mode": field.get("mode", "NULLABLE"),
-                })
+                view_schema.append(
+                    {
+                        "column_name": field.get("column_name"),
+                        "type": field.get("type"),
+                        "description": field.get("description", ""),
+                        "mode": field.get("mode", "NULLABLE"),
+                    }
+                )
 
             schema_dict[query_obj] = {
                 "logical_name": vw.get("logical_name", ""),
@@ -311,7 +372,9 @@ def reconstruct_database_settings_from_analytics_metadata(analytics_metadata: di
                 "table_description": vw.get("table_description", ""),
                 "grain": vw.get("grain", ""),
                 "primary_business_key": vw.get("primary_business_key", ""),
+                "relationship_information": vw.get("relationship_information", ""),
                 "is_scd_type_2": vw.get("is_scd_type_2", False),
+                "scd_columns": vw.get("scd_columns", []),
                 "ai_usage_guidance": vw.get("ai_usage_guidance", ""),
                 "table_schema": view_schema,
             }
@@ -326,11 +389,11 @@ def reconstruct_database_settings_from_analytics_metadata(analytics_metadata: di
 
 class AnalyticsMetadataCache:
     def __init__(self, ttl_seconds: int = 300):
-        self._cache: Dict[str, Dict[str, Any]] = {}
+        self._cache: dict[str, dict[str, Any]] = {}
         self._lock = threading.Lock()
         self.ttl = ttl_seconds
 
-    def get(self, key: str) -> Optional[Dict[str, Any]]:
+    def get(self, key: str) -> dict[str, Any] | None:
         """Retrieve metadata if it exists and hasn't expired."""
         with self._lock:
             if key in self._cache:
@@ -343,7 +406,7 @@ class AnalyticsMetadataCache:
                     del self._cache[key]
             return None
 
-    def set(self, key: str, data: Dict[str, Any]) -> None:
+    def set(self, key: str, data: dict[str, Any]) -> None:
         """Cache fresh metadata with current timestamp."""
         with self._lock:
             self._cache[key] = {
@@ -368,7 +431,10 @@ def load_analytics_metadata_in_context(callback_context: CallbackContext):
     Only loads analytical data definitions; does not load or store customer-specific PII or accounts.
     """
     # 1. Check if already loaded in this specific agent invocation state
-    if "analytics_metadata" in callback_context.state and "database_settings" in callback_context.state:
+    if (
+        "analytics_metadata" in callback_context.state
+        and "database_settings" in callback_context.state
+    ):
         _logger.debug("Analytics metadata already present in callback_context.state")
         return
 
@@ -376,15 +442,25 @@ def load_analytics_metadata_in_context(callback_context: CallbackContext):
     user_id = getattr(callback_context.session, "user_id", "default_staff_user")
     cached_metadata = analytics_metadata_cache.get(user_id)
     if cached_metadata:
-        _logger.info("Using cached analytics metadata for user %s (bypassing HTTP fetch)", user_id)
+        _logger.info(
+            "Using cached analytics metadata for user %s (bypassing HTTP fetch)",
+            user_id,
+        )
         callback_context.state["analytics_metadata"] = cached_metadata
-        callback_context.state["database_settings"] = reconstruct_database_settings_from_analytics_metadata(cached_metadata)
-        callback_context.state["user_role"] = cached_metadata.get("user_role", "BANK_STAFF")
+        callback_context.state["database_settings"] = (
+            reconstruct_database_settings_from_analytics_metadata(cached_metadata)
+        )
+        callback_context.state["user_role"] = cached_metadata.get(
+            "user_role", "BANK_STAFF"
+        )
         return
 
     # 3. Retrieve auth token and fetch from /analytics-metadata
     token = get_firebase_jwt_token(callback_context)
-    _logger.info("Fetching analytics metadata from identity service (JWT present: %s)", bool(token))
+    _logger.info(
+        "Fetching analytics metadata from identity service (JWT present: %s)",
+        bool(token),
+    )
 
     try:
         metadata = get_analytics_metadata(token=token)
@@ -395,13 +471,15 @@ def load_analytics_metadata_in_context(callback_context: CallbackContext):
 
         # Store in state
         callback_context.state["analytics_metadata"] = metadata
-        callback_context.state["database_settings"] = reconstruct_database_settings_from_analytics_metadata(metadata)
+        callback_context.state["database_settings"] = (
+            reconstruct_database_settings_from_analytics_metadata(metadata)
+        )
         callback_context.state["user_role"] = metadata.get("user_role", "BANK_STAFF")
 
     except Exception as e:
         _logger.exception("Failed to load analytics metadata in callback context")
         safe_msg = str(e).replace('"', "'").replace("\n", " ")
-        raise RuntimeError(f"Failed to load analytics metadata: {safe_msg}")
+        raise RuntimeError(f"Failed to load analytics metadata: {safe_msg}") from e
 
 
 def get_root_agent() -> LlmAgent:
@@ -431,10 +509,37 @@ def get_root_agent() -> LlmAgent:
 # Instantiate root agent
 root_agent = get_root_agent()
 
-from google.adk.apps import App
+# ====================================================================
+# Observability & Tracing Plugins (BigQuery Analytics & AgentOps)
+# ====================================================================
+plugins = []
+
+# Option 3: BigQuery Agent Analytics Plugin
+bq_analytics_dataset = os.environ.get("BQ_ANALYTICS_DATASET_ID") or os.environ.get(
+    "TELEMETRY_DATASET_ID"
+)
+gcp_project = os.environ.get("GOOGLE_CLOUD_PROJECT") or os.environ.get("PROJECT_ID")
+if bq_analytics_dataset and gcp_project:
+    try:
+        from google.adk.plugins.bigquery_agent_analytics_plugin import (
+            BigQueryAgentAnalyticsPlugin,
+        )
+
+        bq_plugin = BigQueryAgentAnalyticsPlugin(
+            project_id=gcp_project,
+            dataset_id=bq_analytics_dataset,
+            location=os.environ.get("GOOGLE_CLOUD_LOCATION", "us-central1"),
+        )
+        plugins.append(bq_plugin)
+        _logger.info(
+            "Configured BigQueryAgentAnalyticsPlugin with dataset: %s",
+            bq_analytics_dataset,
+        )
+    except Exception as e:
+        _logger.warning("Could not initialize BigQueryAgentAnalyticsPlugin: %s", e)
 
 app = App(
     name="analytics-copilot",
     root_agent=root_agent,
+    plugins=plugins,
 )
-

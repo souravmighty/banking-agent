@@ -183,9 +183,17 @@ export async function getAuthHeaders(): Promise<Record<string, string>> {
 }
 
 /**
- * Determines if we should use Agent Engine API directly
+ * Determines if we should use Agent Engine API directly for a specific agent
  */
-export function shouldUseAgentEngine(): boolean {
+export function shouldUseAgentEngine(appName?: string): boolean {
+  if (
+    appName === "analytics_copilot_2" ||
+    appName === "analytics-copilot-2" ||
+    appName === "analytics_copilot" ||
+    appName === "analytics-copilot"
+  ) {
+    return Boolean(process.env.ANALYTICS_COPILOT_AGENT_ENGINE_ENDPOINT);
+  }
   return (
     endpointConfig.deploymentType === "agent_engine" &&
     Boolean(endpointConfig.agentEngineUrl)
@@ -200,11 +208,12 @@ export type AgentEngineEndpointType = "query" | "streamQuery" | "sessions";
 /**
  * Gets the Agent Engine sessions API base URL (v1beta1)
  */
-function getAgentEngineSessionsUrl(): string | undefined {
-  if (!endpointConfig.agentEngineUrl) return undefined;
+function getAgentEngineSessionsUrl(customEndpoint?: string): string | undefined {
+  const targetUrl = customEndpoint || endpointConfig.agentEngineUrl;
+  if (!targetUrl) return undefined;
 
   // Sessions API uses v1beta1, construct from the base URL parts
-  const urlParts = endpointConfig.agentEngineUrl.match(
+  const urlParts = targetUrl.match(
     /^(https:\/\/[^\/]+)\/v1\/(projects\/[^\/]+\/locations\/[^\/]+\/reasoningEngines\/[^\/]+)/
   );
 
@@ -224,7 +233,34 @@ export function getEndpointForPath(
   endpointType: AgentEngineEndpointType = "streamQuery",
   appName?: string
 ): string {
-  if (shouldUseAgentEngine()) {
+  const isAnalyticsCopilot =
+    appName === "analytics_copilot_2" ||
+    appName === "analytics-copilot-2" ||
+    appName === "analytics_copilot" ||
+    appName === "analytics-copilot";
+
+  if (isAnalyticsCopilot) {
+    if (process.env.ANALYTICS_COPILOT_AGENT_ENGINE_ENDPOINT) {
+      const endpoint = process.env.ANALYTICS_COPILOT_AGENT_ENGINE_ENDPOINT;
+      if (endpointType === "streamQuery") {
+        return `${endpoint}:streamQuery`;
+      } else if (endpointType === "query") {
+        return `${endpoint}:query`;
+      } else if (endpointType === "sessions") {
+        const sessionsUrl = getAgentEngineSessionsUrl(endpoint);
+        if (!sessionsUrl) {
+          throw new Error(
+            "Could not construct sessions API URL from ANALYTICS_COPILOT_AGENT_ENGINE_ENDPOINT"
+          );
+        }
+        return `${sessionsUrl}/sessions${path}`;
+      }
+    }
+    const backendUrl = getBackendUrl(appName);
+    return `${backendUrl}${path}`;
+  }
+
+  if (shouldUseAgentEngine(appName)) {
     // For Agent Engine, return the appropriate endpoint based on operation type
     if (endpointType === "streamQuery") {
       return `${endpointConfig.agentEngineUrl}:streamQuery`;
@@ -241,7 +277,7 @@ export function getEndpointForPath(
     }
   }
 
-  // If specific appName is passed (e.g. analytics-copilot-2), use its backend URL
+  // If specific appName is passed, use its backend URL
   if (appName) {
     const backendUrl = getBackendUrl(appName);
     return `${backendUrl}${path}`;
@@ -254,6 +290,6 @@ export function getEndpointForPath(
 /**
  * Gets the Agent Engine streaming endpoint for chat responses
  */
-export function getAgentEngineStreamEndpoint(): string {
-  return getEndpointForPath("", "streamQuery");
+export function getAgentEngineStreamEndpoint(appName?: string): string {
+  return getEndpointForPath("", "streamQuery", appName);
 }

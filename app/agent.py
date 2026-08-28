@@ -52,6 +52,22 @@ load_dotenv()
 logging.basicConfig(level=logging.INFO)
 _logger = logging.getLogger(__name__)
 
+# AgentOps Observability Initialization
+agentops_api_key = os.environ.get("AGENTOPS_API_KEY")
+if agentops_api_key:
+    try:
+        import agentops
+        agentops.init(
+            api_key=agentops_api_key,
+            default_tags=["banking-agent", "dev"],
+            auto_start_session=True,
+            instrument_llm_calls=True,
+        )
+        _logger.info("AgentOps initialized successfully in root agent.")
+    except Exception as e:
+        _logger.warning("Could not initialize AgentOps: %s", e)
+
+
 import contextvars
 import httpx
 from fastapi import FastAPI, Request

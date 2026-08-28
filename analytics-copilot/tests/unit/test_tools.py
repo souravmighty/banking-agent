@@ -16,7 +16,9 @@ class TestAnalyticsTools(unittest.IsolatedAsyncioTestCase):
 
             res = await call_bigquery_agent("Test question", tool_context)
             self.assertEqual(res, "Mocked BigQuery Result")
-            self.assertEqual(tool_context.state["bigquery_agent_output"], "Mocked BigQuery Result")
+            self.assertEqual(
+                tool_context.state["bigquery_agent_output"], "Mocked BigQuery Result"
+            )
 
     async def test_call_visualization_agent_structure(self):
         tool_context = AsyncMock()
@@ -29,11 +31,14 @@ class TestAnalyticsTools(unittest.IsolatedAsyncioTestCase):
 
             res = await call_visualization_agent(
                 "Trend chart",
-                "[{\"month\": \"2026-01\", \"val\": 10}]",
+                '[{"month": "2026-01", "val": 10}]',
                 tool_context,
             )
             self.assertIn("vega-lite", res)
-            self.assertEqual(tool_context.state["visualization_agent_output"], "```vega-lite\n{}\n```")
+            self.assertEqual(
+                tool_context.state["visualization_agent_output"],
+                "```vega-lite\n{}\n```",
+            )
 
 
 if __name__ == "__main__":

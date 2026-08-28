@@ -1,6 +1,5 @@
 import asyncio
 import logging
-from typing import Optional
 
 from google.adk.tools import ToolContext
 from google.adk.tools.agent_tool import AgentTool
@@ -56,7 +55,9 @@ async def call_bigquery_agent(
                     await asyncio.sleep(1.0)
 
         if bigquery_agent_output is None:
-            error_msg = f"Network or authentication connectivity issue: {last_exception}"
+            error_msg = (
+                f"Network or authentication connectivity issue: {last_exception}"
+            )
             logger.error("call_bigquery_agent failed completely: %s", error_msg)
             bigquery_agent_output = {
                 "explain": f"Encountered temporary transport/connectivity error: {last_exception}",
@@ -68,10 +69,12 @@ async def call_bigquery_agent(
         # Maintain both a collection list (for multi-query parallel runs) and latest output key
         if "bigquery_agent_outputs" not in tool_context.state:
             tool_context.state["bigquery_agent_outputs"] = []
-        tool_context.state["bigquery_agent_outputs"].append({
-            "question": question,
-            "output": bigquery_agent_output,
-        })
+        tool_context.state["bigquery_agent_outputs"].append(
+            {
+                "question": question,
+                "output": bigquery_agent_output,
+            }
+        )
         tool_context.state["bigquery_agent_output"] = bigquery_agent_output
 
         return bigquery_agent_output
@@ -117,17 +120,17 @@ async def call_visualization_agent(
 
     if visualization_output is None:
         logger.error("call_visualization_agent failed: %s", last_exception)
-        visualization_output = (
-            f"Unable to generate chart specification due to temporary connectivity issue: {last_exception}"
-        )
+        visualization_output = f"Unable to generate chart specification due to temporary connectivity issue: {last_exception}"
 
     # Maintain collection list and latest output key
     if "visualization_agent_outputs" not in tool_context.state:
         tool_context.state["visualization_agent_outputs"] = []
-    tool_context.state["visualization_agent_outputs"].append({
-        "analytical_goal": analytical_goal,
-        "output": visualization_output,
-    })
+    tool_context.state["visualization_agent_outputs"].append(
+        {
+            "analytical_goal": analytical_goal,
+            "output": visualization_output,
+        }
+    )
     tool_context.state["visualization_agent_output"] = visualization_output
 
     return visualization_output

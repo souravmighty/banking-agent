@@ -17,7 +17,9 @@ def evaluate(instance):
         resp_obj = reference_raw.get("response") or reference_raw
         if isinstance(resp_obj, dict):
             parts = resp_obj.get("parts", [])
-            reference = " ".join(p.get("text", "") for p in parts if isinstance(p, dict))
+            reference = " ".join(
+                p.get("text", "") for p in parts if isinstance(p, dict)
+            )
         else:
             reference = str(resp_obj)
     elif isinstance(reference_raw, str):

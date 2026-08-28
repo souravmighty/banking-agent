@@ -6,7 +6,9 @@ import os
 def return_instructions_bigquery() -> str:
     nl2sql_tool_name = "bigquery_nl2sql"
     execute_sql_tool_name = "execute_sql"
-    project_id = os.getenv("BQ_PROJECT_ID", os.getenv("GOOGLE_CLOUD_PROJECT", "banking-agent-rag-mcp"))
+    project_id = os.getenv(
+        "BQ_PROJECT_ID", os.getenv("GOOGLE_CLOUD_PROJECT", "banking-agent-rag-mcp")
+    )
 
     instruction_prompt_bigquery = f"""
 You are an expert BigQuery SQL and analytical data engineer for an enterprise banking analytics platform.

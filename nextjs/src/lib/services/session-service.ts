@@ -167,8 +167,8 @@ export class LocalBackendSessionService extends SessionService {
 /**
  * Factory function to get the appropriate session service based on deployment configuration
  */
-export function getSessionService(): SessionService {
-  if (shouldUseAgentEngine()) {
+export function getSessionService(appName?: string): SessionService {
+  if (shouldUseAgentEngine(appName)) {
     return new AgentEngineSessionService();
   } else {
     return new LocalBackendSessionService();
@@ -183,6 +183,6 @@ export async function createSessionWithService(
   userId: string,
   appName?: string
 ): Promise<SessionCreationResult> {
-  const service = getSessionService();
+  const service = getSessionService(appName);
   return await service.createSession(userId, appName);
 }

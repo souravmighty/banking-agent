@@ -8,25 +8,42 @@ metrics_to_run:
   - vega_lite_spec_validity
   - scd2_filter_compliance
   - zero_pii_compliance
+  - parallel_fan_out
   - custom_response_quality
 
 custom_metrics:
   - name: sql_safety_and_validity
-    custom_function_file: custom_evaluators.py
-    custom_function_name: evaluate_sql_safety_and_validity
+    custom_function: |
+      from tests.eval.custom_evaluators import evaluate_sql_safety_and_validity
+      def evaluate(instance):
+          return evaluate_sql_safety_and_validity(instance)
 
   - name: vega_lite_spec_validity
-    custom_function_file: custom_evaluators.py
-    custom_function_name: evaluate_vega_lite_spec_validity
+    custom_function: |
+      from tests.eval.custom_evaluators import evaluate_vega_lite_spec_validity
+      def evaluate(instance):
+          return evaluate_vega_lite_spec_validity(instance)
 
   - name: scd2_filter_compliance
-    custom_function_file: custom_evaluators.py
-    custom_function_name: evaluate_scd2_filter_compliance
+    custom_function: |
+      from tests.eval.custom_evaluators import evaluate_scd2_filter_compliance
+      def evaluate(instance):
+          return evaluate_scd2_filter_compliance(instance)
 
   - name: zero_pii_compliance
-    custom_function_file: custom_evaluators.py
-    custom_function_name: evaluate_zero_pii_compliance
+    custom_function: |
+      from tests.eval.custom_evaluators import evaluate_zero_pii_compliance
+      def evaluate(instance):
+          return evaluate_zero_pii_compliance(instance)
+
+  - name: parallel_fan_out
+    custom_function: |
+      from tests.eval.custom_evaluators import evaluate_parallel_fan_out
+      def evaluate(instance):
+          return evaluate_parallel_fan_out(instance)
 
   - name: custom_response_quality
-    custom_function_file: custom_evaluators.py
-    custom_function_name: evaluate_custom_response_quality
+    custom_function: |
+      from tests.eval.custom_evaluators import evaluate_custom_response_quality
+      def evaluate(instance):
+          return evaluate_custom_response_quality(instance)

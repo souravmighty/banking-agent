@@ -3,7 +3,8 @@
 import datetime
 import logging
 import os
-from typing import Optional, Dict, Any
+from typing import Any
+
 from dotenv import load_dotenv
 
 try:
@@ -16,10 +17,11 @@ try:
 except ImportError:
     pd = None
 
+from pathlib import Path
+
 from google.adk.tools import ToolContext
 from google.genai import Client
 from google.genai.types import HttpOptions
-from pathlib import Path
 
 script_dir = Path(__file__).resolve().parent
 
@@ -56,11 +58,11 @@ def _serialize_value_for_sql(value):
         return f"'{value}'"
     if isinstance(value, dict):
         string_values = [_serialize_value_for_sql(v) for v in value.values()]
-        return f'({", ".join(string_values)})'
+        return f"({', '.join(string_values)})"
     return str(value)
 
 
-def get_analytics_metadata(token: Optional[str] = None) -> Dict[str, Any]:
+def get_analytics_metadata(token: str | None = None) -> dict[str, Any]:
     """
     Fetch approved BigQuery analytical metadata from customer-identity-service.
     Requires authenticated BANK_STAFF token.
@@ -69,9 +71,9 @@ def get_analytics_metadata(token: Optional[str] = None) -> Dict[str, Any]:
 
     identity_service_url = os.getenv(
         "CUSTOMER_IDENTITY_SERVICE_URL",
-        os.getenv("IDENTITY_SERVICE_URL", "http://localhost:8001")
+        os.getenv("IDENTITY_SERVICE_URL", "http://localhost:8001"),
     ).rstrip("/")
-    
+
     metadata_url = f"{identity_service_url}/analytics-metadata"
     headers = {}
     if token:
@@ -81,7 +83,7 @@ def get_analytics_metadata(token: Optional[str] = None) -> Dict[str, Any]:
     try:
         with httpx.Client(timeout=60.0) as client:
             response = client.get(metadata_url, headers=headers)
-            
+
             # Fallback to /api/v1/analytics-metadata if 404
             if response.status_code == 404:
                 fallback_url = f"{identity_service_url}/api/v1/analytics-metadata"
@@ -90,36 +92,52 @@ def get_analytics_metadata(token: Optional[str] = None) -> Dict[str, Any]:
 
             if response.status_code == 200:
                 metadata = response.json()
-                logger.info("Successfully fetched analytics metadata (authorized=%s, role=%s)",
-                            metadata.get("authorized"), metadata.get("user_role"))
+                logger.info(
+                    "Successfully fetched analytics metadata (authorized=%s, role=%s)",
+                    metadata.get("authorized"),
+                    metadata.get("user_role"),
+                )
                 return metadata
             elif response.status_code == 401:
                 raise RuntimeError(f"Authentication failed (401): {response.text}")
             elif response.status_code == 403:
                 raise RuntimeError(f"Access forbidden (403): {response.text}")
             else:
-                logger.warning("Identity service returned status %d. Using fallback analytics metadata.", response.status_code)
+                logger.warning(
+                    "Identity service returned status %d. Using fallback analytics metadata.",
+                    response.status_code,
+                )
     except RuntimeError:
         raise
     except Exception as exc:
-        logger.warning("Could not reach identity service at %s: %s. Using fallback analytics metadata.", metadata_url, exc)
+        logger.warning(
+            "Could not reach identity service at %s: %s. Using fallback analytics metadata.",
+            metadata_url,
+            exc,
+        )
 
     # Fallback to local metrics.yaml and operational tables
     return _build_fallback_analytics_metadata()
 
 
-def _build_fallback_analytics_metadata() -> Dict[str, Any]:
+def _build_fallback_analytics_metadata() -> dict[str, Any]:
     """Fallback generator for analytics metadata when remote service is unavailable."""
     import yaml
+
     metrics_list = []
     yaml_paths = [
-        Path("/home/souravmighty/workspace/banking-agent/analytics-metadata-service/metadata/metrics.yaml"),
-        Path(__file__).resolve().parent.parent.parent.parent / "analytics-metadata-service" / "metadata" / "metrics.yaml",
+        Path(
+            "/home/souravmighty/workspace/banking-agent/analytics-metadata-service/metadata/metrics.yaml"
+        ),
+        Path(__file__).resolve().parent.parent.parent.parent
+        / "analytics-metadata-service"
+        / "metadata"
+        / "metrics.yaml",
     ]
     for yp in yaml_paths:
         if yp.exists():
             try:
-                with open(yp, "r") as f:
+                with open(yp) as f:
                     doc = yaml.safe_load(f)
                     metrics_list = doc.get("metrics", [])
                     break
@@ -237,19 +255,20 @@ while strictly using the provided schema and analytical guidance.
     schema = db_settings.get("bigquery", {}).get("schema", "")
     if isinstance(schema, dict):
         import json
+
         schema_str = json.dumps(schema, indent=2)
     else:
         schema_str = str(schema)
 
-    prompt = prompt_template.format(
-        SCHEMA=schema_str, QUESTION=question
-    )
+    prompt = prompt_template.format(SCHEMA=schema_str, QUESTION=question)
 
     global llm_client
     if llm_client is None:
         run_location = os.getenv("GEMINI_API_LOCATION", "global")
         vertex_project_run = os.getenv("GOOGLE_CLOUD_PROJECT", "banking-agent-rag-mcp")
-        logger.info(f"Lazily initializing GenAI Client with project={vertex_project_run}, location={run_location}")
+        logger.info(
+            f"Lazily initializing GenAI Client with project={vertex_project_run}, location={run_location}"
+        )
         llm_client = Client(
             vertexai=True,
             project=vertex_project_run,
@@ -263,7 +282,7 @@ while strictly using the provided schema and analytical guidance.
         config={"temperature": 0.05},
     )
 
-    sql = response.text
+    sql = response.text or ""
     if sql:
         sql = sql.replace("```sql", "").replace("```", "").strip()
 

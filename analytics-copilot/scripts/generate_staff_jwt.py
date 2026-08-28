@@ -49,12 +49,20 @@ def generate_mock_staff_jwt(
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description="Generate Mock Bank Staff JWT")
-    parser.add_argument("--user-id", default="staff_analyst_01", help="Bank staff User ID")
-    parser.add_argument("--email", default="sarah.chen@bankpilot.internal", help="Bank staff Email")
-    parser.add_argument("--name", default="Sarah Chen (Senior Portfolio Analyst)", help="Staff Name")
+    parser.add_argument(
+        "--user-id", default="staff_analyst_01", help="Bank staff User ID"
+    )
+    parser.add_argument(
+        "--email", default="sarah.chen@bankpilot.internal", help="Bank staff Email"
+    )
+    parser.add_argument(
+        "--name", default="Sarah Chen (Senior Portfolio Analyst)", help="Staff Name"
+    )
     parser.add_argument("--role", default="BANK_STAFF", help="Staff Role")
     parser.add_argument("--branch", default="BR-HQ-001", help="Branch ID")
-    parser.add_argument("--export", action="store_true", help="Print export statements for shell eval")
+    parser.add_argument(
+        "--export", action="store_true", help="Print export statements for shell eval"
+    )
 
     args = parser.parse_args()
     token = generate_mock_staff_jwt(
@@ -67,7 +75,7 @@ if __name__ == "__main__":
 
     if args.export:
         print(f'export LOCAL_TEST_JWT="{token}"')
-        print(f'export MOCK_AUTH_BYPASS="true"')
+        print('export MOCK_AUTH_BYPASS="true"')
         print(f'export DEFAULT_STAFF_USER_ID="{args.user_id}"')
     else:
         print(token)

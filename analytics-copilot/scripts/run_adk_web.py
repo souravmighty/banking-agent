@@ -15,7 +15,7 @@ repo_root = analytics_dir.parent
 
 # Import the JWT generator
 sys.path.insert(0, str(script_dir))
-from generate_staff_jwt import generate_mock_staff_jwt
+from generate_staff_jwt import generate_mock_staff_jwt  # noqa: E402
 
 
 def is_port_open(port: int, host: str = "127.0.0.1") -> bool:
@@ -83,7 +83,16 @@ def main():
     if not is_port_open(8001):
         print("⚙️  Starting customer-identity-service on http://localhost:8001...")
         proc_id = subprocess.Popen(
-            ["uv", "run", "uvicorn", "app.main:app", "--host", "0.0.0.0", "--port", "8001"],
+            [
+                "uv",
+                "run",
+                "uvicorn",
+                "app.main:app",
+                "--host",
+                "0.0.0.0",
+                "--port",
+                "8001",
+            ],
             cwd=str(identity_dir),
             env=env,
             stdout=subprocess.DEVNULL,
@@ -102,7 +111,16 @@ def main():
     if not is_port_open(8081):
         print("⚙️  Starting customer-data-service on http://localhost:8081...")
         proc_data = subprocess.Popen(
-            ["uv", "run", "uvicorn", "app.main:app", "--host", "0.0.0.0", "--port", "8081"],
+            [
+                "uv",
+                "run",
+                "uvicorn",
+                "app.main:app",
+                "--host",
+                "0.0.0.0",
+                "--port",
+                "8081",
+            ],
             cwd=str(data_dir),
             env=env,
             stdout=subprocess.DEVNULL,
@@ -120,7 +138,7 @@ def main():
     print(f"👤 Staff Persona:  {name}")
     print(f"🔑 User ID:        {user_id}")
     print(f"📧 Email:          {email}")
-    print(f"🛡️  Role:           BANK_STAFF")
+    print("🛡️  Role:           BANK_STAFF")
     print(f"🌐 ADK Web URL:    http://localhost:{port}")
     print("=" * 75)
     print(f"💡 In ADK Web sidebar, set 'User ID' to: {user_id}")

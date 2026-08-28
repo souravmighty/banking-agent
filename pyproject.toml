@@ -12,7 +12,7 @@ dependencies = [
     "fastapi>=0.115.0",
     "fastmcp>=2.14.0",
     "firebase-admin>=6.5.0",
-    "google-adk[gcp,otel-gcp]>=2.0.0",
+    "google-adk[eval,gcp,otel-gcp]>=2.0.0",
     "a2a-sdk[http-server]>=1.0,<2",
     "google-cloud-bigquery>=3.40.0",
     "google-cloud-dataplex>=2.20.0",
@@ -29,6 +29,7 @@ dependencies = [
     "resend>=2.4.0",
     "uvicorn[standard]>=0.30.0",
     "vertexai>=1.43.0",
+    "agentops>=0.4.21",
 ]
 
 [dependency-groups]

@@ -2,26 +2,26 @@
 
 import logging
 import os
-from typing import Any, Dict, Optional
+from pathlib import Path
+from typing import Any
+
+# from google.adk.tools import load_artifacts
+import google.genai.types as genai_types
+from dotenv import load_dotenv
+from google import genai
 
 # from ...utils.utils import get_env_var, USER_AGENT
 from google.adk.agents import LlmAgent
 from google.adk.agents.callback_context import CallbackContext
-from google.adk.tools import BaseTool, ToolContext
-from google.adk.tools.bigquery import BigQueryToolset, BigQueryCredentialsConfig
-from google.adk.tools.bigquery.config import BigQueryToolConfig, WriteMode
 from google.adk.planners import BuiltInPlanner
-
-# from google.adk.tools import load_artifacts
-import google.genai.types as genai_types
+from google.adk.tools import BaseTool, ToolContext
+from google.adk.tools.bigquery import BigQueryToolset
+from google.adk.tools.bigquery.config import BigQueryToolConfig, WriteMode
 
 from . import tools
+
 # from .chase_sql import chase_db_tools
 from .prompts import return_instructions_bigquery
-from dotenv import load_dotenv
-from pathlib import Path
-from google.oauth2 import service_account
-from google import genai
 
 # Load Service Account credentials
 script_dir = Path(__file__).resolve().parent
@@ -42,9 +42,10 @@ USER_AGENT = "bq-agent"
 client = genai.Client(
     vertexai=True,
     project=os.getenv("GOOGLE_CLOUD_PROJECT"),
-    location=os.getenv("GEMINI_API_LOCATION", "us") # Must be 'us' or 'eu' for multi-region model routing
+    location=os.getenv(
+        "GEMINI_API_LOCATION", "us"
+    ),  # Must be 'us' or 'eu' for multi-region model routing
 )
-
 
 
 # BigQuery built-in tools in ADK
@@ -67,12 +68,13 @@ def setup_before_agent_call(callback_context: CallbackContext) -> None:
             from app.agent import load_analytics_metadata_in_context
     load_analytics_metadata_in_context(callback_context)
 
+
 def store_results_in_context(
     tool: BaseTool,
-    args: Dict[str, Any],
+    args: dict[str, Any],
     tool_context: ToolContext,
-    tool_response: Dict,
-) -> Optional[Dict]:
+    tool_response: dict,
+) -> dict | None:
 
     # We are setting a state for the data science agent to be able to use the
     # sql query results as context
@@ -90,7 +92,6 @@ bigquery_tool_config = BigQueryToolConfig(
 bigquery_toolset = BigQueryToolset(
     tool_filter=bigquery_tool_filter, bigquery_tool_config=bigquery_tool_config
 )
-
 
 
 bigquery_agent = LlmAgent(
