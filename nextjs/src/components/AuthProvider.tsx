@@ -146,7 +146,10 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         // Redirect to login if on protected page
         if (!publicRoutes.includes(pathname)) {
           if (pathname.startsWith("/staff/")) {
-            router.push(`/staff/login?redirect=${encodeURIComponent(window.location.pathname + window.location.search)}`);
+            const redirectParam = encodeURIComponent(
+              pathname + (typeof window !== "undefined" ? window.location.search : "")
+            );
+            router.push(`/staff/login?redirect=${redirectParam}`);
           } else {
             router.push("/login");
           }
@@ -188,10 +191,16 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const logout = async () => {
     setLoading(true);
     try {
+      const isStaff = typeof window !== "undefined" && window.location.pathname.startsWith("/staff");
       await authService.logout();
       setCustomerContext(null);
       setUser(null);
-      router.push("/login");
+      const target = isStaff ? "/staff/login" : "/login";
+      if (typeof window !== "undefined") {
+        window.location.href = target;
+      } else {
+        router.push(target);
+      }
     } catch (error) {
       console.error("Logout failed:", error);
       toast.error("Logout failed");

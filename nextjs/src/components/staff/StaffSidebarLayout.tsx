@@ -2,7 +2,7 @@
 
 import React, { useState, useEffect } from "react";
 import { useAuth } from "@/hooks/useAuth";
-import { usePathname } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation";
 import { 
   Menu, 
   X,
@@ -23,6 +23,7 @@ interface StaffSidebarLayoutProps {
 export function StaffSidebarLayout({ children }: StaffSidebarLayoutProps) {
   const { user, loading, logout } = useAuth();
   const pathname = usePathname();
+  const router = useRouter();
   const [mobileOpen, setMobileOpen] = useState<boolean>(false);
   const [mounted, setMounted] = useState<boolean>(false);
 
@@ -35,14 +36,26 @@ export function StaffSidebarLayout({ children }: StaffSidebarLayoutProps) {
     setMobileOpen(false);
   }, [pathname]);
 
-  if (!mounted || loading) {
+  // Auth guard: redirect unauthenticated users to staff login
+  useEffect(() => {
+    if (mounted && !loading && !user) {
+      const redirectParam = encodeURIComponent(
+        pathname + (typeof window !== "undefined" ? window.location.search : "")
+      );
+      router.push(`/staff/login?redirect=${redirectParam}`);
+    }
+  }, [mounted, loading, user, pathname, router]);
+
+  if (!mounted || loading || !user) {
     return (
       <div className="min-h-screen bg-slate-50 dark:bg-[#060814] flex items-center justify-center text-slate-500 dark:text-slate-400">
         <div className="flex flex-col items-center gap-3">
           <div className="w-10 h-10 rounded-xl bg-gradient-to-tr from-indigo-600 to-violet-600 flex items-center justify-center animate-pulse shadow-lg shadow-indigo-500/20">
             <Landmark className="h-5 w-5 text-white" />
           </div>
-          <span className="text-xs font-semibold">Loading Business Intelligence...</span>
+          <span className="text-xs font-semibold">
+            {!user && mounted && !loading ? "Redirecting to staff login..." : "Loading Business Intelligence..."}
+          </span>
         </div>
       </div>
     );
@@ -58,6 +71,17 @@ export function StaffSidebarLayout({ children }: StaffSidebarLayoutProps) {
   const isDemoCustomersActive =
     pathname.startsWith("/staff/demo-customers");
 
+  const handleLogout = async () => {
+    try {
+      await logout();
+    } catch (err) {
+      console.error("Logout error:", err);
+      if (typeof window !== "undefined") {
+        window.location.href = "/staff/login";
+      }
+    }
+  };
+
   return (
     <div className="min-h-screen bg-slate-50 dark:bg-[#060814] text-slate-900 dark:text-slate-100 flex flex-col font-sans transition-colors duration-200">
       {/* Top Header Navigation Bar */}
@@ -69,41 +93,38 @@ export function StaffSidebarLayout({ children }: StaffSidebarLayoutProps) {
             href="/staff/copilot"
             className="flex items-center gap-3 group focus:outline-none"
           >
-            <div className="w-9 h-9 rounded-xl bg-gradient-to-tr from-indigo-600 to-violet-600 flex items-center justify-center border border-indigo-500/30 shadow-md shadow-indigo-500/20 flex-shrink-0 group-hover:scale-105 transition-transform">
-              <Landmark className="h-5 w-5 text-white" />
+            <div className="w-9 h-9 rounded-xl bg-gradient-to-tr from-indigo-600 via-indigo-500 to-violet-600 flex items-center justify-center shadow-md shadow-indigo-500/20 group-hover:scale-105 transition-transform">
+              <Landmark className="h-4 w-4 text-white" />
             </div>
             <div className="flex flex-col">
-              <span className="text-sm font-extrabold tracking-tight text-slate-900 dark:text-white flex items-center gap-1.5">
-                BankPilot
-                <span className="text-[10px] px-1.5 py-0.5 rounded-md font-bold bg-indigo-50 dark:bg-indigo-950/60 text-indigo-600 dark:text-indigo-400 border border-indigo-200 dark:border-indigo-800/60 uppercase tracking-wider">
-                  Enterprise
+              <div className="flex items-center gap-1.5">
+                <span className="font-extrabold text-sm tracking-tight bg-gradient-to-r from-indigo-600 to-violet-600 bg-clip-text text-transparent">
+                  BankPilot
                 </span>
-              </span>
-              <span className="text-[10px] text-slate-500 dark:text-slate-400 font-medium hidden sm:inline">
-                Business & Product Intelligence
+                <span className="text-[10px] font-bold uppercase tracking-wider bg-indigo-100 dark:bg-indigo-950/80 text-indigo-700 dark:text-indigo-400 border border-indigo-200 dark:border-indigo-800/60 px-1.5 py-0.5 rounded-md">
+                  Staff
+                </span>
+              </div>
+              <span className="text-[10px] font-medium text-slate-500 dark:text-slate-400 -mt-0.5">
+                Operations & Analytics
               </span>
             </div>
           </Link>
 
-          {/* Desktop Navigation Tabs */}
-          <nav className="hidden md:flex items-center gap-1.5 p-1 bg-slate-100 dark:bg-slate-900/70 rounded-xl border border-slate-200 dark:border-slate-800 text-xs font-semibold">
-            {/* Analytics Copilot (Primary Landing Tab) */}
+          {/* Desktop Navigation Links */}
+          <nav className="hidden md:flex items-center gap-1 text-xs font-semibold">
             <Link
               href="/staff/copilot"
               className={`px-3.5 py-1.5 rounded-lg transition-all flex items-center gap-2 ${
                 isCopilotActive
                   ? "bg-indigo-600 text-white shadow-sm font-bold"
-                  : "text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white hover:bg-slate-200/60 dark:hover:bg-slate-800/60"
+                  : "text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:white hover:bg-slate-200/60 dark:hover:bg-slate-800/60"
               }`}
             >
-              <Sparkles className="h-3.5 w-3.5 text-indigo-200" />
+              <Sparkles className="h-3.5 w-3.5" />
               <span>Analytics Copilot</span>
-              {isCopilotActive && (
-                <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse ml-0.5" />
-              )}
             </Link>
 
-            {/* Demo Requests Tab */}
             <Link
               href="/staff/demo-requests"
               className={`px-3.5 py-1.5 rounded-lg transition-all flex items-center gap-2 ${
@@ -116,7 +137,6 @@ export function StaffSidebarLayout({ children }: StaffSidebarLayoutProps) {
               <span>Demo Requests</span>
             </Link>
 
-            {/* Demo Customers Tab */}
             <Link
               href="/staff/demo-customers"
               className={`px-3.5 py-1.5 rounded-lg transition-all flex items-center gap-2 ${
@@ -142,7 +162,7 @@ export function StaffSidebarLayout({ children }: StaffSidebarLayoutProps) {
           <Button
             variant="outline"
             size="sm"
-            onClick={() => logout()}
+            onClick={handleLogout}
             className="border-slate-200 dark:border-slate-800 hover:bg-rose-50 dark:hover:bg-rose-500/10 hover:border-rose-300 dark:hover:border-rose-500/30 text-slate-600 dark:text-slate-400 hover:text-rose-600 dark:hover:text-rose-400 h-9 px-3 text-xs font-semibold rounded-xl transition-colors hidden sm:inline-flex items-center gap-1.5"
           >
             <LogOut className="h-3.5 w-3.5" />
@@ -220,7 +240,7 @@ export function StaffSidebarLayout({ children }: StaffSidebarLayoutProps) {
             <Button
               variant="destructive"
               size="sm"
-              onClick={() => logout()}
+              onClick={handleLogout}
               className="text-xs rounded-lg h-8 gap-1"
             >
               <LogOut className="h-3.5 w-3.5" />
