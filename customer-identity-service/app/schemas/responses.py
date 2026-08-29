@@ -1,5 +1,11 @@
-from pydantic import BaseModel
+import warnings
+from pydantic import BaseModel, Field, ConfigDict
 from typing import List, Optional, Dict, Any
+
+warnings.filterwarnings("ignore", message='Field name "schema"')
+
+class BaseResponseModel(BaseModel):
+    model_config = ConfigDict(protected_namespaces=())
 
 class EmailCheckResponse(BaseModel):
     customer_exists: bool
@@ -30,7 +36,7 @@ class FieldMetadata(BaseModel):
     description: str
     mode: str
 
-class AuthorizedViewDetail(BaseModel):
+class AuthorizedViewDetail(BaseResponseModel):
     view_name: str
     table_description: str
     ai_usage_guidance: Optional[str] = None
@@ -65,7 +71,7 @@ class MCPContextResponse(BaseModel):
     beneficiary_details: List[BeneficiaryDetail]
     kyc_status: str
 
-class TableMetadataDetail(BaseModel):
+class TableMetadataDetail(BaseResponseModel):
     table_name: str
     query_object: str
     logical_name: str
@@ -80,7 +86,7 @@ class TableMetadataDetail(BaseModel):
     typical_ai_questions: Optional[List[str]] = None
     schema: List[FieldMetadata]
 
-class ViewMetadataDetail(BaseModel):
+class ViewMetadataDetail(BaseResponseModel):
     view_name: str
     query_object: str
     logical_name: str

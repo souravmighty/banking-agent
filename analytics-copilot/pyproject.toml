@@ -21,6 +21,8 @@ dependencies = [
     "google-cloud-aiplatform[agent-engines,evaluation]>=1.156.0",
     "agentops>=0.4.21",
     "protobuf>=6.31.1,<7.0.0",
+    "pyarrow>=14.0.0",
+    "google-cloud-bigquery>=3.20.0",
 ]
 requires-python = ">=3.11,<3.14"
 
