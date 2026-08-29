@@ -25,51 +25,90 @@ async def call_bigquery_agent(
 ):
     """Tool to call BigQuery analytical agent (NL2SQL and query execution).
 
-    Each invocation must contain a single, focused analytical question. If the user
+    Each invocation must contain a focused analytical question. If the user
     inquiry contains multiple distinct questions or metrics, invoke this tool multiple
     times in parallel with discrete, self-contained questions (up to a maximum of 5 concurrent calls).
 
     Args:
-        question: A single, focused natural language business analytics question with required filters, metrics, and timeframes.
+        question: A focused natural language business analytics question with required filters, metrics, and timeframes.
     """
     logger.debug("call_bigquery_agent: %s", question)
 
     async with _bigquery_semaphore:
-        agent_tool = AgentTool(agent=bigquery_agent)
-
-        bigquery_agent_output = None
-        last_exception = None
-
-        # Robust execution with up to 2 retries for transient transport/auth network glitches
-        for attempt in range(2):
+        # 1. Ensure database settings are loaded in context state
+        if "database_settings" not in tool_context.state:
             try:
-                bigquery_agent_output = await agent_tool.run_async(
-                    args={"request": question}, tool_context=tool_context
-                )
-                break
-            except Exception as exc:
-                last_exception = exc
-                logger.warning(
-                    "call_bigquery_agent attempt %d failed with error: %s. Retrying...",
-                    attempt + 1,
-                    exc,
-                )
-                if attempt == 0:
-                    await asyncio.sleep(1.0)
+                from .agent import load_analytics_metadata_in_context
+            except (ImportError, ValueError):
+                from app.agent import load_analytics_metadata_in_context
+            load_analytics_metadata_in_context(tool_context)
 
-        if bigquery_agent_output is None:
-            error_msg = (
-                f"Network or authentication connectivity issue: {last_exception}"
+        # 2. Import direct NL2SQL and execution tools
+        try:
+            from .sub_agents.bigquery.tools import (
+                bigquery_nl2sql,
+                execute_bigquery_sql,
             )
-            logger.error("call_bigquery_agent failed completely: %s", error_msg)
+        except (ImportError, ValueError):
+            from app.sub_agents.bigquery.tools import (
+                bigquery_nl2sql,
+                execute_bigquery_sql,
+            )
+
+        sql = ""
+        rows = []
+        error_msg = None
+
+        # Attempt 1: Fast path with pruned schema
+        try:
+            sql = bigquery_nl2sql(question=question, tool_context=tool_context)
+            rows = await asyncio.to_thread(execute_bigquery_sql, sql)
+        except Exception as exc:
+            logger.warning(
+                "call_bigquery_agent direct execution failed: %s. Retrying with full schema...",
+                exc,
+            )
+            error_msg = str(exc)
+
+            # Attempt 2: Fallback retry with full schema & error feedback
+            try:
+                tool_context.state["force_full_schema"] = True
+                retry_question = (
+                    f"{question}\n\n[EXECUTION ERROR CORRECTION]\n"
+                    f"Previous attempt generated SQL:\n{sql}\n"
+                    f"BigQuery execution error:\n{exc}\n"
+                    f"Please correct table names, column references, or syntax and provide valid BigQuery SQL."
+                )
+                sql = bigquery_nl2sql(
+                    question=retry_question, tool_context=tool_context
+                )
+                rows = await asyncio.to_thread(execute_bigquery_sql, sql)
+                error_msg = None
+            except Exception as retry_exc:
+                logger.error("call_bigquery_agent retry failed: %s", retry_exc)
+                error_msg = str(retry_exc)
+            finally:
+                tool_context.state["force_full_schema"] = False
+
+        if error_msg:
             bigquery_agent_output = {
-                "explain": f"Encountered temporary transport/connectivity error: {last_exception}",
-                "sql": "",
+                "explain": f"Encountered BigQuery execution error: {error_msg}",
+                "sql": sql,
                 "sql_results": [],
-                "nl_results": f"Unable to reach the BigQuery analytical service due to a transient connection error ({last_exception}). Please retry your request.",
+                "nl_results": f"Unable to retrieve records from BigQuery due to: {error_msg}",
+            }
+        else:
+            bigquery_agent_output = {
+                "explain": f"Generated and executed BigQuery SQL for: {question}",
+                "sql": sql,
+                "sql_results": rows,
+                "nl_results": f"Successfully retrieved {len(rows)} rows from BigQuery.",
             }
 
-        # Maintain both a collection list (for multi-query parallel runs) and latest output key
+        # Store in state for visualization / context
+        tool_context.state["bigquery_query_result"] = rows
+        tool_context.state["sql_query"] = sql
+
         if "bigquery_agent_outputs" not in tool_context.state:
             tool_context.state["bigquery_agent_outputs"] = []
         tool_context.state["bigquery_agent_outputs"].append(

@@ -191,8 +191,8 @@ Evaluate every incoming user inquiry against the following criteria:
 2. **Delegating to `call_bigquery_agent`:**
    - Formulate precise, unambiguous natural language questions for `call_bigquery_agent`.
    - Specify necessary time windows, baseline periods, aggregation grains, and segmentation categories.
-   - For single-intent requests, issue one focused `call_bigquery_agent` call.
-   - For multi-intent / multi-hypothesis requests, issue parallel `call_bigquery_agent` calls simultaneously (maximum 5).
+   - For single-intent requests or related dimensional metrics on the same dataset (e.g., monthly spend trends by category and discretionary vs. essential breakdown), formulate a comprehensive analytical question so the database engine can construct an optimized consolidated CTE query in a single execution.
+   - For independent multi-domain hypotheses (e.g., customer demographic distribution vs. credit card delinquency), issue parallel `call_bigquery_agent` calls simultaneously (maximum 5).
 
 3. **Generating Visualizations with `call_visualization_agent` (PARALLEL EXECUTION & STRICT LIMIT: MAX 2 CHARTS):**
    - **STRICT CHART BUDGET**: Generate at most **2** high-impact, distinct interactive Vega-Lite visualizations per response (e.g., 1 primary waterfall/trend chart and at most 1 supporting segment/distribution breakdown). Never generate more than 2 charts in a single turn.

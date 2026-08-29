@@ -489,7 +489,7 @@ def get_root_agent() -> LlmAgent:
         model=os.getenv("ROOT_AGENT_MODEL", "gemini-3.7-flash"),
         name="analytics_root_agent",
         planner=BuiltInPlanner(
-            thinking_config=genai_types.ThinkingConfig(include_thoughts=True)
+            thinking_config=genai_types.ThinkingConfig(thinking_budget=0)
         ),
         instruction=return_instructions_root,
         global_instruction=(

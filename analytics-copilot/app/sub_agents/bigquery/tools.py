@@ -410,6 +410,7 @@ while strictly using the provided schema and analytical guidance.
   primary/foreign key relationships (e.g. `customer_id`, `account_number`).
 - **Aggregations & Grouping:** Include all non-aggregated `SELECT` columns in the `GROUP BY` clause.
   Use appropriate aggregation functions (`SUM`, `COUNT`, `AVG`, `COUNT(DISTINCT ...)`) to avoid double counting.
+- **Consolidated Multi-Metric Queries & CTEs:** When the question asks for multiple metrics, comparisons, or dimensional slices (e.g. category trends AND discretionary vs essential spend), construct a SINGLE consolidated BigQuery query using Common Table Expressions (CTEs), conditional aggregations (`SUM(CASE WHEN ... THEN ... END)`), and window functions. Do NOT require multiple distinct queries when one consolidated query can yield the full dataset.
 - **Column Usage:** Use ONLY column names defined in the schema. Do NOT assume or invent unlisted columns.
 - **Filters & Row Limits:** Write efficient queries with appropriate `WHERE` clauses. Do NOT impose any artificial row limits (such as `LIMIT`) unless explicitly requested by the user's business question (e.g., top N rankings). Return all necessary rows for comprehensive analytical evaluation without row restrictions.
 - **Security & Integrity:** Never construct customer-specific view names like `customer_views.customer_*`.
@@ -473,3 +474,36 @@ while strictly using the provided schema and analytical guidance.
     logger.debug("bigquery_nl2sql - generated sql:\n%s", sql)
     tool_context.state["sql_query"] = sql
     return sql
+
+
+def execute_bigquery_sql(
+    sql: str,
+    project_id: str | None = None,
+    max_rows: int = 1000,
+) -> list[dict[str, Any]]:
+    """Executes a BigQuery SQL statement directly and returns JSON-serializable row dicts."""
+    from google.cloud import bigquery
+
+    target_project = project_id or os.getenv(
+        "BQ_PROJECT_ID", os.getenv("GOOGLE_CLOUD_PROJECT", "banking-agent-rag-mcp")
+    )
+    bq_client = bigquery.Client(project=target_project)
+
+    cleaned_sql = sql.replace("```sql", "").replace("```", "").strip()
+
+    query_job = bq_client.query(cleaned_sql)
+    results = query_job.result(max_results=max_rows)
+
+    rows = []
+    for row in results:
+        row_dict = dict(row.items())
+        for k, v in row_dict.items():
+            if hasattr(v, "isoformat"):
+                row_dict[k] = v.isoformat()
+            elif hasattr(v, "as_tuple"):
+                row_dict[k] = float(v)
+            elif isinstance(v, bytes):
+                row_dict[k] = v.decode("utf-8", errors="ignore")
+        rows.append(row_dict)
+
+    return rows
