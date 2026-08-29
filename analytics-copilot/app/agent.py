@@ -282,29 +282,6 @@ def get_firebase_jwt_token(callback_context: CallbackContext | None = None) -> s
         except Exception:
             pass
 
-    # 6. Mock token bypass if configured
-    if (
-        callback_context
-        and getattr(callback_context, "session", None)
-        and getattr(callback_context.session, "user_id", None)
-    ):
-        user_id = callback_context.session.user_id
-        if (
-            user_id.startswith("mock-")
-            or os.getenv("MOCK_AUTH_BYPASS", "false").lower() == "true"
-        ):
-            _logger.info("Test/Mock user_id detected (%s). Using mock-token.", user_id)
-            return f"mock-token:{user_id}"
-
-    # 7. Last resort fallback for test sessions
-    if (
-        callback_context
-        and getattr(callback_context, "session", None)
-        and getattr(callback_context.session, "user_id", None)
-    ):
-        user_id = callback_context.session.user_id
-        return f"mock-token:{user_id}"
-
     return ""
 
 

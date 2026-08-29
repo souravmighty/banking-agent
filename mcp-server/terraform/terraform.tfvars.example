@@ -1,0 +1,18 @@
+# ==============================================================================
+# BankPilot MCP Server Terraform Variables Example
+# ==============================================================================
+
+project_id                  = "banking-agent-rag-mcp"
+region                      = "us-central1"
+service_account_id          = "mcp-server-sa"
+service_account_display_name = "BankPilot MCP Transaction Server Service Account"
+cloud_run_service_name      = "transaction-mcp-server"
+container_image             = "gcr.io/banking-agent-rag-mcp/transaction-mcp-server:latest"
+banking_dataset_id          = "banking_data"
+customer_identity_dataset_id = "customer_identity"
+email_from                  = "BankPilot <security@contact.souravmaiti.dev>"
+allow_unauthenticated       = true
+deploy_cloud_run            = true
+
+# Optional: Set to store and inject via Google Secret Manager
+# resend_api_key            = "re_your_api_key_here"

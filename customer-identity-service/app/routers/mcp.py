@@ -14,6 +14,7 @@ async def get_mcp_context(
     uid = decoded_token["uid"]
     customer = customer_service.get_customer_by_uid(uid)
     customer_id = customer["customer_id"]
+    email = customer.get("email") or customer.get("email_id") or decoded_token.get("email")
     
     # Get authorized account details (including all types)
     authorized_accounts = customer_service.get_authorized_accounts(customer_id)
@@ -23,6 +24,8 @@ async def get_mcp_context(
     
     return {
         "customer_id": customer_id,
+        "email": email,
+        "email_id": email,
         "authorized_accounts": authorized_accounts,
         "beneficiary_details": beneficiary_details,
         "kyc_status": customer["kyc_status"]

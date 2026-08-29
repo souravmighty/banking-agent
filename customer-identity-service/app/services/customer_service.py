@@ -68,42 +68,55 @@ class CustomerService:
             List[Dict[str, str]]: List of accounts containing account number, product type, and active status.
         """
         all_accounts = []
+        seen_accounts = set()
         
         # Regular checking and savings accounts
         accounts = self.customer_repo.get_accounts(customer_id)
         for acc in accounts:
-            all_accounts.append({
-                "account_number": acc.get("account_number"),
-                "account_type": acc.get("account_type"),
-                "account_status": acc.get("account_status")
-            })
+            acc_num = acc.get("account_number")
+            if acc_num and acc_num not in seen_accounts:
+                seen_accounts.add(acc_num)
+                all_accounts.append({
+                    "account_number": acc_num,
+                    "account_type": acc.get("account_type"),
+                    "account_status": acc.get("account_status")
+                })
 
         # Credit Cards
         credit_cards = self.customer_repo.get_credit_cards(customer_id)
         for cc in credit_cards:
-            all_accounts.append({
-                "account_number": cc.get("card_account_number"),
-                "account_type": cc.get("account_type"),
-                "account_status": cc.get("account_status")
-            })
+            card_acc = cc.get("card_account_number")
+            if card_acc and card_acc not in seen_accounts:
+                seen_accounts.add(card_acc)
+                all_accounts.append({
+                    "account_number": card_acc,
+                    "account_type": cc.get("account_type"),
+                    "account_status": cc.get("account_status")
+                })
 
         # Fixed Deposits
         fixed_deposits = self.customer_repo.get_fixed_deposits(customer_id)
         for fd in fixed_deposits:
-            all_accounts.append({
-                "account_number": fd.get("fd_account_number"),
-                "account_type": fd.get("account_type"),
-                "account_status": fd.get("account_status")
-            })
+            fd_acc = fd.get("fd_account_number")
+            if fd_acc and fd_acc not in seen_accounts:
+                seen_accounts.add(fd_acc)
+                all_accounts.append({
+                    "account_number": fd_acc,
+                    "account_type": fd.get("account_type"),
+                    "account_status": fd.get("account_status")
+                })
 
         # Loans
         loans = self.customer_repo.get_loans(customer_id)
         for loan in loans:
-            all_accounts.append({
-                "account_number": loan.get("loan_account_number"),
-                "account_type": loan.get("account_type"),
-                "account_status": loan.get("account_status")
-            })
+            loan_acc = loan.get("loan_account_number")
+            if loan_acc and loan_acc not in seen_accounts:
+                seen_accounts.add(loan_acc)
+                all_accounts.append({
+                    "account_number": loan_acc,
+                    "account_type": loan.get("account_type"),
+                    "account_status": loan.get("account_status")
+                })
         
         return all_accounts
 

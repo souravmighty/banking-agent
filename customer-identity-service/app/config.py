@@ -29,7 +29,7 @@ class Settings(BaseSettings):
     
     # Resend Configuration
     RESEND_API_KEY: Optional[str] = None
-    EMAIL_FROM: str = "BankPilot <onboarding@resend.dev>"
+    EMAIL_FROM: str = "BankPilot <security@contact.souravmaiti.dev>"
     
     # Optional SMTP Configuration for email notifications
     SMTP_HOST: Optional[str] = None

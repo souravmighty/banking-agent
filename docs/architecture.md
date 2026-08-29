@@ -61,7 +61,7 @@ graph TD
 *   **Purpose**: Handles multi-step bank actions such as wire transfers, credit card payments, or investments.
 *   **Design Paradigm**: Works in tandem with the Model Context Protocol (MCP) server. Conducts a two-stage verification flow: verifies recipient, verifies funding limits, and asks for explicit confirmation before calling financial APIs.
 
-### 6. MCP Transaction Server (`/mcp_server`)
+### 6. MCP Transaction Server (`/mcp-server`)
 *   **Purpose**: A Model Context Protocol server exposing verified tools directly backed by BigQuery ledger transactions.
 *   **Design Paradigm**: Connects securely to the database to insert dual-row balanced ledger records (`DEBIT`/`CREDIT`) under ACID transactions.
 

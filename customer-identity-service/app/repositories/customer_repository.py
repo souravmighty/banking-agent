@@ -22,14 +22,14 @@ class CustomerRepository:
         return results[0] if results else None
 
     def get_accounts(self, customer_id: int) -> List[Dict[str, Any]]:
-        query = f"SELECT account_number, account_type, account_status FROM `{self.accounts_table}` WHERE customer_id = @customer_id"
+        query = f"SELECT account_number, account_type, account_status FROM `{self.accounts_table}` WHERE customer_id = @customer_id AND is_current = TRUE"
         job_config = bigquery.QueryJobConfig(
             query_parameters=[bigquery.ScalarQueryParameter("customer_id", "INTEGER", customer_id)]
         )
         return self.bq.execute_query(query, job_config=job_config)
 
     def get_credit_cards(self, customer_id: int) -> List[Dict[str, Any]]:
-        query = f"SELECT card_account_number, 'Credit Card' as account_type, status as account_status FROM `{self.credit_cards_table}` WHERE customer_id = @customer_id"
+        query = f"SELECT card_account_number, 'Credit Card' as account_type, status as account_status FROM `{self.credit_cards_table}` WHERE customer_id = @customer_id AND is_current = TRUE"
         job_config = bigquery.QueryJobConfig(
             query_parameters=[bigquery.ScalarQueryParameter("customer_id", "INTEGER", customer_id)]
         )

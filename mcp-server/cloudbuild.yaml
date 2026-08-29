@@ -1,0 +1,35 @@
+steps:
+  # 1. Build the container image
+  - name: 'gcr.io/cloud-builders/docker'
+    args: ['build', '-t', 'gcr.io/$PROJECT_ID/transaction-mcp-server', '.']
+  
+  # 2. Push the container image to Container Registry / Artifact Registry
+  - name: 'gcr.io/cloud-builders/docker'
+    args: ['push', 'gcr.io/$PROJECT_ID/transaction-mcp-server']
+  
+  # 3. Deploy container image to Cloud Run
+  - name: 'gcr.io/google.com/cloudsdktool/cloud-sdk'
+    entrypoint: 'bash'
+    args:
+      - '-c'
+      - |
+        SERVICE_ACCOUNT=$$(grep -E '^DEPLOY_SERVICE_ACCOUNT=' .env | cut -d'=' -f2)
+        if [ -z "$$SERVICE_ACCOUNT" ]; then
+          SERVICE_ACCOUNT="mcp-server-sa@$PROJECT_ID.iam.gserviceaccount.com"
+        fi
+        RESEND_KEY=$$(grep -E '^RESEND_API_KEY=' .env | cut -d'=' -f2)
+        ENV_VARS="GOOGLE_CLOUD_PROJECT=$PROJECT_ID,BIGQUERY_DATASET=banking_data,CUSTOMER_IDENTITY_DATASET=customer_identity,GOOGLE_CLOUD_LOCATION=us-central1,EMAIL_FROM=BankPilot <security@contact.souravmaiti.dev>"
+        if [ -n "$$RESEND_KEY" ]; then
+          ENV_VARS="$$ENV_VARS,RESEND_API_KEY=$$RESEND_KEY"
+        fi
+        echo "Deploying to Cloud Run with Service Account: $$SERVICE_ACCOUNT"
+        gcloud run deploy transaction-mcp-server \
+          --image gcr.io/$PROJECT_ID/transaction-mcp-server \
+          --region us-central1 \
+          --platform managed \
+          --allow-unauthenticated \
+          --service-account "$$SERVICE_ACCOUNT" \
+          --set-env-vars "$$ENV_VARS"
+
+images:
+  - 'gcr.io/$PROJECT_ID/transaction-mcp-server'

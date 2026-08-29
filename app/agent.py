@@ -43,7 +43,7 @@ import google.genai.types as genai_types
 from .prompts import return_instructions_root
 
 from .sub_agents.bigquery.tools import get_customer_profile, get_database_settings
-from .tools import call_bigquery_agent, call_transaction_agent
+from .tools import call_bigquery_agent, get_transaction_mcp_toolset
 
 from .sub_agents import bigquery_agent
 
@@ -366,13 +366,6 @@ def get_customer_details_for_instructions(callback_context: CallbackContext) -> 
 
 
 def get_firebase_jwt_token(callback_context: Optional[CallbackContext] = None) -> str:
-    # 0. Prioritize mock-token if user_id is a known test user or if mock auth bypass is enabled
-    if callback_context and getattr(callback_context, "session", None) and getattr(callback_context.session, "user_id", None):
-        user_id = callback_context.session.user_id
-        if user_id == "WbSlp0UAymRQ3AULz6bfuyX0A6l2" or user_id.startswith("mock-") or os.getenv("MOCK_AUTH_BYPASS", "false").lower() == "true":
-            _logger.info("Test/Mock user_id detected (%s). Prioritizing mock-token.", user_id)
-            return f"mock-token:{user_id}"
-
     # 1. Try global session dictionary first
     if callback_context:
         try:
@@ -382,13 +375,13 @@ def get_firebase_jwt_token(callback_context: Optional[CallbackContext] = None) -
             # Check by (user_id, session_id)
             token = _session_tokens.get((user_id, session_id))
             if token:
-                _logger.info("Retrieved JWT from _session_tokens via (user_id, session_id).")
+                _logger.info("Retrieved actual JWT from _session_tokens via (user_id, session_id).")
                 return token
                 
             # Check by session_id
             token = _session_tokens.get(session_id)
             if token:
-                _logger.info("Retrieved JWT from _session_tokens via session_id.")
+                _logger.info("Retrieved actual JWT from _session_tokens via session_id.")
                 return token
         except Exception as e:
             _logger.warning("Error extracting session info in get_firebase_jwt_token: %s", e)
@@ -396,21 +389,21 @@ def get_firebase_jwt_token(callback_context: Optional[CallbackContext] = None) -
     # 2. Try contextvars
     token = firebase_jwt_var.get()
     if token:
-        _logger.info("Retrieved JWT from contextvars.")
+        _logger.info("Retrieved actual JWT from contextvars.")
         return token
         
     # 3. Fallback to _last_token
     if _last_token:
-        _logger.info("Retrieved JWT from global _last_token fallback.")
+        _logger.info("Retrieved actual JWT from global _last_token fallback.")
         return _last_token
         
-    # 3.5. Fallback to environment variable for local testing (e.g., adk-web playground)
+    # 4. Fallback to environment variable for testing (e.g., adk-web playground)
     env_token = os.getenv("LOCAL_TEST_JWT")
     if env_token:
-        _logger.info("Retrieved JWT from LOCAL_TEST_JWT environment variable.")
+        _logger.info("Retrieved actual JWT from LOCAL_TEST_JWT environment variable.")
         return env_token
         
-    # 4. Fallback to call stack inspection (handles first request imported dynamically)
+    # 5. Fallback to call stack inspection (handles first request imported dynamically)
     _logger.info("JWT not found in storage. Attempting call stack inspection...")
     import inspect
     for frame_info in inspect.stack():
@@ -419,18 +412,19 @@ def get_firebase_jwt_token(callback_context: Optional[CallbackContext] = None) -
             locals_dict = frame.f_locals
             func_name = frame_info.function
             
-            # Log frames to debug where headers/scopes are hiding
-            _logger.info("Stack frame: %s, locals: %s", func_name, list(locals_dict.keys()))
-            
             # Try to get from any FastAPI/Starlette/Uvicorn request or scope variable
             for key, val in locals_dict.items():
                 # Check for explicit request variable
                 if key in ("request", "req") and hasattr(val, "headers"):
-                    auth_header = val.headers.get("Authorization")
+                    auth_header = val.headers.get("Authorization") or val.headers.get("authorization")
                     if auth_header and auth_header.startswith("Bearer "):
                         token = auth_header[7:]
-                        _logger.info("Successfully extracted JWT from '%s' in stack frame '%s'.", key, func_name)
+                        _logger.info("Successfully extracted actual JWT from '%s' in stack frame '%s'.", key, func_name)
                         return token
+                    custom_token = val.headers.get("x-firebase-id-token") or val.headers.get("x-auth-token")
+                    if custom_token:
+                        _logger.info("Successfully extracted actual JWT from custom header in '%s'.", key)
+                        return custom_token
                 
                 # Check for explicit scope variable
                 if key == "scope" and isinstance(val, dict) and "headers" in val:
@@ -439,7 +433,12 @@ def get_firebase_jwt_token(callback_context: Optional[CallbackContext] = None) -
                     auth_header = auth_bytes.decode("utf-8") if auth_bytes else ""
                     if auth_header.startswith("Bearer "):
                         token = auth_header[7:]
-                        _logger.info("Successfully extracted JWT from ASGI 'scope' in stack frame '%s'.", func_name)
+                        _logger.info("Successfully extracted actual JWT from ASGI 'scope' in stack frame '%s'.", func_name)
+                        return token
+                    custom_bytes = headers.get(b"x-firebase-id-token") or headers.get(b"x-auth-token")
+                    if custom_bytes:
+                        token = custom_bytes.decode("utf-8") if isinstance(custom_bytes, bytes) else str(custom_bytes)
+                        _logger.info("Successfully extracted actual JWT from ASGI scope custom header.")
                         return token
                         
                 # Deep check: any dictionary containing 'headers'
@@ -451,14 +450,18 @@ def get_firebase_jwt_token(callback_context: Optional[CallbackContext] = None) -
                             auth_str = auth_bytes.decode("utf-8") if isinstance(auth_bytes, bytes) else str(auth_bytes)
                             if auth_str.startswith("Bearer "):
                                 token = auth_str[7:]
-                                _logger.info("Successfully extracted JWT from deep dict key '%s' in stack frame '%s'.", key, func_name)
+                                _logger.info("Successfully extracted actual JWT from deep dict key '%s' in stack frame '%s'.", key, func_name)
                                 return token
+                        custom_bytes = headers.get(b"x-firebase-id-token") or headers.get(b"x-auth-token")
+                        if custom_bytes:
+                            token = custom_bytes.decode("utf-8") if isinstance(custom_bytes, bytes) else str(custom_bytes)
+                            return token
                     except Exception:
                         pass
         except Exception as inspect_err:
             _logger.debug("Error inspecting frame: %s", inspect_err)
 
-    # 4.5. Fallback to scanning active connections and request objects in memory (Garbage Collector)
+    # 6. Fallback to scanning active connections and request objects in memory (Garbage Collector)
     _logger.info("JWT not found in stack. Scanning GC for active request objects...")
     try:
         import gc
@@ -469,8 +472,11 @@ def get_firebase_jwt_token(callback_context: Optional[CallbackContext] = None) -
                     auth_header = obj.headers.get("Authorization") or obj.headers.get("authorization")
                     if auth_header and auth_header.startswith("Bearer "):
                         token = auth_header[7:]
-                        _logger.info("Successfully extracted JWT from active request object in GC.")
+                        _logger.info("Successfully extracted actual JWT from active request object in GC.")
                         return token
+                    custom_token = obj.headers.get("x-firebase-id-token") or obj.headers.get("x-auth-token")
+                    if custom_token:
+                        return custom_token
                 
                 # Check for ASGI scope dictionaries
                 if isinstance(obj, dict) and "headers" in obj and "type" in obj and obj.get("type") in ("http", "websocket"):
@@ -480,18 +486,16 @@ def get_firebase_jwt_token(callback_context: Optional[CallbackContext] = None) -
                         auth_str = auth_bytes.decode("utf-8") if isinstance(auth_bytes, bytes) else str(auth_bytes)
                         if auth_str.startswith("Bearer "):
                             token = auth_str[7:]
-                            _logger.info("Successfully extracted JWT from active ASGI scope in GC.")
+                            _logger.info("Successfully extracted actual JWT from active ASGI scope in GC.")
                             return token
+                    custom_bytes = headers.get(b"x-firebase-id-token") or headers.get(b"x-auth-token")
+                    if custom_bytes:
+                        token = custom_bytes.decode("utf-8") if isinstance(custom_bytes, bytes) else str(custom_bytes)
+                        return token
             except Exception:
                 pass
     except Exception as gc_err:
         _logger.warning("Error scanning GC for JWT: %s", gc_err)
-        
-    # 5. Dynamic mock token based on callback context user_id for local testing (last resort fallback)
-    if callback_context and getattr(callback_context, "session", None) and getattr(callback_context.session, "user_id", None):
-        user_id = callback_context.session.user_id
-        _logger.info("Using dynamic mock token for user_id: %s", user_id)
-        return f"mock-token:{user_id}"
         
     return ""
 
@@ -543,6 +547,11 @@ def load_database_settings_in_context(callback_context: CallbackContext):
     user_id = getattr(callback_context.session, "user_id", None)
     
     # Check global server-side cache if user_id is present
+    token = get_firebase_jwt_token(callback_context)
+    if token:
+        callback_context.state["jwt_token"] = token
+        callback_context.state["token"] = token
+
     if user_id:
         cached_context = user_context_cache.get(user_id)
         if cached_context:
@@ -553,7 +562,6 @@ def load_database_settings_in_context(callback_context: CallbackContext):
             callback_context.state["database_settings"] = reconstruct_database_settings(cached_context.get("authorized_views", {}))
             return
 
-    token = get_firebase_jwt_token(callback_context)
     _logger.info("Cache miss. Fetching context from identity-service. JWT length: %d", len(token) if token else 0)
     
     headers = {}
@@ -596,11 +604,10 @@ def load_database_settings_in_context(callback_context: CallbackContext):
         
     
 def get_root_agent() -> LlmAgent:
-    tools = []
-    sub_agents = []
-    tools.append(call_bigquery_agent)
-
-    # tools.append(call_transaction_agent)
+    tools = [
+        call_bigquery_agent,
+        get_transaction_mcp_toolset(),
+    ]
     agent = LlmAgent(
         model=os.getenv("ROOT_AGENT_MODEL", "gemini-3.7-flash"),
         name="banking_root_agent",

@@ -55,14 +55,23 @@ graph TD
     *   **Scaling Limit**: Auto-scales from 0 to 10 instances based on concurrent HTTP requests.
     *   **Authentication Boundary**: Public HTTP endpoint, utilizing in-memory Firebase Admin SDK key verification.
 
-### 4. Agent Orchestrator: Vertex AI Agent Engine (`reasoning_engines.AdkApp`)
+### 4. Transaction MCP Server: Cloud Run (`transaction-mcp-server`)
+*   **Purpose**: Containerized FastMCP server exposing authenticated banking transaction tools (`transfer_money`, `pay_credit_card`, `verify_transaction_otp`, etc.) via Streamable HTTP (`/mcp`).
+*   **Configuration**:
+    *   **Port**: `8080`
+    *   **Memory**: 512MB RAM, 1 vCPU
+    *   **Scaling Limit**: Auto-scales from 0 to 10 instances.
+    *   **Authentication Boundary**: Dual-mode IAM service-to-service authentication and Firebase end-user JWT authorization.
+    *   **Email Notification**: Dispatches real-time OTP challenges using Resend API.
+
+### 5. Agent Orchestrator: Vertex AI Agent Engine (`reasoning_engines.AdkApp`)
 *   **Purpose**: Runs the stateful Google ADK multi-agent pipeline inside a managed, secure container sandbox on Google Vertex AI.
 *   **Configuration**:
     *   **Runtime Environment**: Python-based Vertex AI reasoning engine instance.
     *   **Tracing**: Enabled natively, forwarding thought cycles, intermediate outputs, and tools execution paths directly to Vertex AI Console Observability.
     *   **Access Control**: Decoupled from public internet; reachable via authenticated Google Cloud Vertex AI API sessions.
 
-### 5. Database & SQL Execution: BigQuery
+### 6. Database & SQL Execution: BigQuery
 *   **Purpose**: Enterprise analytical database holding the financial profiles and transactional ledgers.
 *   **Strategy**: Uses partitioned and clustered tables. RLS views are dynamically created and updated in place.
 
@@ -97,19 +106,30 @@ terraform apply -var="project_id=banking-agent-rag-mcp" -auto-approve
 
 BankPilot is integrated with Google Cloud Build for continuous deployment.
 
+### Deploying transaction-mcp-server:
+```bash
+cd mcp-server
+gcloud builds submit --config cloudbuild.yaml .
+```
+Or direct Cloud Run deployment with `gcloud run deploy`:
+```bash
+gcloud run deploy transaction-mcp-server \
+  --source ./mcp-server \
+  --region us-central1 \
+  --platform managed \
+  --allow-unauthenticated \
+  --set-env-vars "GOOGLE_CLOUD_PROJECT=banking-agent-rag-mcp,BIGQUERY_DATASET=banking_data,CUSTOMER_IDENTITY_DATASET=customer_identity,RESEND_API_KEY=your_resend_api_key,EMAIL_FROM=BankPilot <security@contact.souravmaiti.dev>"
+```
+
 ### Deploying customer-identity-service:
 ```bash
 cd customer-identity-service
 gcloud builds submit --config cloudbuild.yaml .
 ```
 
-The cloud build script compiles the Docker container, pushes it to Google Container Registry (GCR), and runs an in-place green-blue release on Google Cloud Run.
-
 ### Deploying customer-data-service:
 ```bash
 cd customer-data-service
 gcloud builds submit --config cloudbuild.yaml .
 ```
-
-The cloud build script compiles the Docker container, pushes it to Google Container Registry (GCR), and runs an in-place green-blue release on Google Cloud Run.
 

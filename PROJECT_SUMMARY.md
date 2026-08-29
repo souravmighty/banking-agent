@@ -22,9 +22,10 @@ The platform is built as a high-fidelity simulation of a modern banking environm
 │   └───data_scripts/           # Data Engineering & Ingestion
 │       ├───generate_data.py    # Segmented synthetic data generator (SCD, Paired TXs)
 │       └───upload_to_bigquery.py # Bulk ingestion scripts
-├───mcp_server/                 # Transactional Layer (FastMCP)
-│   ├───server.py               # OAuth2 protected tool entrypoints
-│   ├───tools.py                # Ledger-aware financial logic (Transfers, CC Payments)
+├───mcp-server/                 # Transactional Layer (FastMCP)
+│   ├───app/
+│   │   ├───server.py           # OAuth2 protected tool entrypoints
+│   │   └───tools.py            # Ledger-aware financial logic (Transfers, CC Payments)
 ├───app/                        # Multi-Agent Orchestration (ADK)
 │   ├───agent.py                # Root agent orchestrator
 │   ├───sub_agents/             # Specialized agents (BigQuery, Transaction)

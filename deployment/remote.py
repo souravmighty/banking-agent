@@ -54,16 +54,23 @@ def create() -> None:
         agent_engine=adk_app_instance,
         display_name="Banking Agent",
         requirements=[
-            "google-cloud-aiplatform[adk,agent_engines]", 
+            "google-cloud-aiplatform[adk,agent_engines]>=1.165.0",
+            "google-adk[eval,gcp,otel-gcp]>=2.7.1",
+            "google-genai>=1.44.0",
+            "cloudpickle==3.1.2",
+            "pydantic>=2.10.0",
+            "fastmcp>=2.14.0",
             "absl-py>=2.4.0",
             "db-dtypes>=1.7.0",
-            "fastmcp>=2.14.0",
-            "google-adk>=1.17.0",
             "google-cloud-bigquery>=3.40.0",
-            "google-cloud-storage",
-            "google-genai==1.44.0",
+            "google-cloud-storage>=3.0.0",
             "pandas>=2.3.3",
-            "vertexai>=1.43.0"
+            "vertexai>=1.43.0",
+            "agentops>=0.4.21",
+            "resend>=2.4.0",
+            "pyjwt>=2.8.0",
+            "python-dotenv>=1.0.0",
+            "httpx>=0.27.0",
         ],
         extra_packages=["./app"],
         service_account = os.getenv("GOOGLE_CLOUD_SERVICE_ACCOUNT"),  # Make sure this service account has the necessary permissions
@@ -74,8 +81,9 @@ def create() -> None:
             "BQ_PROJECT_ID": "banking-agent-rag-mcp", 
             "BQ_DATASET_ID": "banking_data",
             "BIGQUERY_AGENT_MODEL": "gemini-3.5-flash",
-            "BASELINE_NL2SQL_MODEL": "gemini-2.5-pro",
-            "IDENTITY_SERVICE_URL": "https://customer-identity-service-569817520730.us-central1.run.app"
+            "BASELINE_NL2SQL_MODEL": "gemini-3.5-flash",
+            "IDENTITY_SERVICE_URL": "https://customer-identity-service-569817520730.us-central1.run.app",
+            "TRANSACTION_MCP_SERVER_URL": "https://transaction-mcp-server-569817520730.us-central1.run.app"
         }
     )
     print(f"Created remote app: {remote_app.resource_name}")

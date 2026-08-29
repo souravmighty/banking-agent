@@ -43,7 +43,7 @@ Implemented for `customers`, `accounts`, and `credit_cards`.
 *   **Simplified Joins**: Views now join on `account_number`.
 *   **SCD Filtering**: Every view automatically filters for `is_current = true`, ensuring the agent only operates on the latest valid data.
 
-### MCP Tools (`mcp_server/tools.py`)
+### MCP Tools (`mcp-server/app/tools.py`)
 *   **API Update**: `make_transaction` and `credit_card_payment` now accept and return account numbers.
 *   **Ledger Consistency**: Continues to support dual-row entry for transfers sharing a `reference_id`.
 

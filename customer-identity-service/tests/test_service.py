@@ -90,3 +90,31 @@ def test_link_firebase_user_success(auth_service, mock_identity_repo, mock_view_
     assert args[2] == "REGISTERED"
     assert isinstance(args[3], str)
     mock_view_service.create_authorized_views.assert_called_with(1001)
+
+
+def test_mcp_context_returns_email():
+    from app.services.customer_service import CustomerService
+    mock_cust_repo = MagicMock()
+    mock_id_repo = MagicMock()
+    
+    mock_id_repo.get_by_uid.return_value = {"customer_id": 1001, "email_id": "test@example.com"}
+    mock_cust_repo.get_by_id.return_value = {
+        "customer_id": 1001,
+        "email": "test@example.com",
+        "kyc_status": "VERIFIED"
+    }
+    mock_cust_repo.get_accounts.return_value = [{"account_number": "ACC1", "account_type": "SAVINGS", "account_status": "ACTIVE"}]
+    mock_cust_repo.get_credit_cards.return_value = []
+    mock_cust_repo.get_fixed_deposits.return_value = []
+    mock_cust_repo.get_loans.return_value = []
+    mock_cust_repo.get_beneficiaries.return_value = []
+    
+    svc = CustomerService(mock_cust_repo, mock_id_repo)
+    cust = svc.get_customer_by_uid("fb-uid-123")
+    accounts = svc.get_authorized_accounts(cust["customer_id"])
+    beneficiaries = svc.get_beneficiary_details(cust["customer_id"])
+    
+    assert cust["email"] == "test@example.com"
+    assert len(accounts) == 1
+    assert accounts[0]["account_number"] == "ACC1"
+

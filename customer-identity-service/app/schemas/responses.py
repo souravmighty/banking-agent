@@ -59,6 +59,8 @@ class BeneficiaryDetail(BaseModel):
 
 class MCPContextResponse(BaseModel):
     customer_id: int
+    email: Optional[str] = None
+    email_id: Optional[str] = None
     authorized_accounts: List[AccountDetail]
     beneficiary_details: List[BeneficiaryDetail]
     kyc_status: str
