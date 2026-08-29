@@ -55,7 +55,7 @@ export default function StaffSetupPasswordPage() {
       // 2. Pre-verify email status with Identity Service
       const checkRes = await customerIdentityService.checkEmail(email);
       
-      if (!checkRes.customer_exists || !checkRes.is_staff) {
+      if (!checkRes.is_staff) {
         throw new Error("This email is not authorized as bank staff. Please ask an administrator to add your email to the database first.");
       }
 

@@ -5,6 +5,7 @@ class EmailCheckResponse(BaseModel):
     customer_exists: bool
     already_registered: Optional[bool] = None
     is_staff: Optional[bool] = None
+    customer_id: Optional[int] = None
 
 class LinkUserResponse(BaseModel):
     customer_id: int

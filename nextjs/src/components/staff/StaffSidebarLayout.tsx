@@ -11,7 +11,8 @@ import {
   ClipboardList, 
   UserCheck, 
   LogOut,
-  ChevronRight
+  ChevronRight,
+  User
 } from "lucide-react";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
@@ -21,7 +22,7 @@ interface StaffSidebarLayoutProps {
 }
 
 export function StaffSidebarLayout({ children }: StaffSidebarLayoutProps) {
-  const { user, loading, logout } = useAuth();
+  const { user, loading, hasCustomerAccount, switchPersona, logout } = useAuth();
   const pathname = usePathname();
   const router = useRouter();
   const [mobileOpen, setMobileOpen] = useState<boolean>(false);
@@ -153,6 +154,21 @@ export function StaffSidebarLayout({ children }: StaffSidebarLayoutProps) {
 
         {/* Right: Actions, User Profile & Logout */}
         <div className="flex items-center gap-2.5 sm:gap-3">
+          {/* Persona Switcher for Dual-Role Users */}
+          {hasCustomerAccount && (
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => switchPersona("CUSTOMER")}
+              className="border-emerald-200 dark:border-emerald-800/60 bg-emerald-50/70 dark:bg-emerald-950/30 text-emerald-700 dark:text-emerald-400 hover:bg-emerald-100 dark:hover:bg-emerald-900/50 hover:text-emerald-800 dark:hover:text-emerald-300 h-9 px-3 text-xs font-semibold rounded-xl transition-colors inline-flex items-center gap-1.5 shadow-sm"
+              title="Switch to Personal Customer Banking View"
+            >
+              <User className="h-3.5 w-3.5 text-emerald-600 dark:text-emerald-400" />
+              <span className="hidden sm:inline">Personal Banking</span>
+              <span className="sm:hidden">Personal</span>
+            </Button>
+          )}
+
           {/* User Email Pill */}
           <span className="hidden lg:inline-flex text-xs text-slate-700 dark:text-slate-300 font-medium bg-slate-100 dark:bg-slate-900/90 border border-slate-200 dark:border-slate-800 px-3 py-1.5 rounded-xl shadow-inner max-w-[200px] truncate">
             {user?.email || "Staff Admin"}
@@ -232,6 +248,19 @@ export function StaffSidebarLayout({ children }: StaffSidebarLayoutProps) {
             </div>
             <ChevronRight className="h-4 w-4 opacity-70" />
           </Link>
+
+          {hasCustomerAccount && (
+            <button
+              onClick={() => switchPersona("CUSTOMER")}
+              className="w-full flex items-center justify-between p-3 rounded-xl text-sm font-semibold transition-colors bg-emerald-50 dark:bg-emerald-950/40 text-emerald-700 dark:text-emerald-300 border border-emerald-200 dark:border-emerald-800/50"
+            >
+              <div className="flex items-center gap-2.5">
+                <User className="h-4 w-4" />
+                <span>Switch to Personal Banking</span>
+              </div>
+              <ChevronRight className="h-4 w-4 opacity-70" />
+            </button>
+          )}
 
           <div className="pt-2 border-t border-slate-200 dark:border-slate-800 flex items-center justify-between">
             <div className="text-xs text-slate-500 dark:text-slate-400 truncate max-w-[200px]">

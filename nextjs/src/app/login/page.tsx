@@ -42,6 +42,10 @@ export default function LoginPage() {
     setErrorMessage(null);
     setStatusMessage(null);
     try {
+      if (typeof window !== "undefined") {
+        sessionStorage.setItem("auth_persona", role === "staff" ? "STAFF" : "CUSTOMER");
+      }
+
       // 1. Authenticate with Google popup
       const userCredential = await signInWithPopup(auth, googleProvider);
       const user = userCredential.user;
@@ -50,11 +54,12 @@ export default function LoginPage() {
         throw new Error("No email associated with this Google account.");
       }
 
-      // 2. Handle conditional flows based on selected login role
+      // 2. Query Identity Service to verify role status
+      const checkRes = await customerIdentityService.checkEmail(user.email);
+
+      // 3. Handle conditional flows based on selected login role
       if (role === "staff") {
-        // Query Identity Service to verify staff status in bank_staff
-        const checkRes = await customerIdentityService.checkEmail(user.email);
-        if (!checkRes.customer_exists || !checkRes.is_staff) {
+        if (!checkRes.is_staff) {
           await signOut(auth);
           throw new Error("This Google account is not pre-authorized as bank staff. Please contact an administrator.");
         }
@@ -67,9 +72,23 @@ export default function LoginPage() {
         }
 
         toast.success("Successfully signed in as Bank Staff!");
-        router.push("/staff/demo-requests");
+        router.push("/staff/copilot");
       } else {
         // Standard Customer Flow
+        if (!checkRes.customer_exists) {
+          await signOut(auth);
+          if (checkRes.is_staff) {
+            throw new Error("This Google account is registered as Bank Staff with no personal customer account. Please use the Staff Portal (/staff/login).");
+          }
+          throw new Error("Not a valid bank customer. Please contact your bank.");
+        }
+
+        if (!checkRes.already_registered) {
+          const idToken = await user.getIdToken();
+          await customerIdentityService.linkUser(idToken);
+          toast.info("Google account linked with customer profile!");
+        }
+
         toast.success("Successfully signed in with Google!");
         router.push("/");
       }

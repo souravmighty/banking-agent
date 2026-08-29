@@ -3,6 +3,7 @@ export interface CheckEmailResponse {
   customer_exists: boolean;
   already_registered?: boolean;
   is_staff?: boolean;
+  customer_id?: number | null;
 }
 
 export interface LinkUserResponse {

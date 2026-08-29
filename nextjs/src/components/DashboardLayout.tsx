@@ -15,11 +15,12 @@ import {
   ChevronDown,
   User,
   Github,
-  Linkedin
+  Linkedin,
+  Shield
 } from "lucide-react";
 
 export function DashboardLayout({ children }: { children: React.ReactNode }) {
-  const { user, customerContext, loading, logout } = useAuth();
+  const { user, customerContext, loading, isStaff, switchPersona, logout } = useAuth();
   const pathname = usePathname();
   const [isProfileOpen, setIsProfileOpen] = useState(false);
   const [navbarImgError, setNavbarImgError] = useState(false);
@@ -230,6 +231,28 @@ export function DashboardLayout({ children }: { children: React.ReactNode }) {
                 </div>
 
                 <div className="border-t border-slate-100 my-2"></div>
+
+                {/* Staff Portal Switcher for Dual-Role Users */}
+                {isStaff && (
+                  <>
+                    <div className="px-2 mb-1">
+                      <button
+                        onClick={() => {
+                          setIsProfileOpen(false);
+                          switchPersona("STAFF");
+                        }}
+                        className="w-full flex items-center gap-3 px-3 py-2 rounded-xl text-xs font-bold text-indigo-700 bg-indigo-50/80 hover:bg-indigo-100 hover:text-indigo-900 transition-all duration-150 border border-indigo-100/80"
+                      >
+                        <Shield className="w-4 h-4 text-indigo-600 shrink-0" />
+                        <div className="text-left flex-1 min-w-0">
+                          <div className="leading-tight">Staff Portal</div>
+                          <div className="text-[10px] font-medium text-indigo-500">Switch to Bank Staff View</div>
+                        </div>
+                      </button>
+                    </div>
+                    <div className="border-t border-slate-100 my-2"></div>
+                  </>
+                )}
 
                 {/* Sign Out Item */}
                 <div className="px-2">

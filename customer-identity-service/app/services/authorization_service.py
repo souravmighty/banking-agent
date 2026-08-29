@@ -14,19 +14,21 @@ class AuthorizationService:
 
     def check_email_availability(self, email: str) -> Dict[str, Any]:
         mapping = self.identity_repo.get_by_email(email)
-        if not mapping:
-            staff = self.identity_repo.get_staff_by_email(email)
-            if staff:
-                return {
-                    "customer_exists": True,
-                    "is_staff": True,
-                    "already_registered": staff.get("firebase_uid") is not None
-                }
-            return {"customer_exists": False}
+        staff = self.identity_repo.get_staff_by_email(email)
+        is_staff = self.identity_repo.is_staff_email(email)
         
+        customer_exists = mapping is not None
+        already_registered = False
+        if mapping and mapping.get("firebase_uid"):
+            already_registered = True
+        elif staff and staff.get("firebase_uid"):
+            already_registered = True
+
         return {
-            "customer_exists": True,
-            "already_registered": mapping.get("firebase_uid") is not None
+            "customer_exists": customer_exists,
+            "is_staff": is_staff,
+            "already_registered": already_registered,
+            "customer_id": mapping.get("customer_id") if mapping else None
         }
 
     def link_staff_user(self, decoded_token: Dict[str, Any]) -> Dict[str, Any]:

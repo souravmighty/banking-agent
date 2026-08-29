@@ -32,6 +32,10 @@ export default function StaffLoginPage() {
     setIsGoogleLoading(true);
     setErrorMessage(null);
     try {
+      if (typeof window !== "undefined") {
+        sessionStorage.setItem("auth_persona", "STAFF");
+      }
+
       // 1. Authenticate with Google
       const userCredential = await signInWithPopup(auth, googleProvider);
       const user = userCredential.user;
@@ -42,7 +46,7 @@ export default function StaffLoginPage() {
 
       // 2. Query Identity Service to verify staff status
       const checkRes = await customerIdentityService.checkEmail(user.email);
-      if (!checkRes.customer_exists || !checkRes.is_staff) {
+      if (!checkRes.is_staff) {
         await signOut(auth);
         throw new Error("This Google account is not pre-authorized as bank staff. Please ask an administrator to add your email first.");
       }
@@ -86,6 +90,9 @@ export default function StaffLoginPage() {
 
     setIsLoading(true);
     try {
+      if (typeof window !== "undefined") {
+        sessionStorage.setItem("auth_persona", "STAFF");
+      }
       await login(email, password);
       toast.success("Successfully signed in as Bank Staff!");
       

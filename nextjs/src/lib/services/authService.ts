@@ -77,6 +77,9 @@ export class AuthService {
     const checkRes = await customerIdentityService.checkEmail(email);
     
     if (!checkRes.customer_exists) {
+      if (checkRes.is_staff) {
+        throw new Error("This email is registered as Bank Staff with no personal customer account. Please use the Staff Portal (/staff/login).");
+      }
       throw new Error("Not a valid bank customer. Please contact your bank.");
     }
 
