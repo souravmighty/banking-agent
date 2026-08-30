@@ -64,9 +64,23 @@ resource "google_project_iam_member" "vertex_ai_sa_permissions" {
     join(",", pair) => pair[1]
   }
 
-  project = var.project_id
-  role    = each.value
-  member  = google_project_service_identity.vertex_sa.member
+  project    = var.project_id
+  role       = each.value
+  member     = google_project_service_identity.vertex_sa.member
   depends_on = [resource.google_project_service.services]
 }
+
+# Grant required permissions to Vertex AI Reasoning Engine service account for Agent Runtime
+resource "google_project_iam_member" "vertex_re_sa_permissions" {
+  for_each = {
+    for pair in setproduct(keys(local.project_ids), var.app_sa_roles) :
+    join(",", pair) => pair[1]
+  }
+
+  project    = var.project_id
+  role       = each.value
+  member     = "serviceAccount:service-${data.google_project.project.number}@gcp-sa-aiplatform-re.iam.gserviceaccount.com"
+  depends_on = [resource.google_project_service.services]
+}
+
 

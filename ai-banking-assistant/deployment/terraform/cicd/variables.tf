@@ -54,7 +54,6 @@ variable "app_sa_roles" {
   description = "List of roles to assign to the application service account"
   type        = list(string)
   default = [
-
     "roles/aiplatform.user",
     "roles/logging.logWriter",
     "roles/cloudtrace.agent",
@@ -62,8 +61,12 @@ variable "app_sa_roles" {
     "roles/serviceusage.serviceUsageConsumer",
     "roles/bigquery.dataOwner",
     "roles/bigquery.jobUser",
+    "roles/bigquery.dataEditor",
+    "roles/bigquery.dataViewer",
+    "roles/bigquery.user",
   ]
 }
+
 
 variable "cicd_roles" {
   description = "List of roles to assign to the CICD runner service account in the CICD project"

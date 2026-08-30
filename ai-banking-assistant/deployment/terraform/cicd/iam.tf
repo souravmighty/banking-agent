@@ -60,8 +60,22 @@ resource "google_project_iam_member" "app_sa_roles" {
   depends_on = [resource.google_project_service.cicd_services, resource.google_project_service.deploy_project_services]
 }
 
+# 4. Grant required permissions to Vertex AI Reasoning Engine service account
+resource "google_project_iam_member" "vertex_re_sa_permissions" {
+  for_each = {
+    for pair in setproduct(keys(local.deploy_project_ids), var.app_sa_roles) :
+    join(",", pair) => {
+      project_id     = local.deploy_project_ids[pair[0]]
+      project_number = data.google_project.projects[pair[0]].number
+      role           = pair[1]
+    }
+  }
 
-
+  project    = each.value.project_id
+  role       = each.value.role
+  member     = "serviceAccount:service-${each.value.project_number}@gcp-sa-aiplatform-re.iam.gserviceaccount.com"
+  depends_on = [resource.google_project_service.cicd_services, resource.google_project_service.deploy_project_services]
+}
 
 
 # Special assignment: Allow the CICD SA to create tokens

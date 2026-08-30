@@ -1,14 +1,7 @@
 {
-  "remote_agent_runtime_id": "projects/569817520730/locations/us-central1/reasoningEngines/5177914165766914048",
+  "remote_agent_runtime_id": "projects/569817520730/locations/us-central1/reasoningEngines/6183342782577377280",
   "deployment_target": "agent_runtime",
   "is_a2a": true,
   "agent_directory": "app",
-  "deployment_timestamp": "2026-08-30T00:39:19.273685+00:00",
-  "pending_operation": {
-    "operation_name": "projects/569817520730/locations/us-central1/reasoningEngines/6183342782577377280/operations/5249895090343641088",
-    "project": "banking-agent-rag-mcp",
-    "location": "us-central1",
-    "deployment_target": "agent_runtime",
-    "started_at": "2026-08-30T00:52:46.781542+00:00"
-  }
+  "deployment_timestamp": "2026-08-30T08:02:48.039182+00:00"
 }

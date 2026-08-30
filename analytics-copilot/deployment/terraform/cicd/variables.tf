@@ -57,6 +57,9 @@ variable "app_sa_roles" {
     "roles/aiplatform.user",
     "roles/bigquery.jobUser",
     "roles/bigquery.dataViewer",
+    "roles/bigquery.dataEditor",
+    "roles/bigquery.dataOwner",
+    "roles/bigquery.user",
     "roles/secretmanager.secretAccessor",
     "roles/logging.logWriter",
     "roles/cloudtrace.agent",
@@ -64,6 +67,7 @@ variable "app_sa_roles" {
     "roles/serviceusage.serviceUsageConsumer",
   ]
 }
+
 
 variable "cicd_roles" {
   description = "List of roles to assign to the CICD runner service account in the CICD project"
