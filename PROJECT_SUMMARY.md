@@ -16,28 +16,21 @@ The platform is built as a high-fidelity simulation of a modern banking environm
 
 ```
 /
-├───infra/                      # Cloud Infrastructure & Data Pipelines
+├───bigquery-infra/             # Cloud Infrastructure & Data Pipelines
 │   ├───bq_schema/              # Terraform Infrastructure (BigQuery)
 │   │   ├───main.tf             # SCD Type 2 table definitions & schemas
-│   └───data_scripts/           # Data Engineering & Ingestion
-│       ├───generate_data.py    # Segmented synthetic data generator (SCD, Paired TXs)
-│       └───upload_to_bigquery.py # Bulk ingestion scripts
-├───mcp-server/                 # Transactional Layer (FastMCP)
-│   ├───app/
-│   │   ├───server.py           # OAuth2 protected tool entrypoints
-│   │   └───tools.py            # Ledger-aware financial logic (Transfers, CC Payments)
-├───app/                        # Multi-Agent Orchestration (ADK)
-│   ├───agent.py                # Root agent orchestrator
-│   ├───sub_agents/             # Specialized agents (BigQuery, Transaction)
-├───data/                       # Local synthetic dataset (CSVs)
-│   ├───accounts.csv
-│   ├───beneficiaries.csv
-│   ├───credit_cards.csv
-│   ├───credit_scores.csv
-│   ├───customers.csv
-│   ├───fixed_deposits.csv
-│   ├───loans.csv
-│   └───transactions.csv
+│   ├───data_scripts/           # Data Engineering & Ingestion
+│   │   ├───generate_data.py    # Segmented synthetic data generator (SCD, Paired TXs)
+│   │   └───upload_to_bigquery.py # Bulk ingestion scripts
+│   └───data/                   # Local synthetic dataset (CSVs, gitignored)
+│       ├───accounts.csv
+│       ├───beneficiaries.csv
+│       ├───credit_cards.csv
+│       ├───credit_scores.csv
+│       ├───customers.csv
+│       ├───fixed_deposits.csv
+│       ├───loans.csv
+│       └───transactions.csv
 ├───MIGRATION_NOTES.md          # Technical record of schema evolutions
 └───README.md                   # System documentation & usage guide
 ```

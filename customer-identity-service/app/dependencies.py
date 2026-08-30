@@ -187,7 +187,7 @@ async def get_current_user(
                 "email": email,
                 "user_role": "BANK_STAFF"
             }
-        raise e
+        raise UnauthorizedException(detail=f"Invalid authentication token: {str(e)}")
 
 
 async def require_bank_staff(

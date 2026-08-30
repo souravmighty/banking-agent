@@ -16,7 +16,7 @@ This release establishes the baseline production-grade architecture of the **Ban
 *   **BigQuery SCD Type 2 Schemas**: Implemented Slowly Changing Dimensions (SCD Type 2) tracking for Customers, Accounts, and Credit Cards tables.
 *   **Double-Entry Ledger Model**: Standardized transactional data to matched DEBIT/CREDIT pairs sharing unique `reference_id` attributes.
 *   **Premium Next.js Client Portal**: Feature-rich React interface featuring smooth native scroll layouts, code block constraints, and a step-by-step AI activity timeline.
-*   **Terraform Infrastructure IaC**: Programmatic table schema mapping, and dataset configurations under `infra/bq_schema/`.
+*   **Terraform Infrastructure IaC**: Programmatic table schema mapping, and dataset configurations under `bigquery-infra/bq_schema/`.
 
 ### Fixed
 *   **Mobile View Responsiveness**: Resolved dynamic width expansion issues on small viewports (Pixel 7 / iPhone SE) by replacing the Radix ScrollArea with native layout boundaries.

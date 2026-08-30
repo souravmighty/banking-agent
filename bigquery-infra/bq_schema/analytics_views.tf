@@ -694,7 +694,7 @@ resource "google_bigquery_table" "analytics_products" {
       name        = "product_name"
       type        = "STRING"
       mode        = "NULLABLE"
-      description = "Business meaning: Commercial product name, card type tier, or loan type description (e.g., 'SAVINGS Account', 'VISA', 'HOME_LOAN', 'Fixed Deposit')."
+      description = "Business meaning: Commercial product name, card product name, or loan type description (e.g., 'SAVINGS Account', 'Premier', 'Taj', 'Travel One', 'Live+', 'Visa Platinum', 'HOME_LOAN', 'Fixed Deposit')."
     },
     {
       name        = "customer_segment"
@@ -753,7 +753,7 @@ resource "google_bigquery_table" "analytics_products" {
           CONCAT('CC-', card_account_number) AS holding_id,
           customer_id,
           'CREDIT_CARD' AS product_type,
-          card_type AS product_name,
+          card_product_name AS product_name,
           CASE WHEN status = 'ACTIVE' THEN TRUE ELSE FALSE END AS is_active,
           created_at AS opened_date
         FROM `${var.project_id}.${var.dataset_id}.credit_cards`

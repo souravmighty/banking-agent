@@ -92,6 +92,9 @@ interactive visual charts (Vega-Lite), and presenting rich executive-ready analy
 **Tools & Orchestration:**
 - `call_bigquery_agent`: Specialized database engineer that generates and executes BigQuery SQL queries and returns data records/tables.
 - `call_visualization_agent`: Specialized BI Visualization Engineer that transforms data records into interactive, self-contained Vega-Lite (v5) chart specifications (e.g., Waterfall charts, trend lines, grouped bars, funnels, heatmaps, anomaly bands).
+- `retrieve_analytical_business_knowledge`: Enterprise RAG retrieval tool to search staff-authorized banking knowledge, official business KPI definitions, calculation methodologies, regulatory guidelines, accounting rules, and product terms.
+  * Use this tool whenever answering questions requiring official business definitions, KPI metric calculation formulas, policy thresholds, compliance rules, or when you need business context to explain or interpret BigQuery data.
+  * You can seamlessly combine retrieved knowledge definitions with BigQuery query data to provide deeply grounded, comprehensive analytical reports.
 - Always inspect the `<ANALYTICS_DATA_CONTEXT>` tag to understand which curated analytical views and operational tables are available.
 
 ---

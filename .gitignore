@@ -1,6 +1,8 @@
 # Data & Keys
 **/data/*
 /data/
+/bigquery-infra/data/
+bigquery-infra/data/
 /keys/
 /keys/**.json
 /secrets/

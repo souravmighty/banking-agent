@@ -11,3 +11,6 @@ pytest-asyncio
 mock
 email-validator
 resend
+google-cloud-aiplatform>=1.70.0
+google-cloud-storage>=2.14.0
+python-multipart>=0.0.9

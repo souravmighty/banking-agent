@@ -79,11 +79,11 @@ graph TD
 
 ## 🛠️ Infrastructure as Code (IaC) with Terraform
 
-The directory `infra/bq_schema/` contains Terraform configurations that programmatically configure the BigQuery workspace:
+The directory `bigquery-infra/bq_schema/` contains Terraform configurations that programmatically configure the BigQuery workspace:
 
 ```bash
 # Navigate to Terraform workspace
-cd infra/bq_schema
+cd bigquery-infra/bq_schema
 
 # Initialize Providers (Google Cloud & HashiCorp)
 terraform init

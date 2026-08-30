@@ -1,5 +1,7 @@
 import asyncio
 import logging
+import os
+import httpx
 
 from google.adk.tools import ToolContext
 from google.adk.tools.agent_tool import AgentTool
@@ -180,3 +182,112 @@ async def call_visualization_agent(
     tool_context.state["visualization_agent_output"] = visualization_output
 
     return visualization_output
+
+
+async def retrieve_analytical_business_knowledge(
+    query: str,
+    product_type: str | None = None,
+    document_type: str | None = None,
+    top_k: int = 5,
+    tool_context: ToolContext | None = None,
+) -> dict:
+    """Tool to retrieve enterprise banking business definitions, KPI/metric definitions, reporting policies,
+    regulatory guidelines, accounting rules, and staff-authorized knowledge from the Governed Knowledge Base.
+
+    Use this tool when answering analytical inquiries requiring business metric formulas, segment definitions,
+    product terms, policy thresholds, compliance guidance, or context to interpret BigQuery data.
+
+    Args:
+        query: Specific semantic search query for business definitions, KPI formulas, product rules, or policies.
+        product_type: Optional product category filter (e.g. "CREDIT_CARD", "LOAN", "SAVINGS", "INVESTMENT", "ACCOUNT").
+        document_type: Optional document type filter (e.g. "PRODUCT", "POLICY", "FAQ", "TERMS_AND_CONDITIONS", "SERVICE_INFORMATION").
+        top_k: Number of relevant knowledge passages to retrieve (default: 5).
+
+    Returns:
+        dict: Retrieved knowledge passages, source documents, versions, and business definitions.
+    """
+    logger.info("retrieve_analytical_business_knowledge called with query: %s", query)
+    identity_service_url = os.getenv("IDENTITY_SERVICE_URL", "http://localhost:8001")
+    retrieve_endpoint = f"{identity_service_url.rstrip('/')}/api/v1/knowledge/retrieve"
+
+    payload = {
+        "query": query,
+        "access_scope": "STAFF",
+        "product_type": product_type,
+        "document_type": document_type,
+        "region": "IN",
+        "top_k": top_k,
+    }
+
+    # Extract token if available
+    token = ""
+    if tool_context:
+        try:
+            from .agent import get_firebase_jwt_token
+        except (ImportError, ValueError):
+            from app.agent import get_firebase_jwt_token
+        token = get_firebase_jwt_token(tool_context)
+
+    try:
+        async with httpx.AsyncClient(timeout=30.0) as client:
+            headers = {"Content-Type": "application/json"}
+            if token:
+                headers["Authorization"] = f"Bearer {token}"
+                headers["x-firebase-id-token"] = token
+                headers["x-auth-token"] = token
+
+            is_cloud_run = (
+                os.getenv("K_SERVICE") is not None
+                or os.getenv("GOOGLE_GENAI_USE_VERTEXAI", "FALSE").upper() == "TRUE"
+            )
+            if is_cloud_run and not identity_service_url.startswith("http://localhost") and not identity_service_url.startswith("http://127.0.0.1"):
+                try:
+                    from google.auth.transport.requests import Request
+                    from google.oauth2.id_token import fetch_id_token
+                    headers["Authorization"] = f"Bearer {fetch_id_token(Request(), identity_service_url)}"
+                except Exception as ex:
+                    logger.warning("Could not fetch GCP ID token for identity service: %s", ex)
+
+            response = await client.post(retrieve_endpoint, json=payload, headers=headers)
+            if response.status_code == 200:
+                return response.json()
+            else:
+                logger.warning(
+                    "Identity service knowledge retrieve returned status %s: %s",
+                    response.status_code,
+                    response.text,
+                )
+    except Exception as e:
+        logger.error("HTTP error calling knowledge retrieve endpoint from analytics copilot: %s", e)
+
+    # Fallback: Direct Vertex AI RAG Engine retrieval
+    try:
+        import vertexai
+        from vertexai.preview import rag
+        corpus_name = os.getenv(
+            "RAG_CORPUS_NAME",
+            "projects/569817520730/locations/us-central1/ragCorpora/8212569007207743488",
+        )
+        vertexai.init(
+            project=os.getenv("GOOGLE_CLOUD_PROJECT", "banking-agent-rag-mcp"),
+            location=os.getenv("RAG_LOCATION", "us-central1"),
+        )
+        rag_res = rag.retrieval_query(
+            text=query,
+            rag_corpora=[corpus_name],
+            similarity_top_k=top_k,
+        )
+        contexts = []
+        raw_items = getattr(rag_res.contexts, "contexts", []) if hasattr(rag_res, "contexts") else []
+        for item in raw_items:
+            contexts.append({
+                "text": getattr(item, "text", ""),
+                "source_uri": getattr(item, "source_uri", ""),
+                "access_control": ["STAFF"],
+                "distance": getattr(item, "distance", None),
+                "relevance_score": getattr(item, "score", None),
+            })
+        return {"query": query, "results": contexts, "total_found": len(contexts)}
+    except Exception as ex:
+        logger.error("Direct RAG fallback also failed in analytics copilot: %s", ex)
+        return {"query": query, "results": [], "total_found": 0, "error": str(ex)}

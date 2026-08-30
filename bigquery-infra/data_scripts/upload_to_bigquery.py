@@ -12,7 +12,7 @@ BASE_DIR = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__fil
 load_dotenv(os.path.join(BASE_DIR, '.env'))
 
 # Data directory path
-DATA_DIR = os.path.join(BASE_DIR, 'data')
+DATA_DIR = os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), 'data')
 KEY_PATH = os.path.join(BASE_DIR, 'keys/tf-sa-key.json')
 
 def upload_csv_to_bigquery(project_id, dataset_id, table_id, csv_file):

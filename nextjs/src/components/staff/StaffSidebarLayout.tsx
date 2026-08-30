@@ -8,6 +8,7 @@ import {
   X,
   Landmark, 
   Sparkles, 
+  BookOpen,
   ClipboardList, 
   UserCheck, 
   LogOut,
@@ -72,6 +73,9 @@ export function StaffSidebarLayout({ children }: StaffSidebarLayoutProps) {
   const isDemoCustomersActive =
     pathname.startsWith("/staff/demo-customers");
 
+  const isKnowledgeActive =
+    pathname.startsWith("/staff/knowledge");
+
   const handleLogout = async () => {
     try {
       await logout();
@@ -124,6 +128,18 @@ export function StaffSidebarLayout({ children }: StaffSidebarLayoutProps) {
             >
               <Sparkles className="h-3.5 w-3.5" />
               <span>Analytics Copilot</span>
+            </Link>
+
+            <Link
+              href="/staff/knowledge"
+              className={`px-3.5 py-1.5 rounded-lg transition-all flex items-center gap-2 ${
+                isKnowledgeActive
+                  ? "bg-indigo-600 text-white shadow-sm font-bold"
+                  : "text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white hover:bg-slate-200/60 dark:hover:bg-slate-800/60"
+              }`}
+            >
+              <BookOpen className="h-3.5 w-3.5" />
+              <span>Knowledge Base</span>
             </Link>
 
             <Link
@@ -215,6 +231,21 @@ export function StaffSidebarLayout({ children }: StaffSidebarLayoutProps) {
             <div className="flex items-center gap-2.5">
               <Sparkles className="h-4 w-4" />
               <span>Analytics Copilot</span>
+            </div>
+            <ChevronRight className="h-4 w-4 opacity-70" />
+          </Link>
+
+          <Link
+            href="/staff/knowledge"
+            className={`flex items-center justify-between p-3 rounded-xl text-sm font-semibold transition-colors ${
+              isKnowledgeActive
+                ? "bg-indigo-600 text-white shadow-sm"
+                : "text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-900"
+            }`}
+          >
+            <div className="flex items-center gap-2.5">
+              <BookOpen className="h-4 w-4" />
+              <span>Knowledge Base</span>
             </div>
             <ChevronRight className="h-4 w-4 opacity-70" />
           </Link>

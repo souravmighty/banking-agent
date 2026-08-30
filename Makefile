@@ -84,16 +84,16 @@ adk-web:
 
 # Infrastructure & Data Management
 bq-setup:
-	cd infra/bq_schema && terraform init && terraform apply -auto-approve
+	cd bigquery-infra/bq_schema && terraform init && terraform apply -auto-approve
 
 mcp-server-infra:
 	cd mcp-server/terraform && terraform init && terraform apply -auto-approve
 
 generate-data:
-	cd infra/data_scripts && python3 generate_data.py
+	cd bigquery-infra/data_scripts && python3 generate_data.py
 
 upload-data:
-	cd infra/data_scripts && python3 upload_to_bigquery.py
+	cd bigquery-infra/data_scripts && python3 upload_to_bigquery.py
 
 # Full data platform setup
 data-setup: bq-setup generate-data upload-data

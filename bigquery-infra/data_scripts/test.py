@@ -1,6 +1,6 @@
 import pandas as pd 
 
-df = pd.read_csv('../../data/accounts.csv')
+df = pd.read_csv('../data/accounts.csv')
 
 print(df.head())
 

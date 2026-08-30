@@ -14,7 +14,7 @@ np.random.seed(42)
 # Configuration
 NUM_CUSTOMERS = 1000
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
-DATA_DIR = os.path.join(BASE_DIR, 'data')
+DATA_DIR = os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), 'data')
 os.makedirs(DATA_DIR, exist_ok=True)
 
 # Constants & Enums
@@ -327,6 +327,7 @@ def generate_credit_cards_scd(customers_df):
                 'customer_id': customer['customer_id'],
                 'card_number': fake.credit_card_number(card_type='visa'),
                 'card_type': random.choice(['VISA', 'MASTERCARD', 'RUPAY']),
+                'card_product_name': random.choice(['Premier', 'Taj', 'Travel One', 'Live+', 'Visa Platinum']),
                 'credit_limit': limit,
                 'available_credit': limit - outstanding,
                 'outstanding_balance': outstanding,

@@ -39,6 +39,13 @@ class Settings(BaseSettings):
     SMTP_FROM_EMAIL: Optional[str] = None
     SMTP_FROM_NAME: str = "BankPilot"
     
+    # RAG Engine & Knowledge Management Configuration
+    RAG_CORPUS_NAME: str = "projects/569817520730/locations/us-central1/ragCorpora/8212569007207743488"
+    RAG_DOCUMENT_BUCKET: str = "banking-agent-knowledge-docs"
+    RAG_LOCATION: str = "us-central1"
+    RAG_EMBEDDING_MODEL: str = "publishers/google/models/text-embedding-004"
+    IDENTITY_DATASET: str = "customer_identity"
+
     model_config = SettingsConfigDict(env_file=".env", case_sensitive=True, extra="ignore")
 
 settings = Settings()

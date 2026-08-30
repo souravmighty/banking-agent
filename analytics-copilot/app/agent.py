@@ -46,11 +46,19 @@ os.environ["GOOGLE_CLOUD_LOCATION"] = "global"
 try:
     from .prompts import return_instructions_root
     from .sub_agents.bigquery.tools import get_analytics_metadata
-    from .tools import call_bigquery_agent, call_visualization_agent
+    from .tools import (
+        call_bigquery_agent,
+        call_visualization_agent,
+        retrieve_analytical_business_knowledge,
+    )
 except (ImportError, ValueError):
     from app.prompts import return_instructions_root
     from app.sub_agents.bigquery.tools import get_analytics_metadata
-    from app.tools import call_bigquery_agent, call_visualization_agent
+    from app.tools import (
+        call_bigquery_agent,
+        call_visualization_agent,
+        retrieve_analytical_business_knowledge,
+    )
 
 load_dotenv()
 
@@ -460,7 +468,11 @@ def load_analytics_metadata_in_context(callback_context: CallbackContext):
 
 
 def get_root_agent() -> LlmAgent:
-    tools = [call_bigquery_agent, call_visualization_agent]
+    tools = [
+        call_bigquery_agent,
+        call_visualization_agent,
+        retrieve_analytical_business_knowledge,
+    ]
 
     agent = LlmAgent(
         model=os.getenv("ROOT_AGENT_MODEL", "gemini-3.7-flash"),

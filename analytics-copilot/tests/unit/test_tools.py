@@ -1,5 +1,5 @@
 import unittest
-from unittest.mock import AsyncMock, patch
+from unittest.mock import AsyncMock, MagicMock, patch
 
 from app.tools import call_bigquery_agent, call_visualization_agent
 
@@ -42,6 +42,49 @@ class TestAnalyticsTools(unittest.IsolatedAsyncioTestCase):
                 "```vega-lite\n{}\n```",
             )
 
+    async def test_retrieve_analytical_business_knowledge_success(self):
+        from app.tools import retrieve_analytical_business_knowledge
+
+        tool_context = AsyncMock()
+        tool_context.state = {"firebase_id_token": "mock_jwt_token"}
+
+        mock_response_data = {
+            "query": "What is the formula for Customer Churn Rate?",
+            "results": [
+                {
+                    "document_id": "doc_staff_kpi",
+                    "document_name": "Staff KPI & Metrics Definitions",
+                    "logical_document_id": "doc-kpi-metrics",
+                    "version": "v1.0.0",
+                    "access_control": ["STAFF"],
+                    "text": "Churn Rate is calculated as (Lost Customers / Starting Customers) * 100 over a 30-day window.",
+                    "source_uri": "gs://banking-agent-knowledge-docs/kpis/metrics.pdf",
+                    "relevance_score": 0.94,
+                }
+            ],
+            "total_found": 1,
+        }
+
+        with patch("httpx.AsyncClient.post", new_callable=AsyncMock) as mock_post:
+            mock_resp = MagicMock()
+            mock_resp.status_code = 200
+            mock_resp.json.return_value = mock_response_data
+            mock_post.return_value = mock_resp
+
+            res = await retrieve_analytical_business_knowledge(
+                query="What is the formula for Customer Churn Rate?",
+                tool_context=tool_context,
+            )
+
+            self.assertEqual(res["total_found"], 1)
+            self.assertEqual(res["results"][0]["document_id"], "doc_staff_kpi")
+            self.assertIn("STAFF", res["results"][0]["access_control"])
+
+            # Verify that STAFF access_scope was sent in the payload
+            call_kwargs = mock_post.call_args[1]
+            self.assertEqual(call_kwargs["json"]["access_scope"], "STAFF")
+
 
 if __name__ == "__main__":
     unittest.main()
+

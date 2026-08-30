@@ -4,6 +4,7 @@ from typing import List, Dict, Any, Optional
 
 class BigQueryService:
     def __init__(self):
+        self.project_id = settings.GOOGLE_CLOUD_PROJECT
         self.client = bigquery.Client(project=settings.GOOGLE_CLOUD_PROJECT)
         self._metadata_cache = {}
 

@@ -353,6 +353,9 @@ class CustomerIdentityService {
   /**
    * Release a demo customer allocation (Admin/Staff only)
    */
+  /**
+   * Release a demo customer allocation (Admin/Staff only)
+   */
   async releaseDemoCustomer(idToken: string, customerId: string): Promise<{ customer_id: number; status: string; released_at: string; deleted_views_count: number }> {
     try {
       const response = await fetch(`${this.getBaseUrl()}/api/v1/demo/release/${customerId}`, {
@@ -374,6 +377,253 @@ class CustomerIdentityService {
       throw error;
     }
   }
+
+  /**
+   * List Knowledge Documents with optional filters (Staff only)
+   */
+  async getKnowledgeDocuments(
+    idToken: string,
+    filters?: {
+      document_type?: string;
+      product_type?: string;
+      status?: string;
+      is_active?: boolean;
+      access_scope?: string;
+    }
+  ): Promise<{ documents: KnowledgeDocument[]; total: number }> {
+    try {
+      const params = new URLSearchParams();
+      if (filters?.document_type) params.append("document_type", filters.document_type);
+      if (filters?.product_type) params.append("product_type", filters.product_type);
+      if (filters?.status) params.append("status", filters.status);
+      if (filters?.is_active !== undefined) params.append("is_active", String(filters.is_active));
+      if (filters?.access_scope) params.append("access_scope", filters.access_scope);
+
+      const url = `${this.getBaseUrl()}/api/v1/knowledge/documents${params.toString() ? `?${params.toString()}` : ""}`;
+      const response = await fetch(url, {
+        method: "GET",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${idToken}`,
+        },
+      });
+
+      if (!response.ok) {
+        const errorData = await response.json().catch(() => ({}));
+        throw new Error(errorData.detail || "Failed to fetch knowledge documents.");
+      }
+
+      return await response.json();
+    } catch (error) {
+      console.error("Error in getKnowledgeDocuments:", error);
+      throw error;
+    }
+  }
+
+  /**
+   * Get Single Knowledge Document details (Staff only)
+   */
+  async getKnowledgeDocument(idToken: string, documentId: string): Promise<KnowledgeDocument> {
+    try {
+      const response = await fetch(`${this.getBaseUrl()}/api/v1/knowledge/documents/${documentId}`, {
+        method: "GET",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${idToken}`,
+        },
+      });
+
+      if (!response.ok) {
+        const errorData = await response.json().catch(() => ({}));
+        throw new Error(errorData.detail || "Failed to fetch document details.");
+      }
+
+      return await response.json();
+    } catch (error) {
+      console.error("Error in getKnowledgeDocument:", error);
+      throw error;
+    }
+  }
+
+  /**
+   * Get Version History for a Document (Staff only)
+   */
+  async getKnowledgeDocumentVersions(idToken: string, documentId: string): Promise<KnowledgeVersion[]> {
+    try {
+      const response = await fetch(`${this.getBaseUrl()}/api/v1/knowledge/documents/${documentId}/versions`, {
+        method: "GET",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${idToken}`,
+        },
+      });
+
+      if (!response.ok) {
+        const errorData = await response.json().catch(() => ({}));
+        throw new Error(errorData.detail || "Failed to fetch version history.");
+      }
+
+      return await response.json();
+    } catch (error) {
+      console.error("Error in getKnowledgeDocumentVersions:", error);
+      throw error;
+    }
+  }
+
+  /**
+   * Get Audit Logs for a Document (Staff only)
+   */
+  async getKnowledgeDocumentAuditLogs(idToken: string, documentId: string): Promise<KnowledgeAuditLog[]> {
+    try {
+      const response = await fetch(`${this.getBaseUrl()}/api/v1/knowledge/documents/${documentId}/audit-logs`, {
+        method: "GET",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${idToken}`,
+        },
+      });
+
+      if (!response.ok) {
+        const errorData = await response.json().catch(() => ({}));
+        throw new Error(errorData.detail || "Failed to fetch document audit logs.");
+      }
+
+      return await response.json();
+    } catch (error) {
+      console.error("Error in getKnowledgeDocumentAuditLogs:", error);
+      throw error;
+    }
+  }
+
+  /**
+   * Upload a new Knowledge Document or new Version (Staff only)
+   */
+  async uploadKnowledgeDocument(idToken: string, formData: FormData): Promise<KnowledgeDocument> {
+    try {
+      const response = await fetch(`${this.getBaseUrl()}/api/v1/knowledge/documents`, {
+        method: "POST",
+        headers: {
+          Authorization: `Bearer ${idToken}`,
+        },
+        body: formData,
+      });
+
+      if (!response.ok) {
+        const errorData = await response.json().catch(() => ({}));
+        throw new Error(errorData.detail || "Failed to upload knowledge document.");
+      }
+
+      return await response.json();
+    } catch (error) {
+      console.error("Error in uploadKnowledgeDocument:", error);
+      throw error;
+    }
+  }
+
+  /**
+   * Retry failed RAG indexing for a document (Staff only)
+   */
+  async retryKnowledgeDocument(idToken: string, documentId: string): Promise<KnowledgeDocument> {
+    try {
+      const response = await fetch(`${this.getBaseUrl()}/api/v1/knowledge/documents/${documentId}/retry`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${idToken}`,
+        },
+      });
+
+      if (!response.ok) {
+        const errorData = await response.json().catch(() => ({}));
+        throw new Error(errorData.detail || "Failed to retry document indexing.");
+      }
+
+      return await response.json();
+    } catch (error) {
+      console.error("Error in retryKnowledgeDocument:", error);
+      throw error;
+    }
+  }
+
+  /**
+   * Manually archive a document version (Staff only)
+   */
+  async archiveKnowledgeDocument(idToken: string, documentId: string): Promise<KnowledgeDocument> {
+    try {
+      const response = await fetch(`${this.getBaseUrl()}/api/v1/knowledge/documents/${documentId}/archive`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${idToken}`,
+        },
+      });
+
+      if (!response.ok) {
+        const errorData = await response.json().catch(() => ({}));
+        throw new Error(errorData.detail || "Failed to archive document.");
+      }
+
+      return await response.json();
+    } catch (error) {
+      console.error("Error in archiveKnowledgeDocument:", error);
+      throw error;
+    }
+  }
+}
+
+export interface KnowledgeDocument {
+  document_id: string;
+  logical_document_id: string;
+  document_name: string;
+  original_filename: string;
+  document_type: "PRODUCT" | "POLICY" | "FAQ" | "TERMS_AND_CONDITIONS" | "SERVICE_INFORMATION";
+  product_type?: "CREDIT_CARD" | "LOAN" | "SAVINGS" | "INVESTMENT" | "ACCOUNT" | "OTHER";
+  product_id?: string;
+  product_name?: string;
+  version: string;
+  status: "DRAFT" | "PROCESSING" | "ACTIVE" | "ARCHIVED" | "FAILED";
+  effective_from: string;
+  effective_to?: string;
+  region: string;
+  audience?: string;
+  access_control: string[];
+  gcs_uri: string;
+  rag_file_id?: string;
+  rag_corpus_name?: string;
+  uploaded_by: string;
+  uploaded_at: string;
+  updated_at: string;
+  ingestion_status: "PENDING" | "UPLOADING" | "INDEXING" | "COMPLETED" | "FAILED";
+  ingestion_error?: string;
+  is_active: boolean;
+}
+
+export interface KnowledgeVersion {
+  document_id: string;
+  logical_document_id: string;
+  version: string;
+  document_name: string;
+  status: string;
+  ingestion_status: string;
+  is_active: boolean;
+  uploaded_by: string;
+  uploaded_at: string;
+  effective_from: string;
+  effective_to?: string;
+  access_control?: string[];
+  gcs_uri: string;
+}
+
+export interface KnowledgeAuditLog {
+  audit_id: string;
+  document_id: string;
+  logical_document_id: string;
+  version: string;
+  action: string;
+  result: string;
+  user_id: string;
+  timestamp: string;
+  details?: string;
 }
 
 export const customerIdentityService = new CustomerIdentityService();

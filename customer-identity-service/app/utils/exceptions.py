@@ -1,8 +1,9 @@
 from fastapi import HTTPException, status
 
 class CustomerIdentityException(HTTPException):
-    def __init__(self, status_code: int, detail: str):
-        super().__init__(status_code=status_code, detail=detail)
+    def __init__(self, status_code: int = status.HTTP_500_INTERNAL_SERVER_ERROR, detail: str = "", message: str = "", details: dict = None):
+        msg = detail or message or "An error occurred in Customer Identity Service"
+        super().__init__(status_code=status_code, detail=msg)
 
 class CustomerNotFoundException(CustomerIdentityException):
     def __init__(self, detail: str = "Customer not found"):

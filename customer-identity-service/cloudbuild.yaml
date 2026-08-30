@@ -24,7 +24,7 @@ steps:
           --platform managed \
           --allow-unauthenticated \
           --service-account "$$SERVICE_ACCOUNT" \
-          --set-env-vars GOOGLE_CLOUD_PROJECT=banking-agent-rag-mcp,BIGQUERY_DATASET=banking_data,BIGQUERY_VIEWS_DATASET=customer_views,BIGQUERY_ANALYTICS_DATASET=analytics,FIREBASE_SERVICE_ACCOUNT_PATH=
+          --set-env-vars GOOGLE_CLOUD_PROJECT=banking-agent-rag-mcp,BIGQUERY_DATASET=banking_data,BIGQUERY_VIEWS_DATASET=customer_views,BIGQUERY_ANALYTICS_DATASET=analytics,FIREBASE_SERVICE_ACCOUNT_PATH=,EMAIL_FROM="BankPilot <security@contact.souravmaiti.dev>",ADMIN_EMAIL=souravmaiti1997@gmail.com,ADMIN_EMAILS=souravmaiti1997@gmail.com,RAG_CORPUS_NAME=projects/569817520730/locations/us-central1/ragCorpora/8212569007207743488,RAG_DOCUMENT_BUCKET=banking-agent-knowledge-docs,RAG_LOCATION=us-central1,IDENTITY_DATASET=customer_identity
 
 
 images:

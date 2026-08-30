@@ -543,14 +543,22 @@ def load_database_settings_in_context(callback_context: CallbackContext):
     if "customer_profile" in callback_context.state:
         return
 
-    # Extract the user ID from the callback context session if available
-    user_id = getattr(callback_context.session, "user_id", None)
-    
-    # Check global server-side cache if user_id is present
     token = get_firebase_jwt_token(callback_context)
     if token:
         callback_context.state["jwt_token"] = token
         callback_context.state["token"] = token
+
+    # Extract the user ID from the callback context session or token if available
+    user_id = getattr(callback_context.session, "user_id", None) or callback_context.state.get("user_id")
+    if not user_id and token:
+        try:
+            import jwt
+            decoded = jwt.decode(token, options={"verify_signature": False})
+            user_id = decoded.get("user_id") or decoded.get("uid") or decoded.get("sub")
+            if user_id:
+                callback_context.state["user_id"] = user_id
+        except Exception:
+            pass
 
     if user_id:
         cached_context = user_context_cache.get(user_id)
@@ -603,9 +611,13 @@ def load_database_settings_in_context(callback_context: CallbackContext):
         raise RuntimeError(f"Failed to fetch context from identity service: {safe_msg}")
         
     
+from .tools import call_bigquery_agent, get_transaction_mcp_toolset, retrieve_product_policy_knowledge
+
+
 def get_root_agent() -> LlmAgent:
     tools = [
         call_bigquery_agent,
+        retrieve_product_policy_knowledge,
         get_transaction_mcp_toolset(),
     ]
     agent = LlmAgent(
@@ -613,8 +625,8 @@ def get_root_agent() -> LlmAgent:
         name="ai_banking_assistant",
         description="Customer-facing AI Banking Assistant for checking balances, transaction history, and banking operations.",
         planner=BuiltInPlanner(
-        thinking_config=genai_types.ThinkingConfig(include_thoughts=True)
-    ),
+            thinking_config=genai_types.ThinkingConfig(thinking_budget=0)
+        ),
         instruction=return_instructions_root,
         # + get_dataset_definitions_for_instructions(),
         # + get_customer_details_for_instructions(),

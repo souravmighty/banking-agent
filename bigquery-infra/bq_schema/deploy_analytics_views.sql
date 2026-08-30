@@ -262,7 +262,7 @@ WITH product_holdings AS (
     CONCAT('CC-', card_account_number) AS holding_id,
     customer_id,
     'CREDIT_CARD' AS product_type,
-    card_type AS product_name,
+    card_product_name AS product_name,
     CASE WHEN status = 'ACTIVE' THEN TRUE ELSE FALSE END AS is_active,
     created_at AS opened_date
   FROM `banking-agent-rag-mcp.banking_data.credit_cards`

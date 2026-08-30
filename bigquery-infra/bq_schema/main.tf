@@ -516,6 +516,12 @@ resource "google_bigquery_table" "credit_cards" {
       description = "Business meaning: Card processing network and tier. Allowed values: VISA, MASTERCARD, RUPAY. Relationship information: None. Nullability: Never null."
     },
     {
+      name        = "card_product_name"
+      type        = "STRING"
+      mode        = "NULLABLE"
+      description = "Business meaning: Commercial credit card product branding name. Allowed values: Premier, Taj, Travel One, Live+, Visa Platinum. Relationship information: None. Nullability: Nullable."
+    },
+    {
       name        = "credit_limit"
       type        = "FLOAT"
       mode        = "REQUIRED"
