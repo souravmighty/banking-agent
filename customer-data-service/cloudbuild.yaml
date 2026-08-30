@@ -13,19 +13,35 @@ steps:
     args:
       - '-c'
       - |
-        SERVICE_ACCOUNT=$$(grep -E '^DEPLOY_SERVICE_ACCOUNT=' .env | cut -d'=' -f2)
+        SERVICE_ACCOUNT=$$(grep -E '^DEPLOY_SERVICE_ACCOUNT=' .env 2>/dev/null | cut -d'=' -f2 | tr -d '\"'\' || true)
         if [ -z "$$SERVICE_ACCOUNT" ]; then
           SERVICE_ACCOUNT="customer-data-service@$PROJECT_ID.iam.gserviceaccount.com"
         fi
         echo "Deploying to Cloud Run with Service Account: $$SERVICE_ACCOUNT"
+
+        ENV_FLAGS=""
+        if [ -f .env ]; then
+          python3 -c "
+        with open('.env') as f, open('.env.yaml', 'w') as out:
+            for line in f:
+                line = line.strip()
+                if line and not line.startswith('#') and '=' in line:
+                    k, v = line.split('=', 1)
+                    k, v = k.strip(), v.strip().strip('\"\'')
+                    if k != 'DEPLOY_SERVICE_ACCOUNT':
+                        escaped_v = v.replace('\\\\', '\\\\\\\\').replace('\"', '\\\"')
+                        out.write(f'{k}: \"{escaped_v}\"\n')
+        "
+          ENV_FLAGS="--env-vars-file=.env.yaml"
+        fi
+
         gcloud run deploy customer-data-service \
           --image gcr.io/$PROJECT_ID/customer-data-service \
           --region us-central1 \
           --platform managed \
           --allow-unauthenticated \
           --service-account "$$SERVICE_ACCOUNT" \
-          --set-env-vars GOOGLE_CLOUD_PROJECT=banking-agent-rag-mcp,BIGQUERY_DATASET=banking_data,BIGQUERY_VIEWS_DATASET=customer_views,FIREBASE_SERVICE_ACCOUNT_PATH=
-
+          $$ENV_FLAGS
 
 images:
   - 'gcr.io/$PROJECT_ID/customer-data-service'
