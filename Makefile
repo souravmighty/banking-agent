@@ -1,4 +1,4 @@
-.PHONY: install dev dev-backend dev-frontend identity-service customer-data-service analytics-metadata-service analytics-copilot analytics-copilot-api ai-banking-assistant ai-banking-assistant-api mcp-server test-identity-service test-metadata-service test-analytics-copilot test-ai-banking-assistant test-mcp-server eval-analytics-copilot eval-ai-banking-assistant eval-banking-suite eval-safety-suite bq-setup mcp-server-infra generate-data upload-data data-setup lint deploy-adk deploy-identity-service deploy-data-service deploy-mcp-server deploy-analytics-copilot deploy-ai-banking-assistant
+.PHONY: install dev dev-backend dev-frontend identity-service customer-data-service analytics-metadata-service analytics-copilot analytics-copilot-api ai-banking-assistant ai-banking-assistant-api mcp-server test-identity-service test-metadata-service test-analytics-copilot test-ai-banking-assistant test-mcp-server eval-analytics-copilot eval-ai-banking-assistant eval-banking-suite eval-safety-suite bq-setup mcp-server-infra ai-banking-assistant-infra analytics-copilot-infra infra-setup generate-data upload-data data-setup lint deploy-adk deploy-identity-service deploy-data-service deploy-mcp-server deploy-analytics-copilot deploy-ai-banking-assistant deploy-frontend-firebase
 
 PROJECT_ID ?= banking-agent-rag-mcp
 REGION ?= us-central1
@@ -89,6 +89,15 @@ bq-setup:
 mcp-server-infra:
 	cd mcp-server/terraform && terraform init && terraform apply -auto-approve
 
+ai-banking-assistant-infra:
+	cd ai-banking-assistant/deployment/terraform/single-project && terraform init && terraform apply -auto-approve -var-file=vars/env.tfvars
+
+analytics-copilot-infra:
+	cd analytics-copilot/deployment/terraform/single-project && terraform init && terraform apply -auto-approve -var-file=vars/env.tfvars
+
+# Full infrastructure setup across BigQuery, MCP Server, and Agent Staging
+infra-setup: bq-setup mcp-server-infra ai-banking-assistant-infra analytics-copilot-infra
+
 generate-data:
 	cd bigquery-infra/data_scripts && python3 generate_data.py
 
@@ -133,3 +142,8 @@ deploy-analytics-copilot:
 		--project $(PROJECT_ID) \
 		--region $(REGION) \
 		--service-account $(APP_SERVICE_ACCOUNT)
+
+# Deploy Next.js Frontend to Firebase App Hosting / Hosting
+deploy-frontend-firebase:
+	cd nextjs && npx firebase-tools deploy --only hosting
+
