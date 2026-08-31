@@ -94,33 +94,6 @@
 
 ---
 
-## 🏆 Hackathon Alignment & Enterprise Blueprint
-
-BankPilot is purpose-built to meet and exceed all judging criteria for the **All Things Agentic Hackathon**, specifically targeting the **Fortified Enterprise Fleet** category while incorporating high-utility **TaskMaster** autonomous execution and **Collaborative Partner** human-in-the-loop adaptation.
-
-### Mandatory Technology Verification
-| Hackathon Requirement | BankPilot Implementation | Verification Evidence |
-| :--- | :--- | :--- |
-| **Gemini 3.5 or newer** | **Gemini 3.7 Flash** across Root Orchestrators, NL2SQL, and RAG agents | Integrated via Agent Platform (`ROOT_AGENT_MODEL=gemini-3.7-flash`) |
-| **Google Agent Framework** | **Google ADK (Agent Development Kit)** | Root multi-agent controllers, custom tool bindings, session state, and eval runners |
-| **Google Cloud Infrastructure** | **Cloud Run, BigQuery, Firebase, Cloud Logging, Cloud Trace** | Production microservices on Cloud Run, partitioned datasets in BigQuery, JWT via Firebase |
-
-### Enterprise Agentic Pillars (Judging Stage Two Alignment)
-1. **Innovation & Operational Utility (40%)**:
-   - **Eliminates Critical Real-World Friction**: Solves the security risks of direct LLM SQL access and unverified client claims by dynamically compiling zero-trust BigQuery customer sandbox views and requiring step-up email OTP for high-value transactions.
-   - **The "Twist"**: Goes beyond chat into an autonomous financial action engine executing double-entry atomic ledger writes over FastMCP and an enterprise intelligence copilot performing multi-intent query decomposition with interactive Vega-Lite charts.
-   - **The Unlikely Hero**: Empowers both everyday retail banking customers and non-technical internal compliance, risk, and branch managers to diagnose multi-dimensional root causes (e.g. variance, churn, funnel drop-offs) without writing SQL.
-2. **Architectural Discipline & Tech Stack (30%)**:
-   - **Strict Separation of Concerns**: Isolates analytical reasoning (NL2SQL), transactional writes (FastMCP tools), grounded knowledge retrieval (RAG), and data visualization into decoupled, failure-tolerant sub-agents.
-   - **Zero-Trust Tool Isolation**: Agent tools are treated as privileged capabilities. FastMCP enforces server-side JWT validation, beneficiary ownership checks, spending limit thresholds, and atomic balance reconciliation.
-   - **Evolving Knowledge Engine**: Agent Platform RAG Engine features metadata-driven access control (Customer vs. Staff) and an automated document versioning/upsert strategy to eliminate stale policy hallucinations.
-3. **Demo & Production Readiness (30%)**:
-   - **Live Production URL**: Fully deployed and operational at [bankpilot.souravmaiti.dev](https://bankpilot.souravmaiti.dev/).
-   - **Reproducible Spin-Up**: Comprehensive Makefile and Terraform automation for instant local testing and cloud deployment.
-   - **Google ADK Quality Flywheel**: Automated evaluation suites testing RAG groundedness, SQL compilation precision, latency, and adversarial prompt-injection resistance.
-
----
-
 # 🎯 The Problem
 
 Modern banking systems contain massive amounts of structured financial data and unstructured knowledge, but accessing that information remains difficult.
