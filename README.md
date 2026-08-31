@@ -477,10 +477,10 @@ Authenticate your local machine to run `gcloud`, Google ADK Agent tools, and Ter
    # Service Account & Credentials (If using a dedicated key file)
    # GOOGLE_APPLICATION_CREDENTIALS=./keys/service-account.json
 
-   # Gemini Foundation Models
-   ROOT_AGENT_MODEL=gemini-2.5-pro
-   BIGQUERY_AGENT_MODEL=gemini-2.5-pro
-   TRANSACTION_AGENT_MODEL=gemini-2.5-flash
+   # Gemini Foundation Models (Recommended: gemini-3.7-flash)
+   ROOT_AGENT_MODEL=gemini-3.7-flash
+   BIGQUERY_AGENT_MODEL=gemini-3.7-flash
+   TRANSACTION_AGENT_MODEL=gemini-3.7-flash
 
    # Microservice URLs (Local Ports)
    IDENTITY_SERVICE_URL=http://localhost:8001
