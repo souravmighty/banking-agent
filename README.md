@@ -1,12 +1,21 @@
-# 🏦 BankPilot: Secure AI Financial Portal
+# 🏦 BankPilot
 
-Production-inspired AI Banking Platform featuring Google ADK, Vertex AI Agent Engine, Firebase Authentication, Customer Identity Service, and secure BigQuery tool execution.
+### Enterprise Agentic AI Platform for Intelligent, Secure Banking
 
-[![GCP](https://img.shields.io/badge/GCP-Vertex_AI_Agent_Engine-4285F4?style=for-the-badge&logo=google-cloud&logoColor=white)](https://cloud.google.com/vertex-ai)
-[![Framework](https://img.shields.io/badge/Framework-Google_ADK-0F9D58?style=for-the-badge&logo=google&logoColor=white)](https://adk.dev/)
-[![Database](https://img.shields.io/badge/Database-BigQuery_SCD_Type_2-3776AB?style=for-the-badge&logo=google-cloud&logoColor=white)](https://cloud.google.com/bigquery)
-[![Auth](https://img.shields.io/badge/Security-Firebase_Admin_SDK-D32F2F?style=for-the-badge&logo=firebase&logoColor=white)](https://firebase.google.com)
-[![IaC](https://img.shields.io/badge/IaC-Terraform-7B42BC?style=for-the-badge&logo=terraform&logoColor=white)](https://www.terraform.io)
+> **Built for the [All Things Agentic Hackathon](https://allthingsagentichackathon.devpost.com/)**
+>
+> BankPilot is an enterprise-grade multi-agent banking platform that enables customers and business stakeholders to securely analyze financial data, execute banking workflows, retrieve grounded policy information, and make informed decisions using specialized AI agents.
+
+[![Google Cloud](https://img.shields.io/badge/Google%20Cloud-Agent%20Platform-4285F4?logo=googlecloud&logoColor=white)](https://cloud.google.com/)
+[![Google ADK](https://img.shields.io/badge/Google-ADK-4285F4)](https://google.github.io/adk-docs/)
+[![Gemini](https://img.shields.io/badge/AI-Gemini%203.7%20Flash-8E75B2)](https://cloud.google.com/)
+[![Cloud Run](https://img.shields.io/badge/Deployed%20on-Cloud%20Run-4285F4?logo=googlecloud)](https://cloud.google.com/run)
+[![FastMCP](https://img.shields.io/badge/MCP-FastMCP-orange)](https://github.com/jlowin/fastmcp)
+[![BigQuery](https://img.shields.io/badge/Data-BigQuery-3776AB?logo=googlecloud&logoColor=white)](https://cloud.google.com/bigquery)
+[![Firebase](https://img.shields.io/badge/Security-Firebase%20Auth-FFCA28?logo=firebase&logoColor=black)](https://firebase.google.com)
+
+🔗 **Live Demo:** https://bankpilot.souravmaiti.dev/  
+💻 **Repository:** https://github.com/souravmighty/banking-agent
 
 ---
 
@@ -28,8 +37,402 @@ Production-inspired AI Banking Platform featuring Google ADK, Vertex AI Agent En
   </a>
 </p>
 
+```text
+                        ┌──────────────────────────────┐
+                        │         Next.js UI           │
+                        │                              │
+                        │ Customer Portal              │
+                        │ Staff / Analytics Dashboard  │
+                        └──────────────┬───────────────┘
+                                       │
+                              Firebase Authentication
+                                       │
+                                       ▼
+                  ┌─────────────────────────────────────┐
+                  │      Customer Identity Service      │
+                  │                                     │
+                  │ • Customer Registration             │
+                  │ • JWT Authorization                 │
+                  │ • Role-Based Access Control         │
+                  │ • Customer Context                  │
+                  │ • BigQuery Authorized Views         │
+                  └──────────────┬──────────────────────┘
+                                 │
+               ┌─────────────────┴──────────────────┐
+               ▼                                    ▼
+   ┌───────────────────────────────┐   ┌───────────────────────────────┐
+   │      AI Banking Assistant     │   │       Analytics Copilot       │
+   │                               │   │                               │
+   │ Root Agent                    │   │ Root Analytics Agent          │
+   │                               │   │                               │
+   │ ├─ Query Agent (NL2SQL)       │   │ ├─ Investigation Agent        │
+   │ ├─ Transaction Agent (MCP)    │   │ ├─ NL2SQL Agent               │
+   │ ├─ RAG Agent                  │   │ ├─ Visualization Agent        │
+   │ └─ Recommendation Logic       │   │ └─ RAG Retrieval              │
+   └───────────────┬───────────────┘   └───────────────┬───────────────┘
+                   │                                   │
+          ┌────────┴────────┐                 ┌────────┴─────────┐
+          ▼                 ▼                 ▼                  ▼
+   ┌─────────────┐   ┌──────────────┐   ┌──────────────┐  ┌──────────────┐
+   │ FastMCP     │   │ Agent        │   │ BigQuery     │  │ Agent        │
+   │ Server      │   │ Platform     │   │ Analytics    │  │ Platform     │
+   │             │   │ RAG Engine   │   │              │  │ RAG Engine   │
+   │ Transactions│   │              │   │ Authorized   │  │              │
+   │ OTP / Limits│   │ Enterprise   │   │ Data Views   │  │ Enterprise   │
+   │ Payments    │   │ Knowledge    │   │ (SCD Type 2) │  │ Knowledge    │
+   └──────┬──────┘   └──────────────┘   └──────────────┘  └──────────────┘
+          │
+          ▼
+   ┌────────────────┐
+   │ Banking Engine │
+   │ Accounts       │
+   │ Credit Cards   │
+   │ Beneficiaries  │
+   │ Atomic Ledger  │
+   └────────────────┘
+```
 
+---
 
+## 🏆 Hackathon Alignment & Enterprise Blueprint
+
+BankPilot is purpose-built to meet and exceed all judging criteria for the **All Things Agentic Hackathon**, specifically targeting the **Fortified Enterprise Fleet** category while incorporating high-utility **TaskMaster** autonomous execution and **Collaborative Partner** human-in-the-loop adaptation.
+
+### Mandatory Technology Verification
+| Hackathon Requirement | BankPilot Implementation | Verification Evidence |
+| :--- | :--- | :--- |
+| **Gemini 3.5 or newer** | **Gemini 3.7 Flash** across Root Orchestrators, NL2SQL, and RAG agents | Integrated via Agent Platform (`ROOT_AGENT_MODEL=gemini-3.7-flash`) |
+| **Google Agent Framework** | **Google ADK (Agent Development Kit)** | Root multi-agent controllers, custom tool bindings, session state, and eval runners |
+| **Google Cloud Infrastructure** | **Cloud Run, BigQuery, Firebase, Cloud Logging, Cloud Trace** | Production microservices on Cloud Run, partitioned datasets in BigQuery, JWT via Firebase |
+
+### Enterprise Agentic Pillars (Judging Stage Two Alignment)
+1. **Innovation & Operational Utility (40%)**:
+   - **Eliminates Critical Real-World Friction**: Solves the security risks of direct LLM SQL access and unverified client claims by dynamically compiling zero-trust BigQuery customer sandbox views and requiring step-up email OTP for high-value transactions.
+   - **The "Twist"**: Goes beyond chat into an autonomous financial action engine executing double-entry atomic ledger writes over FastMCP and an enterprise intelligence copilot performing multi-intent query decomposition with interactive Vega-Lite charts.
+   - **The Unlikely Hero**: Empowers both everyday retail banking customers and non-technical internal compliance, risk, and branch managers to diagnose multi-dimensional root causes (e.g. variance, churn, funnel drop-offs) without writing SQL.
+2. **Architectural Discipline & Tech Stack (30%)**:
+   - **Strict Separation of Concerns**: Isolates analytical reasoning (NL2SQL), transactional writes (FastMCP tools), grounded knowledge retrieval (RAG), and data visualization into decoupled, failure-tolerant sub-agents.
+   - **Zero-Trust Tool Isolation**: Agent tools are treated as privileged capabilities. FastMCP enforces server-side JWT validation, beneficiary ownership checks, spending limit thresholds, and atomic balance reconciliation.
+   - **Evolving Knowledge Engine**: Agent Platform RAG Engine features metadata-driven access control (Customer vs. Staff) and an automated document versioning/upsert strategy to eliminate stale policy hallucinations.
+3. **Demo & Production Readiness (30%)**:
+   - **Live Production URL**: Fully deployed and operational at [bankpilot.souravmaiti.dev](https://bankpilot.souravmaiti.dev/).
+   - **Reproducible Spin-Up**: Comprehensive Makefile and Terraform automation for instant local testing and cloud deployment.
+   - **Google ADK Quality Flywheel**: Automated evaluation suites testing RAG groundedness, SQL compilation precision, latency, and adversarial prompt-injection resistance.
+
+---
+
+# 🎯 The Problem
+
+Modern banking systems contain massive amounts of structured financial data and unstructured knowledge, but accessing that information remains difficult.
+
+### Customers frequently need to:
+- Understand their accounts and historical transaction behavior.
+- Transfer money and pay credit card bills securely.
+- Navigate complex banking policies, fee schedules, and product terms.
+- Receive personalized product recommendations based on real spending patterns.
+
+### Banking staff and business stakeholders need to:
+- Investigate changes in portfolio performance and business metrics.
+- Diagnose root causes behind anomalies and customer drop-offs.
+- Perform cohort, funnel, variance, and period-over-period trend analysis.
+- Extract answers from enterprise data lakes without manually writing complex SQL.
+- Access internal SOPs and risk policies while maintaining strict data access boundaries.
+
+### Why Traditional Chatbots Fail:
+1. **Direct Database Exposure**: Traditional LLMs write raw SQL directly against base database tables, creating severe prompt-injection vulnerabilities and data exfiltration risks.
+2. **Unverified Identity Claims**: Demos frequently trust raw client-provided identity strings (e.g., `"customer_id: 123"`), lacking cryptographically verified token authentication.
+3. **Lax Ledger Safety**: Standard chatbots cannot execute real financial transactions with atomicity, daily limits, and step-up authentication.
+4. **Hallucinated Policies**: Generic chatbots hallucinate terms and conditions rather than grounding answers in access-controlled official documentation.
+5. **No Multi-Step Analytics**: Simple chat loops cannot decompose multi-dimensional business questions into structured mathematical investigations.
+
+---
+
+## 💡 The BankPilot Solution
+
+**BankPilot transforms banking interactions from simple chat into secure, agent-driven workflows.**
+
+The platform uses specialized AI agents that can:
+1. **Understand user intent** and delegate tasks to specialized sub-agents.
+2. **Query authorized banking data** using natural language over pre-filtered data sandboxes.
+3. **Execute secure banking actions** through Model Context Protocol (FastMCP) tools.
+4. **Enforce step-up OTP verification** for high-value money transfers.
+5. **Retrieve grounded answers** from an enterprise knowledge base with role-based access control.
+6. **Analyze financial patterns** and recommend eligible banking products.
+7. **Perform multi-step analytics investigations** using structured analytical patterns.
+8. **Generate interactive Vega-Lite data visualizations** automatically.
+9. **Maintain enterprise-grade authorization, auditability, and observability** via Agent Platform.
+
+---
+
+# 🚀 Why BankPilot Is Agentic
+
+BankPilot is intentionally architected to operate beyond standard chat loops. A user request triggers a multi-step, autonomous workflow:
+
+```text
+Understand Intent
+      ↓
+Retrieve Authorized Context (Zero-Trust JWT & Sandbox)
+      ↓
+Route to Specialized Sub-Agent (ADK Multi-Agent Nexus)
+      ↓
+Execute Tools / Queries / Retrieval (FastMCP & Agent Platform RAG)
+      ↓
+Validate Results & Mathematical Consistency
+      ↓
+Request Human Confirmation / Step-Up OTP When Required
+      ↓
+Execute Secure Action (Atomic Double-Entry Ledger)
+      ↓
+Generate Grounded Response with Citations
+      ↓
+Capture Telemetry and Evaluation Signals (Agent Platform Observability)
+```
+
+### Real-World Agentic Flow Example:
+> *"Analyze my spending pattern over the last 3 months and recommend a suitable credit card."*
+
+1. **Context Provisioning**: Authenticates the customer via JWT and identifies pre-compiled BigQuery sandbox views.
+2. **Data Extraction**: The Query Sub-Agent compiles and executes SQL against the customer's authorized transaction view.
+3. **Behavioral Analysis**: Calculates category-wise expenditure (e.g., dining, travel, fuel, groceries).
+4. **Knowledge Retrieval**: The RAG Sub-Agent queries the Agent Platform RAG Engine for credit card product guides authorized for customer access.
+5. **Grounded Synthesis**: Cross-references customer spending thresholds with official reward multiplier rules from the documentation.
+6. **Transparent Explanation**: Explains exactly why the card is recommended, citing specific spending figures and official product benefits.
+
+---
+
+# 🤖 Core Agent Systems
+
+BankPilot consists of two major agentic experiences:
+
+---
+
+## 1️⃣ AI Banking Assistant (Customer Fleet)
+
+The **AI Banking Assistant** is the customer-facing agent, orchestrating account insights, financial guidance, and secure transaction execution.
+
+### Key Capabilities
+- **Account & Balance Queries**: Real-time checking, savings, deposit, and credit card balances.
+- **Transaction Ledger Analysis**: Natural language spending summaries, category aggregations, and merchant lookups.
+- **Spending Insights**: Period-over-period budget and expenditure breakdowns.
+- **Policy & Knowledge Q&A**: Grounded answers on interest rates, fee waivers, loan eligibility, and KYC rules.
+- **Personalized Recommendations**: Context-aware product recommendations based on real customer data.
+- **Secure Money Transfers**: Peer-to-peer and beneficiary transfers executed through FastMCP.
+- **Credit Card Bill Payments**: Seamless card balance settlement.
+- **Transaction Limit Management**: Customer-managed step-up OTP thresholds.
+- **Step-Up OTP Authentication**: Real-time email verification for transfers above configured limits.
+
+```text
+Customer: "How much did I spend on food last month?"
+
+Customer Request
+       ↓
+Root ADK Agent (Intent Classification)
+       ↓
+Query Sub-Agent (NL2SQL)
+       ↓
+Customer-Authorized BigQuery View (Zero-Trust Filter)
+       ↓
+Transaction Aggregation & Analysis
+       ↓
+Validated Conversational Response
+```
+
+---
+
+### 💸 Secure Transaction Execution with FastMCP
+
+BankPilot uses a dedicated **Model Context Protocol (FastMCP)** server to expose secure banking tools to the Transaction Agent. The AI agent never directly touches the underlying database tables.
+
+```text
+AI Agent
+   │
+   ▼
+Transaction Agent
+   │
+   ▼
+FastMCP Transaction Server
+   │
+   ├── 1. Authorization Validation (JWT & Customer Context)
+   │
+   ├── 2. Beneficiary Validation (Registered & Active)
+   │
+   ├── 3. Available Balance Validation (Sufficient Funds)
+   │
+   ├── 4. Transaction Limit Check (Configured OTP Threshold)
+   │
+   └── 5. Step-Up OTP Verification (If Amount > Threshold)
+          │
+          ▼
+     Execute Transaction (Atomic Double-Entry Ledger)
+```
+
+#### Supported Banking Actions:
+- **💰 Money Transfer**: Validates source account ownership, beneficiary registration, active status, and sufficient balance before executing atomic debit and credit entries.
+- **💳 Credit Card Bill Payment**: Validates card ownership, outstanding balance, and linked payment account funds.
+- **⚙️ Customer Transaction Limit Management**: Allows customers to adjust their step-up OTP threshold (e.g., *"Change my OTP limit to ₹10,000"*).
+
+---
+
+### 🔐 Step-Up OTP Transaction Protection
+
+BankPilot implements human-in-the-loop step-up authentication for high-value operations.
+
+- **Default Transaction Threshold**: **₹5,000** (user-configurable via MCP).
+- **Workflow**: Transactions above the threshold trigger dynamic OTP generation, dispatched securely via email using **Resend**.
+- **Security Controls**:
+  - Cryptographically secure 6-digit OTP generation.
+  - Short-lived TTL expiration (5 minutes).
+  - Single-use validation with attempt-rate limiting.
+  - Transaction-bound token signing (cannot be reused for a different transfer).
+  - Immediate invalidation upon successful execution.
+  - Zero plaintext OTP storage.
+
+```text
+Customer Initiates Transfer (> ₹5,000)
+            │
+            ▼
+     Validate Authorization & Limits
+            │
+            ▼
+      Threshold Exceeded: Generate OTP
+            │
+            ▼
+      Send OTP Email via Resend
+            │
+            ▼
+      Customer Enters OTP in Chat
+            │
+            ▼
+      FastMCP Verifies OTP & Binds Action
+            │
+            ▼
+      Execute Atomic Ledger Transfer
+```
+
+---
+
+## 2️⃣ Analytics Copilot (Enterprise Intelligence Fleet)
+
+The **Analytics Copilot** enables bank executives, branch managers, and risk analysts to conduct deep multi-dimensional investigations across enterprise banking datasets using natural language.
+
+```text
+Business Question: "Why did loan applications decrease compared to last quarter?"
+       │
+       ▼
+Root Analytics Agent
+       │
+       ├───────────────────────────────┐
+       ▼                               ▼
+Analytical Pattern Engine     Ambiguity Detection / HITL
+       │                               │
+       ▼                               ▼
+Query Decomposition ──────────────► Hypothesis Selection
+       │
+       ▼
+Parallel Multi-Intent Investigation
+       │
+       ├──── BigQuery NL2SQL Agent (Enterprise Data)
+       ├──── Analytical Sub-Agent (Statistical Math)
+       └──── Visualization Agent (Vega-Lite Compiler)
+       │
+       ▼
+Mathematical Reconciliation & Cross-Validation
+       │
+       ▼
+Interactive Visualization & Executive Briefing
+```
+
+### 🔎 Analytical Pattern Engine
+The copilot automatically classifies business questions into structured analytical investigation patterns:
+- **Variance & Period-over-Period Analysis**: Compares metrics across calendar and fiscal periods.
+- **Driver & Metric Decomposition**: Breaks aggregated KPIs into underlying drivers (e.g., volume vs. rate effects).
+- **Funnel & Conversion Drop-off Analysis**: Identifies friction points in multi-stage customer journeys.
+- **Cohort Retention Analysis**: Tracks customer behavior and retention across onboarding cohorts.
+- **Anomaly Detection & Root-Cause Diagnostics**: Isolates unexpected deviations in transaction volumes or deposit flows.
+
+### ⚡ Parallel Multi-Intent Investigation
+Complex inquiries containing multiple questions (e.g., *"Why did revenue fall last quarter, which products contributed most, and was customer churn involved?"*) are automatically decomposed into parallel sub-agent tasks, executed concurrently against BigQuery, and reconciled into a unified analytical summary.
+
+### 📈 Interactive Data Visualization
+The **Visualization Agent** compiles validated **Vega-Lite** specifications rendered dynamically on the Next.js frontend:
+- Waterfall charts for revenue and balance walks.
+- Multi-series trend charts with moving averages.
+- Conversion funnel diagrams.
+- Cohort retention heatmaps.
+- Anomaly confidence interval bands.
+
+---
+
+# 📚 Enterprise Knowledge Base (Agent Platform RAG Engine)
+
+BankPilot incorporates an enterprise knowledge pipeline powered by **Agent Platform RAG Engine** to eliminate hallucinations and ground agent responses in verified bank policies.
+
+```text
+Staff Uploads Document (.pdf, .md, .txt)
+          │
+          ▼
+Knowledge Management Portal
+          │
+          ▼
+Metadata Extraction & Access Control Tagging (Customer vs Staff)
+          │
+          ▼
+Agent Platform RAG Engine
+          │
+          ├── Semantic Chunking & Embedding
+          └── Vector Storage & Indexing
+                   │
+                   ▼
+             Enterprise Knowledge Corpus
+```
+
+### 🔄 Document Versioning & Upsert Strategy
+When bank staff upload an updated policy (e.g., revised interest rates or fee schedules):
+1. The system identifies existing chunks associated with the document identifier.
+2. Previous vector embeddings are pruned and replaced.
+3. The new version is indexed with updated metadata.
+4. Agents immediately retrieve current policy information, eliminating stale retrieval data.
+
+### 🔐 Role-Based Knowledge Access Control
+Documents are tagged with audience permissions to strictly segregate customer-facing information from internal procedures:
+
+| Document | Customer Access | Staff Access |
+| :--- | :---: | :---: |
+| **Savings Account Product Guide** | ✅ | ✅ |
+| **Credit Card Reward Tiers & Rules** | ✅ | ✅ |
+| **Internal Risk & AML SOP** | ❌ | ✅ |
+| **Branch Operations Escalation Matrix** | ❌ | ✅ |
+
+- **AI Banking Assistant**: Retrieves only `Customer`-authorized knowledge chunks.
+- **Analytics Copilot**: Retrieves `Staff`-authorized documentation and internal operational context.
+
+---
+
+# 🗄️ Secure Enterprise Data Access
+
+BankPilot enforces zero-trust data boundaries through the **Customer Identity Service**.
+
+```text
+Customer / Staff UI
+   │
+   ▼
+Firebase Authentication (JWT)
+   │
+   ▼
+Customer Identity Service (Validates Signature & Decodes UID)
+   │
+   ▼
+Dynamic BigQuery Authorized View (Pre-filtered on Customer Account IDs)
+   │
+   ▼
+BigQuery Core Banking Tables (Base tables remain strictly protected)
+```
+
+### 🔐 Zero-Trust Security Controls
+- **Cryptographic JWT Verification**: In-memory JWKS signature verification on every request.
+- **Dynamic BigQuery Sandboxes**: Customers only query authorized views (`v_transactions_<customer_id>`), making SQL prompt injection structurally incapable of reading other accounts.
+- **Column-Level Semantic Documentation as Code**: Managed via Terraform, attaching rich business context to database columns to eliminate join hallucinations during NL2SQL generation.
+- **Strict Read/Write Decoupling**: Query agents operate in read-only mode; state-changing transactions are exclusively routed through FastMCP with explicit validation.
 
 ---
 
@@ -37,7 +440,7 @@ Production-inspired AI Banking Platform featuring Google ADK, Vertex AI Agent En
 
 ```
 banking-agent/
-├── ai-banking-assistant/                   # Customer-facing banking assistant (Vertex AI Agent Engine)
+├── ai-banking-assistant/                   # Customer-facing banking assistant (Agent Platform Agent Engine)
 │   ├── app/
 │   │   ├── agent.py                        # Root ADK multi-agent orchestrator & session lifecycle manager
 │   │   ├── fast_api_app.py                 # Local FastAPI server wrapper for debugging & local SSE streams
@@ -48,9 +451,9 @@ banking-agent/
 │   │       └── bigquery/                   # Customer NL2SQL sub-agent querying authorized sandbox views
 │   ├── deployment/
 │   │   ├── local.py                        # Local agent testing runner
-│   │   ├── remote.py                       # Vertex AI Reasoning Engine remote deployment runner
+│   │   ├── remote.py                       # Agent Platform Reasoning Engine remote deployment runner
 │   │   └── terraform/                      # Infrastructure-as-Code for CI/CD & Cloud Run staging
-│   ├── deployment_metadata.json            # Active Vertex AI Reasoning Engine resource IDs & GCP metadata
+│   ├── deployment_metadata.json            # Active Agent Platform Reasoning Engine resource IDs & GCP metadata
 │   ├── tests/                              # Unit, integration, load, and ADK quality evaluation test suites
 │   └── pyproject.toml                      # Package specifications & dependencies for ai-banking-assistant
 │
@@ -127,7 +530,7 @@ banking-agent/
 │   │   │   ├── knowledge/                  # Customer banking policy & product search page
 │   │   │   ├── staff/                      # Enterprise staff portal (Analytics Copilot & demo manager)
 │   │   │   └── api/
-│   │   │       ├── run_sse/                # Edge API route proxying SSE streaming from Vertex AI Agent Engine
+│   │   │       ├── run_sse/                # Edge API route proxying SSE streaming from Agent Platform Agent Engine
 │   │   │       └── health/                 # Health check proxy across all microservices
 │   │   ├── components/
 │   │   │   ├── chat/                       # Chat interface, message timeline, session selector & Markdown renderer
@@ -149,9 +552,9 @@ banking-agent/
 │   │   └── outputs.tf                      # Exported BigQuery table IDs & dataset self-links
 │   ├── data/                               # Pre-generated synthetic CSV datasets (customers, transactions, accounts)
 │   └── data_scripts/
-│       ├── generate_data.py                # High-fidelity synthetic customer & ledger transaction generator
-│       ├── upload_to_bigquery.py           # Automated schema-aware BigQuery CSV upload script
-│       └── sync_demo_customers.py          # Script syncing demo customer profiles with Firebase Authentication
+│   │   ├── generate_data.py                # High-fidelity synthetic customer & ledger transaction generator
+│   │   ├── upload_to_bigquery.py           # Automated schema-aware BigQuery CSV upload script
+│   │   └── sync_demo_customers.py          # Script syncing demo customer profiles with Firebase Authentication
 │
 ├── docs/                                   # Architecture documentation & technical specifications
 │   ├── images/                             # Official GCP solution architecture diagrams (SVG/PNG) & GIFs
@@ -160,7 +563,7 @@ banking-agent/
 │   ├── authentication.md                   # Firebase JWT & zero-trust identity verification guide
 │   ├── authorization.md                    # BigQuery dynamic sandbox view isolation specifications
 │   ├── customer-identity-service.md        # Identity microservice API reference & flow documentation
-│   └── deployment.md                       # Cloud deployment guides for Cloud Run & Vertex AI Agent Engine
+│   └── deployment.md                       # Cloud deployment guides for Cloud Run & Agent Platform Agent Engine
 │
 ├── Makefile                                # Unified project automation (dev, test, deploy, seed-data, lint)
 ├── pyproject.toml                          # Root Python workspace configuration & dependency management
@@ -171,311 +574,113 @@ banking-agent/
 
 ---
 
+## 🛠️ Technology Stack & System Metrics
 
-## 📖 Project Overview
-
-### The Problem It Solves
-Modern financial institutions possess vast data lakes, but extracting real-time personal analytics and executing transaction operations remains bottlenecked by rigid, legacy client portals.
-
-### Why Traditional Generative AI Demos Fail
-Most LLM-based database chat assistants are built as proof-of-concept demos with critical structural flaws:
-1.  **Direct Database Access**: They allow the LLM to write raw SQL directly against backend database tables, opening catastrophic vectors for prompt-injection SQL execution.
-2.  **Unverified Identity Claims**: They rely on identity values passed directly by the client browser (e.g., *"I am customer 123"*), ignoring standard token authentication.
-3.  **Lax Ledger Safety**: They write balance updates to loose, non-auditable records, failing basic transactional consistency.
-
-### Our Solution
-BankPilot is built on secure, modular, and cloud-native software engineering practices:
-*   **Cryptographic Verification**: Validates short-lived Firebase JWT tokens in-memory at the API gateway.
-*   **Isolated Data Sandboxes**: Restricts database queries to dynamically compiled, customer-specific BigQuery views.
-*   **Structured Ledger Tracking**: Enforces atomic, double-entry ledger transactions (`DEBIT` and `CREDIT` balance records) for all financial operations.
-*   **Separation of Concerns**: Splits AI tasks between analytical models (SQL compilers) and action models (execution tools), reducing hallucination risk.
-
----
-
-## 🔐 Customer Onboarding & Session Flow
-
-A core principle of this architecture is: **Never trust client-side claims.** 
-
-The client UI never passes a raw `customer_id`. Instead, users authenticate via Firebase, and the resulting JWT token is verified by the backend to compile a secure user data sandbox.
-
-### Onboarding & Verification Sequence
-The sequence below illustrates the customer registration and view compilation process:
-
-```mermaid
-sequenceDiagram
-    autonumber
-    actor Customer
-    participant UI as Next.js Web UI
-    participant CIS as customer-identity-service
-    participant FA as Firebase Authentication
-    participant BQ as BigQuery Dataset
-
-    Customer->>UI: Input Registration Details
-    UI->>CIS: POST /registration/check-email
-    CIS->>BQ: Check if email exists in customers table
-    BQ-->>CIS: Return profile confirmation
-    CIS-->>UI: Email verified & profile ready to link
-    UI->>FA: Register User & Trigger Email Verification
-    FA-->>Customer: Send verification email
-    Customer->>FA: Verify email link
-    FA-->>UI: Issue signed Firebase JWT
-    UI->>CIS: POST /registration/link-user (Bearer JWT)
-    Note over CIS: Decode JWT, extract firebase_uid, verify signature with JWKS
-    CIS->>BQ: Insert link row: mapping firebase_uid to customer_id
-    CIS->>BQ: CREATE OR REPLACE VIEW v_transactions_<customer_id>
-    Note over BQ: Pre-filter transactions exclusively for customer accounts
-    BQ-->>CIS: View Compiled Successfully
-    CIS-->>UI: Registration & Sandbox Setup Complete
-```
-
-### Brief Step Explanation:
-1.  **Check Email Availability**: The user initiates registration. Next.js requests the backend to verify if a matching customer profile exists in the core banking records.
-2.  **Verify & Authenticate**: Once verified, the user registers with Firebase Authentication, completes the email verification handshake, and obtains a cryptographically signed JWT.
-3.  **Establish Secure Link**: Next.js sends the JWT to the `customer-identity-service`. The service verifies the signature using Google's public keys (JWKS), extracts the `firebase_uid`, and maps it securely to the database `customer_id`.
-4.  **Sandbox Compilation**: The backend dynamically compiles customer-specific BigQuery authorized views, restricting the data context exclusively to accounts owned by that user.
-
----
-
-## 🤖 Multi-Agent Execution Flow
-
-This chart details how natural language analytical prompts are safely converted into optimized database executions without exposing base tables:
-
-```mermaid
-sequenceDiagram
-    autonumber
-    actor User as Client Portal
-    participant ADK as Root ADK Agent
-    participant BQA as BigQuery Sub-Agent
-    participant BQ_View as Dynamic Customer View
-    participant LLM as Gemini 2.5 Pro
-
-    User->>ADK: "How much did I spend at Swiggy last month?"
-    ADK->>BQA: Route analytical prompt with customer view context
-    BQA->>LLM: Compile SQL against authorized view schema metadata
-    LLM-->>BQA: Return safe, optimized SQL Query
-    BQA->>BQ_View: Execute SQL query (Strictly isolated customer transactions)
-    BQ_View-->>BQA: Return row results
-    BQA->>LLM: Synthesize tabular records into conversational markdown
-    LLM-->>BQA: Return conversational markdown answer
-    BQA-->>ADK: Return answer & detailed reasoning steps
-    ADK-->>User: Stream markdown response and reasoning timeline to UI
-```
-
----
-
-## 🎯 Why Google ADK?
-
-Google's **Agent Development Kit (ADK)** was selected as the foundational multi-agent framework rather than building a custom orchestration layer or using alternative libraries.
-
-### Key Architectural Advantages
-1.  **Native Gemini Primitives**: Built specifically for Vertex AI, ADK integrates with Gemini's low-latency streaming and system-instruction compilers, bypassing heavy middleware wrappers.
-2.  **Tool Abstraction & Isolation**: ADK separates conversational memory from execution capabilities. Sub-agents are restricted to narrow, predefined tool arrays.
-3.  **Managed Agent Engine Hosting**: ADK applications package cleanly as stateful `AdkApp` components deployed directly onto **Vertex AI Agent Engine**. This serverless runtime manages execution sandboxing, session state preservation, and fine-grained GCP IAM security.
-4.  **Predictable Context Routing**: The framework implements native routing logic that prevents conversational state and variables from bleeding across concurrent user sessions.
-
-### Architecture Trade-offs
-*   **The Benefit**: We avoid writing complex, error-prone conversational state managers, LLM tool-calling loops, and custom stream-propagation layers. ADK handles multi-turn state and streaming out-of-the-box.
-*   **The Cost**: Standardizing on ADK ties the agent hosting and orchestration directly to the Google Cloud / Vertex AI ecosystem, making multi-cloud container migrations more complex than standard Docker-based FastAPI architectures.
-
----
-
-## 🔐 Data Security & SQL Accuracy
-
-### Dynamic Sandboxing
-BankPilot guarantees data isolation at the database layer. The AI Agent's database credentials grant no read access to the base `transactions` or `accounts` tables. Instead, the `customer-identity-service` creates a custom view pre-filtered on the user's specific account numbers.
-If a prompt injection attack attempts to access other users' data, the compiled query executes within the restricted view, which structurally contains no other users' rows.
-
-### Enhancing SQL Compilation with Semantic Metadata
-Generative models running text-to-SQL tasks frequently hallucinate table joins and column names. To address this, BankPilot attaches rich, context-heavy metadata descriptions directly to database columns using Terraform:
-
-```hcl
-# Example Terraform schema-level documentation
-resource "google_bigquery_table" "transactions" {
-  dataset_id = "banking_data"
-  table_id   = "transactions"
-  
-  schema = <<EOF
-  [
-    {
-      "name": "account_number",
-      "type": "STRING",
-      "mode": "REQUIRED",
-      "description": "Business meaning: The bank account on which this entry is recorded. Links to accounts, credit_cards, fixed_deposits, or loans."
-    }
-  ]
-  EOF
-}
-```
-
-The BigQuery agent's retrieval tools pull this column documentation dynamically. Providing deep business-level relationships and context allows Gemini 2.5 Pro to compile queries with exceptional precision, eliminating join hallucinations.
-
----
-
-## 🔌 API Documentation
-
-All REST routes are hosted under `/api/v1` of the `customer-identity-service`:
-
-| Endpoint | Method | Authentication Required | Purpose |
-| :--- | :---: | :---: | :--- |
-| `/registration/check-email` | `POST` | No | Checks if user email corresponds to an active customer profile. |
-| `/registration/link-user` | `POST` | Yes | Securely links a newly registered `firebase_uid` with a database `customer_id`. |
-| `/auth/me` | `GET` | Yes | Decodes credentials to return customer name, segment, and verified KYC flags. |
-| `/adk/context` | `GET` | Yes | Creates dynamic BigQuery customer views and returns authorized account limits to initialize ADK. |
-
----
-
-## 🌐 Deployment Infrastructure
-
-1.  **Frontend Client**: Hosted on **Firebase Hosting** CDN for fast visual assets loading and static JS page deliveries.
-2.  **API Microservice**: The FastAPI `customer-identity-service` is containerized and deployed on **Google Cloud Run**, autoscaling from 0 to 10 instances.
-3.  **Agent Orchestration**: Deployed directly on **Vertex AI Agent Engine** as a managed `AdkApp`, ensuring secure execution and native tracing.
-4.  **Database & Storage**: Maintained on **Google Cloud BigQuery** regional clusters, using clustered partitioning on `transaction_timestamp` to optimize query costs.
-
----
-
-## 📊 System Statistics
-
-The following statistics represent the current, actual implementation of the BankPilot repository:
-
-| Metric / Component | Verified Repository Value |
+| Layer | Technologies |
 | :--- | :--- |
-| **Application Services** | **4 Services** (Next.js Web UI, FastAPI Identity Service, FastMCP Server, Google ADK Root Agent) |
-| **BigQuery Datasets** | **1 Dataset** (`banking_data`) |
-| **Database Tables** | **9 Relational Tables** (Customers, Identity Mapping, Accounts, Beneficiaries, Transactions, Cards, Loans, Deposits, Credit Scores) |
-| **Synthetic Customers** | **1,300 profiles** with verified demographics and segmentation (Retail, Wealth) |
-| **Synthetic Transactions** | **453,145 records** comprising a multi-year historical double-entry ledger (~56MB) |
-| **Cloud Infrastructure** | **Google Cloud Platform** (Vertex AI Agent Engine, Cloud Run, BigQuery, Firebase Auth, Secret Manager, Cloud Logging) |
-| **Programming Languages** | **Python 3.10+** (Backend microservices, ADK agents, MCP tools) & **TypeScript / React** (Next.js web portal) |
-| **Infrastructure-as-Code** | **HashiCorp Terraform** (automates regional dataset, schema generation, and column-level semantic documentation) |
+| **AI & Agent Orchestration** | Google ADK, Gemini 3.7 Flash via Agent Platform, FastMCP (Model Context Protocol) |
+| **Enterprise Knowledge** | Agent Platform RAG Engine, Vector Indexing, Role-Based Access Filtering |
+| **Data & Analytics** | Google BigQuery, NL2SQL, Dynamic Authorized Views, SCD Type 2, Vega-Lite |
+| **Backend Microservices** | Python 3.10+, FastAPI, FastMCP, Firebase Admin SDK, Pydantic, Resend API |
+| **Frontend Application** | Next.js 15 (App Router), React, TypeScript, Tailwind CSS, Vega Embed |
+| **Cloud Infrastructure** | Google Cloud Run, Agent Platform, BigQuery, Firebase Auth & Hosting, Cloud Logging, Cloud Trace |
+| **Infrastructure-as-Code** | HashiCorp Terraform (Automated BigQuery datasets, table schemas & IAM policies) |
+
+### Verified System Statistics
+| Metric | Value |
+| :--- | :--- |
+| **Microservices & Agents** | **5 Core Components** (Next.js Portal, Identity Service, Data Service, FastMCP Server, Google ADK Fleet) |
+| **Relational Database Tables** | **9 BigQuery Tables** (Customers, Identity Mapping, Accounts, Beneficiaries, Transactions, Cards, Loans, Deposits, Credit Scores) |
+| **Synthetic Customer Records** | **1,300 profiles** with verified demographics, risk flags, and portfolio segmentation |
+| **Historical Financial Ledger** | **453,145 records** comprising a multi-year historical double-entry ledger (~56MB) |
 
 ---
 
-## ⚡ Current Capabilities
+## 📡 Observability, Telemetry & Evaluation
 
-### Phase 1 (Implemented)
-*   ✅ **Customer onboarding**
-*   ✅ **Firebase Authentication**
-*   ✅ **Customer Identity Service**
-*   ✅ **Customer-scoped BigQuery Views**
-*   ✅ **Google ADK SQL Agent**
-*   ✅ **Natural language banking queries**
-*   ✅ **Cloud deployment**
+BankPilot integrates production-grade observability and continuous evaluation for all agents.
 
-### Phase 2 (In Progress)
-*   ⬜ **MCP Transaction Service**
-*   ⬜ **RAG ingestion and retrieval pipeline for answering policy/product related queries**
-*   ⬜ **OTP Verification for high amount transactions**
-*   ⬜ **CI/CD**
-*   ⬜ **Observability**
-*   ⬜ **Analytics Copilot**
+### 1. Agent Platform Observability & Tracing
+- Captures full agent execution traces, tool call parameters, latency breakdowns, and multi-agent delegation events.
+- Distributed request tracing connects the **Next.js Web Client ➔ Cloud Run Microservices ➔ Agent Platform ➔ FastMCP / BigQuery**.
 
----
+### 2. GenAI BigQuery Telemetry Pipeline
+- OpenTelemetry GenAI telemetry streams inference metrics, prompt token usage, completion latencies, and tool execution metadata through Cloud Logging sinks directly into BigQuery:
+  - `aiplatform_*_stdout`
+  - `completions_view`
+- Enables SQL-based analysis of model behavior and cost optimization across the fleet.
 
-
-## 💡 Engineering Decisions & Lessons Learned
-
-### 1. Data Sandboxing via Views
-*   **Problem**: Direct database table access by LLMs poses extreme risk of cross-tenant data leaks via creative prompt injection.
-*   **Decision**: Dynamic compilation of authorized customer views at session startup.
-*   **Trade-off**: Increases BigQuery database metadata creation overhead, but achieves complete tenant data separation.
-*   **Outcome**: High resistance to data exfiltration attacks; the database strictly isolates user boundaries before the SQL runs.
-
-### 2. Database Column-Level Documentation as Code
-*   **Problem**: Standard NL2SQL models frequently hallucinate join fields or field names on custom banking schemas.
-*   **Decision**: Manage detailed column documentation and relationships inside Terraform definitions, making schemas the single source of truth.
-*   **Trade-off**: Requires strict discipline to update Terraform metadata whenever table structures evolve.
-*   **Outcome**: Significantly reduced join-field hallucinations, resulting in reliable query execution.
-
-### 3. UI Scrolling & Layout Boundaries
-*   **Problem**: Streaming interactive timelines in web chat interfaces often causes layout shifting and lag on mobile viewports.
-*   **Decision**: Enforced rigid native layout scroll boundaries and decoupled streaming timelines from the central chat thread.
-*   **Trade-off**: Slightly increases frontend CSS layout complexity.
-*   **Outcome**: Perfect rendering performance on small screen devices (Pixel 7 / iPhone SE) with zero layout shifting during live stream rendering.
-
+### 3. Google ADK Quality Flywheel & Evaluation Suite
+Automated evaluation test suites validate agent performance before and after deployment:
+- **RAG Quality**: Groundedness, retrieval precision, citation accuracy, and hallucination prevention.
+- **NL2SQL Precision**: SQL syntax validity, schema join correctness, and execution consistency.
+- **Safety & Adversarial Robustness**: Prompt-injection resistance, tool privilege escalation defense, and tenant isolation validation (`adversarial_safety.json`).
 
 ---
 
 ## 🚀 Step-by-Step Setup & Deployment Guide
 
-This guide takes you through forking the repository, setting up Google Cloud Application Default Credentials (ADC), running Terraform to provision BigQuery schemas, generating & uploading synthetic financial datasets, configuring environment variables, running the full stack locally with `make`, and deploying each service to Google Cloud.
+Follow this guide to set up Google Cloud credentials, provision BigQuery schemas with Terraform, seed synthetic financial datasets, run the entire platform locally, or deploy to Google Cloud.
 
 ---
 
 ### 📋 Prerequisites
-
-Before starting, ensure you have the following installed on your machine:
-* **Python 3.10+** (Package management is automated via [`uv`](https://docs.astral.sh/uv/))
-* **Node.js 18+** & **npm**
-* **Google Cloud SDK (`gcloud` CLI)**: [Install Google Cloud SDK](https://cloud.google.com/sdk/docs/install)
-* **Terraform (>= 1.0)**: [Install Terraform](https://developer.hashicorp.com/terraform/downloads)
-* **A Google Cloud Platform (GCP) Project** with billing enabled and a Firebase project initialized.
+- **Python 3.10+** (Automated package management via [`uv`](https://docs.astral.sh/uv/))
+- **Node.js 18+** & **npm**
+- **Google Cloud SDK (`gcloud` CLI)**: [Install Google Cloud SDK](https://cloud.google.com/sdk/docs/install)
+- **Terraform (>= 1.0)**: [Install Terraform](https://developer.hashicorp.com/terraform/downloads)
+- **A Google Cloud Platform (GCP) Project** with billing enabled and a linked Firebase project.
 
 ---
 
-### Step 1: Fork & Clone the Repository
+### Step 1: Clone Repository & Install Dependencies
+```bash
+git clone https://github.com/souravmighty/banking-agent.git
+cd banking-agent
 
-1. **Fork the Repository**: Click the **Fork** button on the GitHub repository page to create your own copy.
-2. **Clone Your Fork**:
-   ```bash
-   git clone https://github.com/<your-username>/banking-agent.git
-   cd banking-agent
-   ```
-3. **Install Dependencies Across Workspaces**:
-   Run the unified installer to automatically set up `uv`, synchronize root and agent Python virtual environments, and install Next.js frontend dependencies:
-   ```bash
-   make install
-   ```
+# Install dependencies across root, microservices, agents, and frontend
+make install
+```
 
 ---
 
-### Step 2: Set Up Google Cloud CLI & Application Default Credentials (ADC)
+### Step 2: Configure Google Cloud CLI & Credentials
+```bash
+# Log in to Google Cloud
+gcloud auth login
 
-Authenticate your local machine to run `gcloud`, Google ADK Agent tools, and Terraform:
+# Set active project
+export GCP_PROJECT_ID="your-gcp-project-id"
+gcloud config set project $GCP_PROJECT_ID
 
-1. **Log in with your Google Account**:
-   ```bash
-   gcloud auth login
-   ```
-2. **Set your Active GCP Project**:
-   ```bash
-   export GCP_PROJECT_ID="your-gcp-project-id"
-   gcloud config set project $GCP_PROJECT_ID
-   ```
-3. **Configure Application Default Credentials (ADC)**:
-   This generates a local credential file used by Terraform, BigQuery Python SDK, and ADK Agent Engine:
-   ```bash
-   gcloud auth application-default login
-   ```
-4. **Enable Required Google Cloud APIs**:
-   ```bash
-   gcloud services enable \
-     aiplatform.googleapis.com \
-     bigquery.googleapis.com \
-     run.googleapis.com \
-     cloudbuild.googleapis.com \
-     secretmanager.googleapis.com \
-     iam.googleapis.com
-   ```
+# Generate Application Default Credentials (ADC)
+gcloud auth application-default login
+
+# Enable required Google Cloud services
+gcloud services enable \
+  aiplatform.googleapis.com \
+  bigquery.googleapis.com \
+  run.googleapis.com \
+  cloudbuild.googleapis.com \
+  secretmanager.googleapis.com \
+  iam.googleapis.com
+```
 
 ---
 
 ### Step 3: Configure Environment Variables
 
 1. **Root Configuration (`.env`)**:
-   Copy the universal configuration template to `.env`:
    ```bash
    cp .env.example .env
    ```
-   Open `.env` and fill in your GCP project details and API keys:
+   Configure `.env` with your GCP project details:
    ```bash
    # Google Cloud Settings
    GOOGLE_CLOUD_PROJECT=your-gcp-project-id
    GOOGLE_CLOUD_LOCATION=us-central1
    BQ_PROJECT_ID=your-gcp-project-id
    BQ_DATASET_ID=banking_data
-
-   # Service Account & Credentials (If using a dedicated key file)
-   # GOOGLE_APPLICATION_CREDENTIALS=./keys/service-account.json
 
    # Gemini Foundation Models (Recommended: gemini-3.7-flash)
    ROOT_AGENT_MODEL=gemini-3.7-flash
@@ -494,7 +699,6 @@ Authenticate your local machine to run `gcloud`, Google ADK Agent tools, and Ter
    ```
 
 2. **Frontend Configuration (`nextjs/.env.local`)**:
-   Create `nextjs/.env.local` and add your Firebase web app configuration:
    ```bash
    # Firebase Web App Config (From Firebase Console > Project Settings)
    NEXT_PUBLIC_FIREBASE_API_KEY="your-firebase-api-key"
@@ -513,164 +717,65 @@ Authenticate your local machine to run `gcloud`, Google ADK Agent tools, and Ter
 
 ### Step 4: Provision Infrastructure & Seed Datasets
 
-Before deploying or running services, each service requires its underlying Google Cloud infrastructure (BigQuery tables, IAM service accounts, GCS staging buckets, and telemetry datasets).
-
-#### 1. Option A: One-Shot Complete Infrastructure & Data Platform Setup
-Execute all Terraform modules and seed BigQuery in a single command:
+Execute one-shot infrastructure provisioning and dataset generation:
 ```bash
-# Provisions BigQuery schemas, MCP server infra, and both Agent staging environments
+# Provisions BigQuery schemas, MCP server infra, and Agent staging environments
 make infra-setup
 
-# Generates synthetic data and uploads to BigQuery
+# Generates 1,300 customer profiles and 450K+ transactions, uploading them to BigQuery
 make data-setup
 ```
-
-#### 2. Option B: Step-by-Step Per-Service Infrastructure Setup
-
-* **BigQuery Data Lake & Semantic Schemas**:
-  ```bash
-  make bq-setup
-  ```
-  *Initializes Terraform in `bigquery-infra/bq_schema` to provision the `banking_data` dataset, 9 relational tables, column documentation, and portfolio analytics views.*
-
-* **MCP Transaction Server Infrastructure**:
-  ```bash
-  make mcp-server-infra
-  ```
-  *Provisions the dedicated `mcp-server` IAM service account with BigQuery Data Editor permissions, Cloud Run configurations, and service URLs.*
-
-* **AI Banking Assistant Infrastructure (Vertex AI Staging & Telemetry)**:
-  ```bash
-  make ai-banking-assistant-infra
-  ```
-  *Provisions the GCS artifact staging bucket (`gs://ai-banking-assistant-*`), Vertex AI Reasoning Engine IAM service accounts, and Cloud Logging telemetry datasets.*
-
-* **Analytics Copilot Infrastructure (Vertex AI Staging & Telemetry)**:
-  ```bash
-  make analytics-copilot-infra
-  ```
-  *Provisions the staging storage bucket and IAM roles for the Enterprise BI agent.*
-
-* **Generate & Load Synthetic Datasets**:
-  ```bash
-  # Generate 1,300 profiles & 450K+ transactions in bigquery-infra/data/
-  make generate-data
-
-  # Upload generated CSV datasets into BigQuery tables
-  make upload-data
-  ```
 
 ---
 
 ### Step 5: Running the Full Stack Locally
 
-To start the full development environment with hot reloading across all microservices, run:
-
+Launch all microservices, agents, and the Next.js portal concurrently:
 ```bash
 make dev
 ```
 
-This concurrently launches:
 | Service | Local URL | Makefile Command | Purpose |
 | :--- | :--- | :--- | :--- |
-| **Next.js Web Portal** | `http://localhost:3000` | `make dev-frontend` | Client portal & Enterprise Staff dashboard |
+| **Next.js Web Portal** | `http://localhost:3000` | `make dev-frontend` | Customer portal & Staff BI dashboard |
 | **AI Banking Assistant** | `http://localhost:8000` | `make dev-backend` | Customer ADK reasoning engine REST & SSE stream API |
-| **Customer Identity Service** | `http://localhost:8001` | `make identity-service` | Token verification & dynamic BigQuery view sandbox compiler |
+| **Customer Identity Service** | `http://localhost:8001` | `make identity-service` | Token verification & dynamic BigQuery sandbox compiler |
 | **Customer Data Service** | `http://localhost:8081` | `make customer-data-service` | Core banking summary REST endpoints |
 | **Analytics Copilot API** | `http://localhost:8002` | `make analytics-copilot-api` | Staff BI reasoning engine & Vega-Lite chart generator |
 | **FastMCP Server** | `http://localhost:8080` | `make mcp-server` | Transaction protocol server & atomic double-entry ledger |
 
-> [!TIP]
-> You can also launch the standalone interactive ADK Agent Web Playground to test prompts directly:
-> ```bash
-> make ai-banking-assistant
-> ```
-
 ---
 
-### Step 6: Deploying Services to Google Cloud & Firebase (Production)
+### Step 6: Deploying Services to Google Cloud (Production)
 
-Once local testing passes, deploy the backend microservices, ADK agents, and the Next.js frontend:
+Deploy all components to production with a single unified workflow:
 
-#### 1. Deploy Customer Identity Service to Google Cloud Run
 ```bash
+# 1. Deploy Customer Identity Service to Cloud Run
 make deploy-identity-service
-```
-*Submits container build to Google Cloud Build and deploys `customer-identity-service` to Cloud Run with IAM service account authentication.*
 
-#### 2. Deploy Customer Data Service to Google Cloud Run
-```bash
+# 2. Deploy Customer Data Service to Cloud Run
 make deploy-data-service
-```
-*Builds container image and deploys `customer-data-service` to Cloud Run.*
 
-#### 3. Deploy FastMCP Transaction Server to Google Cloud Run
-```bash
+# 3. Deploy FastMCP Transaction Server to Cloud Run
 make deploy-mcp-server
-```
-*Builds and deploys `mcp-server` to Cloud Run, exposing secure SSE endpoints.*
 
-#### 4. Deploy AI Banking Assistant to Vertex AI Agent Runtime
-```bash
+# 4. Deploy AI Banking Assistant to Agent Platform Runtime
 make deploy-ai-banking-assistant
-```
-*Packages the Google ADK multi-agent reasoning engine with all tools and registers the managed agent on Vertex AI Agent Engine (`ReasoningEngine`). Automatically updates `deployment_metadata.json`.*
 
-#### 5. Deploy Analytics Copilot to Vertex AI Agent Runtime
-```bash
+# 5. Deploy Analytics Copilot to Agent Platform Runtime
 make deploy-analytics-copilot
-```
-*Deploys the Enterprise BI agent to Vertex AI Agent Engine.*
 
-#### 6. Deploy Next.js Frontend App to Firebase
-
-You can deploy the Next.js web application to **Firebase Hosting** (with Next.js SSR Web Frameworks support) or **Firebase App Hosting**:
-
-##### Option A: Deploy via Firebase Hosting (Web Frameworks)
-1. **Install Firebase CLI & Authenticate**:
-   ```bash
-   npm install -g firebase-tools
-   firebase login
-   ```
-
-2. **Enable Web Frameworks & Initialize Firebase in `nextjs/`**:
-   ```bash
-   cd nextjs
-   firebase experiments:enable webframeworks
-   firebase init hosting
-   ```
-   * Select your Firebase/GCP project (`banking-agent-rag-mcp`).
-   * Choose `nextjs` directory as the project source.
-   * Accept automatic GitHub Actions CI/CD deployment configuration (optional).
-
-3. **Deploy using Makefile target**:
-   ```bash
-   make deploy-frontend-firebase
-   ```
-   *Or directly from the `nextjs/` directory:*
-   ```bash
-   cd nextjs
-   npm run build
-   firebase deploy --only hosting
-   ```
-
-##### Option B: Deploy to Cloud Run (Alternative)
-```bash
-cd nextjs
-gcloud run deploy nextjs-banking-portal \
-  --source . \
-  --region us-central1 \
-  --allow-unauthenticated
+# 6. Deploy Next.js Web App to Firebase Hosting
+make deploy-frontend-firebase
 ```
 
 ---
 
 ### Step 7: Running Automated Tests & Evals
 
-Run the test and evaluation suites across all microservices and agents:
-
 ```bash
-# Run unit & integration tests
+# Run unit & integration test suites
 make test-identity-service
 make test-ai-banking-assistant
 make test-analytics-copilot
@@ -684,6 +789,4 @@ make eval-safety-suite
 
 ---
 
-*Developed with the Google Agent Development Kit (ADK), Model Context Protocol (MCP), and Google Cloud Platform.*
-
-
+*Built with the Google Agent Development Kit (ADK), Gemini 3.7 Flash, FastMCP, and Google Cloud Platform for the All Things Agentic Hackathon.*
