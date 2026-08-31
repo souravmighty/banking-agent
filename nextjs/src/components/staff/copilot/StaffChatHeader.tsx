@@ -28,11 +28,11 @@ export function StaffChatHeader({
         <div>
           <div className="flex items-center gap-2">
             <h2 className="text-sm font-bold text-slate-900 dark:text-white tracking-tight">
-              BankPilot Analytics Copilot
+              Analytics Copilot
             </h2>
           </div>
           <p className="text-[11px] text-slate-500 dark:text-slate-400">
-            Strategic portfolio intelligence & product performance analytics
+            Enterprise Business Intelligence
           </p>
         </div>
       </div>

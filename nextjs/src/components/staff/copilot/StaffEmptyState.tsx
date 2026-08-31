@@ -67,7 +67,7 @@ export function StaffEmptyState({ onSelectPrompt, inputComponent }: StaffEmptySt
 
         <div className="mt-1 mb-2.5 inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-indigo-50/90 dark:bg-indigo-950/80 border border-indigo-200/80 dark:border-indigo-500/30 text-indigo-700 dark:text-indigo-300 text-xs font-semibold shadow-sm">
           <Sparkles className="h-3.5 w-3.5 text-indigo-600 dark:text-indigo-400" />
-          <span>Product & Portfolio Intelligence</span>
+          <span>Enterprise Business Intelligence</span>
         </div>
 
         <p className="text-slate-500 dark:text-slate-400 text-xs sm:text-sm leading-relaxed max-w-lg mx-auto">

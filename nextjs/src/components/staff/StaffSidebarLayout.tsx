@@ -107,7 +107,7 @@ export function StaffSidebarLayout({ children }: StaffSidebarLayoutProps) {
                   BankPilot
                 </span>
                 <span className="text-[10px] font-bold uppercase tracking-wider bg-indigo-100 dark:bg-indigo-950/80 text-indigo-700 dark:text-indigo-400 border border-indigo-200 dark:border-indigo-800/60 px-1.5 py-0.5 rounded-md">
-                  Staff
+                  Enterprise
                 </span>
               </div>
               <span className="text-[10px] font-medium text-slate-500 dark:text-slate-400 -mt-0.5">
